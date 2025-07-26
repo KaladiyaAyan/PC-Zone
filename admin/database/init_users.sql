@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Insert a default admin user
 -- password is 'admin123' → hashed via PHP password_hash('admin123', PASSWORD_DEFAULT)
 INSERT INTO users (username, password, role) VALUES
-('admin', '$2y$10$tolsuyCpvyhx.sokC.N8U.ujGX/BX0JcrrlLuCIu17k12t.PMkJj.', 'admin');
+('admin', '$2y$10$a0UCxwvfzbhYFWtq7C4MIuGqwPNSoeCQ6A4ZcWLEjrqaHR2dPwXPG', 'admin');
 
 -- Insert a default user
 -- password is 'user123' → hashed via PHP password_hash('user123', PASSWORD_DEFAULT)

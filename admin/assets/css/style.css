@@ -22,7 +22,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 15px;
+  padding: 0 20px 0 20px;
   z-index: 1000;
 }
 .left-section {
@@ -49,14 +49,12 @@ body {
   cursor: pointer;
   display: block; /* now visible on all screen sizes */
 }
-.site-name {
-  font-size: 1.3rem;
-  font-weight: bold;
-}
+
 .right-section {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 16px;
 }
 .admin-avatar {
   width: 36px;
@@ -74,7 +72,17 @@ body {
   cursor: pointer;
 }
 
-/* Sidebar Full */
+/* Optional tweaks for dropdown */
+.dropdown-menu {
+  min-width: 220px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.dropdown-menu .dropdown-item {
+  padding: 10px 15px;
+}
+/* Finish Header */
+
+/* Sidebar Main */
 .sidebar {
   position: fixed;
   top: 60px;
@@ -99,13 +107,20 @@ body {
   display: none;
 }
 
-/* Admin Profile */
+/* Sidebar Admin Profile */
 .admin-profile {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
+.admin-profile:hover {
+  background-color: #2c3a4a;
+}
+
 .admin-info {
   display: flex;
   flex-direction: column;
@@ -116,7 +131,7 @@ body {
   color: #6ee7b7;
 }
 
-/* Nav */
+/* Sidebar Navigation */
 .nav-links .nav-title {
   font-size: 12px;
   color: #aaa;
@@ -130,6 +145,7 @@ body {
   text-decoration: none;
   border-radius: 5px;
   gap: 10px;
+  margin-bottom: 5px;
   transition: background 0.2s ease;
 }
 .nav-links a:hover,
@@ -160,14 +176,7 @@ body {
 }
 
 /* Full-width grid cards */
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  width: 100%;
-}
 
-/* ───----------------------------------------------------------------  Dashboard: Summary Cards ───────────────────────────────────────────────── */
 .dashboard-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -181,6 +190,7 @@ body {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
   padding: 20px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 15px;
   transition: transform 0.3s ease;
@@ -192,7 +202,6 @@ body {
 
 .card i {
   font-size: 2rem;
-  /* color: #4caf50; */
   color: #5c5bed;
 }
 
@@ -316,7 +325,7 @@ body {
   margin-bottom: 0.5rem;
 } */
 
-/* Dashboard Section */
+/* Recent Orders and live stock tables / Dashboard page */
 .dashboard-section {
   background: #fff;
   margin-block: 20px;
@@ -328,7 +337,6 @@ body {
 .dashboard-section h2 {
   margin-bottom: 15px;
   font-size: 1.4rem;
-  /* border-left: 5px solid #4caf50; */
   border-left: 5px solid #5c5bed;
   padding-left: 10px;
   color: #333;
@@ -348,12 +356,14 @@ body {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  border-inline: 1px solid #ddd;
 }
 
 .data-table th {
   background-color: #f0f0f0;
   font-weight: 600;
 }
+/* Finish Recent Orders and live stock tables / Dashboard page */
 
 /* Mobile Slide-In Hidden */
 @media screen and (max-width: 768px) {
@@ -388,65 +398,6 @@ body {
 }
 
 /* ============================================== Products page ============================================*/
-.products-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.btn-add {
-  background-color: #5d5dee;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-}
-
-.btn-add:hover {
-  background-color: #4949c3;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.product-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-}
-
-.product-table th,
-.product-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-.product-table th {
-  background-color: #f4f4f4;
-}
-
-.btn-edit {
-  color: #007bff;
-  text-decoration: none;
-  margin-right: 10px;
-}
-
-.btn-delete {
-  color: #dc3545;
-  text-decoration: none;
-}
-
-/* Row hover - slightly darker */
-.product-table tbody tr.product-row:hover {
-  background-color: #e6f0ff; /* Light shade of blue */
-  cursor: pointer;
-  transition: background-color 0.1s ease;
-}
 
 /*------------------------------------------------ Login Page -------------------------------------------- */
 /* ===== Login Page Styles ===== */
@@ -521,7 +472,7 @@ body {
   font-size: 0.9rem;
   margin-top: -0.5rem;
 }
-
+/* Finish Login Page Styles */
 /* popup */
 /* .product-modal {
   position: fixed;
@@ -557,6 +508,8 @@ body {
   max-height: 120px;
   margin: 5px;
 } */
+
+/* Product POPUP / products page */
 .product-modal {
   position: fixed;
   z-index: 9999;

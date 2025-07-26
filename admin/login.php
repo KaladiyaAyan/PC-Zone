@@ -1,5 +1,4 @@
 <?php
-// File: pcparts-admin-panel/login.php
 session_start();
 
 // 1️⃣ Redirect if already logged in
@@ -23,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->bind_result($id, $hash, $role);
-
+  echo $stmt . $id . $hash . $role;
   if ($stmt->fetch()) {
 
     if (password_verify($password, $hash) && $role === 'admin') {

@@ -1,6 +1,6 @@
 <aside id="sidebar" class="sidebar">
   <div class="admin-profile">
-    <img src="./../assets/images/admin.jpg" class="admin-avatar" alt="Admin">
+    <img src="./assets/images/admin.jpg" class="admin-avatar" alt="Admin">
     <div class="admin-info">
       <strong>Administrator</strong>
       <span class="status online">● Online</span>
@@ -8,11 +8,15 @@
   </div>
   <nav class="nav-links">
     <p class="nav-title">MAIN NAVIGATION</p>
-    <a href="dashboard.php" class="nav-item">
+    <a href="dashboard.php" class="nav-item <?php if ($page == 'dashboard') {
+                                              echo 'active';
+                                            } ?>">
       <i class="fas fa-chart-line icon"></i>
       <span class="label">Dashboard</span>
     </a>
-    <a href="products.php" class="nav-item">
+    <a href="products.php" class="nav-item <?php if ($page == 'products') {
+                                              echo 'active';
+                                            } ?>">
       <i class="fas fa-boxes icon"></i>
       <span class="label">Products</span>
     </a>
