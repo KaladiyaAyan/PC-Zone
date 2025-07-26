@@ -10,7 +10,7 @@ if (!isset($pageTitle)) $pageTitle = SITE_NAME;
   <title><?php echo $pageTitle; ?></title>
   <link href="./assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
   <link href="./assets/css/custom.css" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/fonts/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="./assets/fontawesome/css/all.min.css">
 </head>
 
 <body>
