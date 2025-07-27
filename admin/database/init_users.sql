@@ -1,15 +1,19 @@
 -- database/init_users.sql
 
--- CREATE DATABASE IF NOT EXISTS pcparts_db;
--- USE pcparts_db;
+-- CREATE DATABASE IF NOT EXISTS pczone;
+-- USE pczone;
 
 -- Users table for admin authentication
 CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(50) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,    -- store password_hash()
-  role ENUM('admin','user') NOT NULL DEFAULT 'user',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    role ENUM('admin','user') NOT NULL DEFAULT 'user',
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Insert a default admin user
@@ -46,16 +50,16 @@ INSERT INTO users (username, password, role) VALUES
 
 
 -- products table
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   description TEXT,
   price DECIMAL(10, 2) NOT NULL,
   stock INT DEFAULT 0,
   brand_id INT,
-   brand VARCHAR(100) NOT NULL,
+  --  brand VARCHAR(100) NOT NULL,
   category_id INT,
-  category VARCHAR(100) NOT NULL,
+  -- category VARCHAR(100) NOT NULL,
   image1 VARCHAR(255),
   image2 VARCHAR(255),
   image3 VARCHAR(255),
@@ -66,49 +70,12 @@ CREATE TABLE products (
   FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE
 );
 
-
-
-INSERT INTO products (name, description, price, category, brand, stock, image1, image2)
-VALUES (
-  'Intel Core i9-13900K',
-  'Powerful 24-core processor with ultra-high frequency for gaming and productivity. Compatible with latest Z790 motherboards. Excellent thermal performance.',
-  58999.99,
-  'CPU',
-  'Intel',
-  25,
-  'i9-13900K-front.jpg',
-  'i9-13900K-back.jpg'
-),
-(
-  'AMD Ryzen 9 5950X',
-  'High-performance 32-core processor for high-end gaming and productivity. Compatible with latest Z790 motherboards. Excellent thermal performance.',
-  79999.99,
-  'CPU',
-  'AMD',
-  15,
-  'ryzen-9-5950X-front.jpg',
-  'ryzen-9-5950X-back.jpg'
-),
-(
-  'NVIDIA RTX 3090',
-  'Powerful graphics card for gaming and productivity. Compatible with latest Z790 motherboards. Excellent thermal performance.',
-  129999.99,
-  'GPU',
-  'NVIDIA',
-  10,
-  'rtx3090-front.jpg',
-  'rtx3090-back.jpg'
-),
-(
-  'Intel Core i9-14900K',
-  'Powerful 24-core processor with ultra-high frequency for gaming and productivity. Compatible with latest Z790 motherboards. Excellent thermal performance.',
-  58999.99,
-  'CPU',
-  'Intel',
-  25,
-  'i9-14900K-front.jpg',
-  'i9-14900K-back.jpg'
-);
+INSERT INTO products (name, description, price, stock, brand_id, category_id, image1, image2, image3, image4) VALUES
+('Sample Product', 'This is a sample product.', 99.99, 10, 1, 1, 'i9-13900k-front.jpg', 'i9-13900k-back.jpg', 'image3.jpg', 'image4.jpg'),
+('Sample Product 2', 'This is another sample product.', 49.99, 5, 2, 2, 'rtx3090-front.jpg', 'rtx3090-back.jpg', 'image3.jpg', 'image4.jpg'),
+('Sample Product 3', 'This is yet another sample product.', 79.99, 15, 3, 3, 'ryzen-5-1.jpg', 'ryzen-5-2.jpg', 'image3.jpg', 'image4.jpg'),
+('Sample Product 4', 'This is the last sample product.', 59.99, 8, 4, 4, 'ryzen-7-1.jpg', 'ryzen-7-2.jpg', 'image3.jpg', 'image4.jpg'),
+('Sample Product 5', 'This is the final sample product.', 69.99, 12, 5, 5, 'ryzen-9-5950x-front.jpg', 'ryzen-9-5950x-back.jpg', 'image3.jpg', 'image4.jpg');
 
 -- Create categories table
 CREATE TABLE IF NOT EXISTS categories (

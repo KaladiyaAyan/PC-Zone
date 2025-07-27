@@ -1,31 +1,44 @@
 <?php
-// Database connection function
+// Database connection function (MySQLi Object-Oriented)
 function getConnection()
 {
-  global $pdo;
-  return $pdo;
+  $host = "localhost";
+  $user = "root";
+  $pass = "";
+  $dbname = "pczone";
+
+  $mysqli = new mysqli($host, $user, $pass, $dbname);
+
+  if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
+  }
+
+  return $mysqli;
 }
 
 // User functions
-function registerUser($name, $email, $password, $phone = null)
+function registerUser($username, $email, $password, $phone = null)
 {
-  $pdo = getConnection();
+  $mysqli = getConnection();
   $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-  $stmt = $pdo->prepare("INSERT INTO users (name, email, password, phone, created_at) VALUES (?, ?, ?, ?, NOW())");
-  return $stmt->execute([$name, $email, $hashedPassword, $phone]);
+  $stmt = $mysqli->prepare("INSERT INTO users (username, email, password, phone) VALUES (?, ?, ?, ?)");
+  $stmt->bind_param("ssss", $username, $email, $hashedPassword, $phone);
+  return $stmt->execute();
 }
 
 function loginUser($email, $password)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
-  $stmt->execute([$email]);
-  $user = $stmt->fetch();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
 
   if ($user && password_verify($password, $user['password'])) {
     $_SESSION['user_id'] = $user['id'];
-    $_SESSION['user_name'] = $user['name'];
+    $_SESSION['user_name'] = $user['username'];
     $_SESSION['user_email'] = $user['email'];
     return true;
   }
@@ -39,179 +52,205 @@ function isLoggedIn()
 
 function getUserById($id)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-  $stmt->execute([$id]);
-  return $stmt->fetch();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+  $stmt->bind_param("i", $id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_assoc();
 }
 
 // Product functions
 function getAllProducts($limit = null, $offset = 0)
 {
-  $pdo = getConnection();
-  $sql = "SELECT p.*, c.name as category_name FROM products p 
-            LEFT JOIN categories c ON p.category_id = c.id 
-            WHERE p.status = 'active' ORDER BY p.created_at DESC";
+  $mysqli = getConnection();
+  $sql = "SELECT p.*, c.name as category_name 
+          FROM products p 
+          LEFT JOIN categories c ON p.category_id = c.id 
+          ORDER BY p.created_at DESC";
 
-  if ($limit) {
-    $sql .= " LIMIT $limit OFFSET $offset";
+  if ($limit !== null) {
+    $sql .= " LIMIT ?, ?";
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("ii", $offset, $limit);
+  } else {
+    $stmt = $mysqli->prepare($sql);
   }
 
-  $stmt = $pdo->query($sql);
-  return $stmt->fetchAll();
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 function getProductById($id)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p 
-                          LEFT JOIN categories c ON p.category_id = c.id 
-                          WHERE p.id = ? AND p.status = 'active'");
-  $stmt->execute([$id]);
-  return $stmt->fetch();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT p.*, c.name as category_name 
+                            FROM products p 
+                            LEFT JOIN categories c ON p.category_id = c.id 
+                            WHERE p.id = ?");
+  $stmt->bind_param("i", $id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_assoc();
 }
 
 function getProductsByCategory($categoryId, $limit = null)
 {
-  $pdo = getConnection();
-  $sql = "SELECT * FROM products WHERE category_id = ? AND status = 'active' ORDER BY created_at DESC";
-  if ($limit) $sql .= " LIMIT $limit";
+  $mysqli = getConnection();
+  $sql = "SELECT * FROM products WHERE category_id = ? ORDER BY created_at DESC";
+  if ($limit !== null) {
+    $sql .= " LIMIT ?";
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("ii", $categoryId, $limit);
+  } else {
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("i", $categoryId);
+  }
 
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$categoryId]);
-  return $stmt->fetchAll();
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 function searchProducts($keyword)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p 
-                          LEFT JOIN categories c ON p.category_id = c.id 
-                          WHERE (p.name LIKE ? OR p.description LIKE ?) AND p.status = 'active'");
-  $searchTerm = "%$keyword%";
-  $stmt->execute([$searchTerm, $searchTerm]);
-  return $stmt->fetchAll();
+  $mysqli = getConnection();
+  $searchTerm = '%' . $keyword . '%';
+  $stmt = $mysqli->prepare("SELECT p.*, c.name as category_name 
+                            FROM products p 
+                            LEFT JOIN categories c ON p.category_id = c.id 
+                            WHERE p.name LIKE ? OR p.description LIKE ?");
+  $stmt->bind_param("ss", $searchTerm, $searchTerm);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 // Category functions
 function getAllCategories()
 {
-  $pdo = getConnection();
-  $stmt = $pdo->query("SELECT * FROM categories WHERE status = 'active' ORDER BY name");
-  return $stmt->fetchAll();
+  $mysqli = getConnection();
+  $result = $mysqli->query("SELECT * FROM categories ORDER BY name");
+  return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 function getCategoryById($id)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ? AND status = 'active'");
-  $stmt->execute([$id]);
-  return $stmt->fetch();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT * FROM categories WHERE id = ?");
+  $stmt->bind_param("i", $id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_assoc();
 }
 
 // Cart functions
 function addToCart($userId, $productId, $quantity = 1)
 {
-  $pdo = getConnection();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT * FROM cart WHERE user_id = ? AND product_id = ?");
+  $stmt->bind_param("ii", $userId, $productId);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-  // Check if item already exists in cart
-  $stmt = $pdo->prepare("SELECT * FROM cart WHERE user_id = ? AND product_id = ?");
-  $stmt->execute([$userId, $productId]);
-  $existing = $stmt->fetch();
-
-  if ($existing) {
-    // Update quantity
-    $stmt = $pdo->prepare("UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?");
-    return $stmt->execute([$quantity, $userId, $productId]);
+  if ($result->num_rows > 0) {
+    $stmt = $mysqli->prepare("UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?");
+    $stmt->bind_param("iii", $quantity, $userId, $productId);
   } else {
-    // Insert new item
-    $stmt = $pdo->prepare("INSERT INTO cart (user_id, product_id, quantity, created_at) VALUES (?, ?, ?, NOW())");
-    return $stmt->execute([$userId, $productId, $quantity]);
+    $stmt = $mysqli->prepare("INSERT INTO cart (user_id, product_id, quantity, created_at) VALUES (?, ?, ?, NOW())");
+    $stmt->bind_param("iii", $userId, $productId, $quantity);
   }
+
+  return $stmt->execute();
 }
 
 function getCartItems($userId)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT c.*, p.name, p.price, p.image FROM cart c 
-                          JOIN products p ON c.product_id = p.id 
-                          WHERE c.user_id = ?");
-  $stmt->execute([$userId]);
-  return $stmt->fetchAll();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT c.*, p.name, p.price, p.image1 as image 
+                            FROM cart c 
+                            JOIN products p ON c.product_id = p.id 
+                            WHERE c.user_id = ?");
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 function getCartTotal($userId)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT SUM(c.quantity * p.price) as total FROM cart c 
-                          JOIN products p ON c.product_id = p.id 
-                          WHERE c.user_id = ?");
-  $stmt->execute([$userId]);
-  $result = $stmt->fetch();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT SUM(c.quantity * p.price) as total 
+                            FROM cart c 
+                            JOIN products p ON c.product_id = p.id 
+                            WHERE c.user_id = ?");
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $result = $stmt->get_result()->fetch_assoc();
   return $result['total'] ?? 0;
 }
 
 function removeFromCart($userId, $productId)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("DELETE FROM cart WHERE user_id = ? AND product_id = ?");
-  return $stmt->execute([$userId, $productId]);
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("DELETE FROM cart WHERE user_id = ? AND product_id = ?");
+  $stmt->bind_param("ii", $userId, $productId);
+  return $stmt->execute();
 }
 
 function clearCart($userId)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("DELETE FROM cart WHERE user_id = ?");
-  return $stmt->execute([$userId]);
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("DELETE FROM cart WHERE user_id = ?");
+  $stmt->bind_param("i", $userId);
+  return $stmt->execute();
 }
 
 // Order functions
 function createOrder($userId, $totalAmount, $shippingAddress)
 {
-  $pdo = getConnection();
+  $mysqli = getConnection();
+  $mysqli->begin_transaction();
 
   try {
-    $pdo->beginTransaction();
-
-    // Create order
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, shipping_address, status, created_at) 
+    $stmt = $mysqli->prepare("INSERT INTO orders (customer_id, customer_name, total_amount, status, order_date) 
                               VALUES (?, ?, ?, 'pending', NOW())");
-    $stmt->execute([$userId, $totalAmount, $shippingAddress]);
-    $orderId = $pdo->lastInsertId();
+    $stmt->bind_param("isd", $userId, $shippingAddress, $totalAmount);
+    $stmt->execute();
+    $orderId = $mysqli->insert_id;
 
-    // Get cart items
     $cartItems = getCartItems($userId);
-
-    // Create order items
     foreach ($cartItems as $item) {
-      $stmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) 
-                                  VALUES (?, ?, ?, ?)");
-      $stmt->execute([$orderId, $item['product_id'], $item['quantity'], $item['price']]);
+      $stmt = $mysqli->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price) 
+                                VALUES (?, ?, ?, ?)");
+      $stmt->bind_param("iiid", $orderId, $item['product_id'], $item['quantity'], $item['price']);
+      $stmt->execute();
     }
 
-    // Clear cart
     clearCart($userId);
-
-    $pdo->commit();
+    $mysqli->commit();
     return $orderId;
   } catch (Exception $e) {
-    $pdo->rollback();
+    $mysqli->rollback();
     return false;
   }
 }
 
 function getUserOrders($userId)
 {
-  $pdo = getConnection();
-  $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC");
-  $stmt->execute([$userId]);
-  return $stmt->fetchAll();
+  $mysqli = getConnection();
+  $stmt = $mysqli->prepare("SELECT * FROM orders WHERE customer_id = ? ORDER BY order_date DESC");
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 // Utility functions
 function formatPrice($price)
 {
-  return '$' . number_format($price, 2);
+  return '₹' . number_format($price, 2);
 }
 
 function sanitizeInput($input)

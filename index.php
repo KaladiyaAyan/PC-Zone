@@ -1,10 +1,23 @@
 <?php
 require_once './config/config.php';
 $pageTitle = SITE_NAME . ' - Home';
-// require_once './includes/functions.php';
+require_once './includes/db_connect.php';
 
-// Get featured products
-$featuredProducts = getAllProducts(8);
+// Get featured products (limit 8)
+$featuredProducts = [];
+$conn = getConnection();
+$sql = "SELECT p.*, c.name as category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        ORDER BY p.created_at DESC 
+        LIMIT 8";
+
+$result = mysqli_query($conn, $sql);
+if ($result && mysqli_num_rows($result) > 0) {
+  while ($row = mysqli_fetch_assoc($result)) {
+    $featuredProducts[] = $row;
+  }
+}
 ?>
 
 <?php include 'includes/header.php'; ?>
@@ -24,24 +37,37 @@ $featuredProducts = getAllProducts(8);
   <!-- Featured Products -->
   <div class="row mt-5">
     <div class="col-12">
-      <h2>Featured Products</h2>
+      <h2 class="mb-4">Featured Products</h2>
     </div>
-  </div>
 
-  <div class="row">
-    <?php foreach ($featuredProducts as $product): ?>
-      <div class="col-md-3 mb-4">
-        <div class="card">
-          <img src="assets/images/products/<?php echo $product['image']; ?>" class="card-img-top" alt="<?php echo $product['name']; ?>">
-          <div class="card-body">
-            <h5 class="card-title"><?php echo $product['name']; ?></h5>
-            <p class="card-text"><?php echo substr($product['description'], 0, 100); ?>...</p>
-            <p class="text-primary fw-bold"><?php echo formatPrice($product['price']); ?></p>
-            <a href="pages/product-detail.php?id=<?php echo $product['id']; ?>" class="btn btn-primary">View Details</a>
-          </div>
+    <?php if (count($featuredProducts) > 0): ?>
+      <?php foreach ($featuredProducts as $product): ?>
+        <div class="col-md-3 mb-4">
+          <a href="pages/product-detail.php?id=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
+            <div class="card h-100 border-0 shadow-sm product-card transition-hover">
+              <div class="ratio ratio-4x3 rounded-top overflow-hidden">
+                <img src="./admin/assets/images/<?php echo $product['image1']; ?>" class="img-fluid object-fit-cover" alt="<?php echo $product['name']; ?>">
+              </div>
+              <div class="card-body">
+                <h5 class="card-title fw-semibold"><?php echo $product['name']; ?></h5>
+                <p class="card-text text-muted small" style="height: 3rem; overflow: hidden; text-overflow: ellipsis;">
+                  <?php echo $product['description']; ?>
+                </p>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <span class="text-primary fw-bold fs-6"><?php echo formatPrice($product['price']); ?></span>
+                  <span class="text-end small text-muted">View More →</span>
+                </div>
+              </div>
+            </div>
+          </a>
         </div>
+      <?php endforeach; ?>
+
+    <?php else: ?>
+      <div class="col-12">
+        <div class="alert alert-warning">No featured products found.</div>
       </div>
-    <?php endforeach; ?>
+    <?php endif; ?>
   </div>
 </div>
 
