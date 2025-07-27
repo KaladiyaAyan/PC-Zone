@@ -8,15 +8,11 @@
   </div>
   <nav class="nav-links">
     <p class="nav-title">MAIN NAVIGATION</p>
-    <a href="dashboard.php" class="nav-item <?php if ($page == 'dashboard') {
-                                              echo 'active';
-                                            } ?>">
+    <a href="dashboard.php" class="nav-item <?= ($page == 'dashboard' ?  'active' : '') ?>">
       <i class="fas fa-chart-line icon"></i>
       <span class="label">Dashboard</span>
     </a>
-    <a href="products.php" class="nav-item <?php if ($page == 'products') {
-                                              echo 'active';
-                                            } ?>">
+    <a href="products.php" class="nav-item <?= ($page == 'products' ?  'active' : '') ?>">
       <i class="fas fa-boxes icon"></i>
       <span class="label">Products</span>
     </a>

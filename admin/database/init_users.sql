@@ -62,8 +62,8 @@ CREATE TABLE products (
   image4 VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (brand_id) REFERENCES brands(id),
-  FOREIGN KEY (category_id) REFERENCES categories(id)
+   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+  FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE
 );
 
 
@@ -110,20 +110,93 @@ VALUES (
   'i9-14900K-back.jpg'
 );
 
-
--- brands table
-CREATE TABLE brands (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL
+-- Create categories table
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
 );
 
--- categories table
-CREATE TABLE categories (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL
+-- Create brands table with relation to categories
+CREATE TABLE IF NOT EXISTS brands (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    category_id INT,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
 );
-INSERT INTO brands (name) VALUES ('Intel'), ('AMD'), ('NVIDIA');
-INSERT INTO categories (name) VALUES ('CPU'), ('GPU'), ('Motherboard');
+
+-- Insert categories
+INSERT INTO categories (name) VALUES 
+('Processor'),
+('Graphics Card'),
+('Motherboard'),
+('RAM'),
+('Storage'),
+('Power Supply'),
+('Cabinet'),
+('Cooling System'),
+('Monitor'),
+('Keyboard'),
+('Mouse'),
+('Headphone'),
+('Laptop'),
+('Motherboard Combo');
+
+-- Insert brands with corresponding category_id (assuming auto-increment matches order above)
+INSERT INTO brands (name, category_id) VALUES
+('Intel', 1),
+('AMD', 1),
+('NVIDIA', 2),
+('ASUS', 2),
+('MSI', 2),
+('ZOTAC', 2),
+('ASRock', 3),
+('Gigabyte', 3),
+('Corsair', 4),
+('G.Skill', 4),
+('Kingston', 4),
+('Samsung', 5),
+('WD', 5),
+('Seagate', 5),
+('Crucial', 5),
+('Cooler Master', 6),
+('Antec', 6),
+('Corsair', 6),
+('NZXT', 7),
+('Lian Li', 7),
+('DeepCool', 8),
+('Noctua', 8),
+('be quiet!', 8),
+('Dell', 9),
+('LG', 9),
+('ASUS', 9),
+('Logitech', 10),
+('Redragon', 10),
+('Razer', 10),
+('HP', 11),
+('Zebronics', 11),
+('Cosmic Byte', 11),
+('Boat', 12),
+('JBL', 12),
+('Sony', 12),
+('Lenovo', 13),
+('Acer', 13),
+('ASUS', 13),
+('Intel + ASUS', 14),
+('AMD + MSI', 14);
+
+
+-- CREATE TABLE categories (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   name VARCHAR(100) NOT NULL UNIQUE
+-- );
+
+-- CREATE TABLE brands (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   name VARCHAR(100) NOT NULL UNIQUE
+-- );
+
+-- INSERT INTO categories (name) VALUES ('Processor'), ('Graphics Card'), ('Motherboard'), ('Ram'), ('SSD'), ('HDD'), ('Power Supply'), ('Cabinet'), ('CPU Cooler'), ('Case Fan'), ('Monitor'), ('Keyboard'), ('Mouse'), ('Thermal Paste'), ('Capture Card'), ('Sound Card'), ('Networking Card');
+-- INSERT INTO brands (name) VALUES ('Intel'), ('AMD'), ('NVIDIA'), ('ASUS'), ('MSI'), ('Gigabyte'), ('Corsair'), ('Cooler Master'), ('Zotac'), ('Kingston'), ('G.Skill'), ('Samsung'), ('Seagate'), ('Western Digital'), ('NZXT'), ('Antec'), ('Thermaltake'), ('DeepCool'), ('Razer'), ('Logitech'), ('Adata'), ('HyperX');
 -- Customers table
 CREATE TABLE IF NOT EXISTS customers (
   id INT AUTO_INCREMENT PRIMARY KEY,

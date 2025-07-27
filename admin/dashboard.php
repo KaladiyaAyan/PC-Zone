@@ -47,8 +47,12 @@ $page = "";
           <p>
             <?php
             $result = $conn->query("SELECT COUNT(*) AS total FROM products");
-            $data = $result->fetch_assoc();
-            echo ($data['total'] ?? 0);
+            if ($result) {
+              $data = $result->fetch_assoc();
+              echo ($data['total'] ?? 0);
+            } else {
+              echo "Error: " . $conn->error;
+            }
             ?>
           </p>
         </div>
@@ -61,8 +65,10 @@ $page = "";
           <p>
             <?php
             $result = $conn->query("SELECT COUNT(*) AS total FROM orders");
-            $data = $result->fetch_assoc();
-            echo ($data['total'] ?? 0);
+            if ($result) {
+              $data = $result->fetch_assoc();
+              echo ($data['total'] ?? 0);
+            }
             ?>
           </p>
         </div>
@@ -75,8 +81,10 @@ $page = "";
           <p>
             <?php
             $result = $conn->query("SELECT COUNT(DISTINCT customer_name) AS total FROM orders");
-            $data = $result->fetch_assoc();
-            echo ($data['total'] ?? 0);
+            if ($result) {
+              $data = $result->fetch_assoc();
+              echo ($data['total'] ?? 0);
+            }
             ?>
           </p>
         </div>
@@ -89,8 +97,10 @@ $page = "";
           <p>
             <?php
             $result = $conn->query("SELECT SUM(total_amount) AS total FROM orders");
-            $data = $result->fetch_assoc();
-            echo '₹' . ($data['total'] ?? 0);
+            if ($result) {
+              $data = $result->fetch_assoc();
+              echo '₹' . ($data['total'] ?? 0);
+            }
             ?>
           </p>
         </div>

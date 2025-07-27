@@ -7,17 +7,18 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 
 // $current = basename($_SERVER['PHP_SELF']);
 include './includes/db_connect.php';
-include './includes/header.php';
-include './includes/sidebar.php';
 
 // Fetch products with brand and category name
-$sql = "SELECT 
+$sql = "
+  SELECT 
     p.*, 
-    b.name AS brand_id, 
-    c.name AS category_id 
-FROM products p
-LEFT JOIN brands b ON p.brand_id = b.id
-LEFT JOIN categories c ON p.category_id = c.id";
+    c.name AS category_name, 
+    b.name AS brand_name 
+  FROM products p
+  LEFT JOIN categories c ON p.category_id = c.id
+  LEFT JOIN brands b ON p.brand_id = b.id
+";
+
 
 $stmt = $conn->prepare($sql);
 $stmt->execute();
@@ -55,7 +56,7 @@ $result = $stmt->get_result();
   <main class="main-content">
     <div class="products-header">
       <h1>Products</h1>
-      <a href="add_product.php" class="btn-add">+ Add New Product</a>
+      <a href="add_product.php" class="btn-add"><i class="fa-solid fa-plus"></i> Add New Product</a>
     </div>
 
     <div class="table-container">
@@ -79,14 +80,14 @@ $result = $stmt->get_result();
                                                     "description" => $row["description"],
                                                     "price" => $row["price"],
                                                     "stock" => $row["stock"],
-                                                    "brand" => $row["brand"],
-                                                    "category" => $row["category"],
+                                                    "brand" => $row["brand_name"],
+                                                    "category" => $row["category_name"],
                                                     "images" => array_filter([$row["image1"], $row["image2"], $row["image3"], $row["image4"]])
                                                   ]) ?>'>
               <td><?= $row['id'] ?></td>
-              <td><?= $row['name'] ?></td>
-              <td><?= $row['category'] ?></td>
-              <td><?= $row['brand'] ?></td>
+              <td><?= htmlspecialchars($row['name'] ?? '') ?></td>
+              <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
+              <td><?= htmlspecialchars($row['brand_name'] ?? '') ?></td>
               <td><?= number_format($row['price'], 2) ?></td>
               <td><?= $row['stock'] ?></td>
               <td>
@@ -97,6 +98,7 @@ $result = $stmt->get_result();
             </tr>
           <?php endwhile; ?>
         </tbody>
+
       </table>
     </div>
   </main>
