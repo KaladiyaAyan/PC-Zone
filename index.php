@@ -46,7 +46,16 @@ if ($result && mysqli_num_rows($result) > 0) {
           <a href="pages/product-detail.php?id=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
             <div class="card h-100 border-0 shadow-sm product-card transition-hover">
               <div class="ratio ratio-4x3 rounded-top overflow-hidden">
-                <img src="./admin/assets/images/<?php echo $product['image1']; ?>" class="img-fluid object-fit-cover" alt="<?php echo $product['name']; ?>">
+                <?php
+                $img1 = './admin/assets/images/' . $product['image1'];
+                $fallback = './assets/images/' . $product['image1'];
+
+                $finalImage = file_exists($img1) ? $img1 : (file_exists($fallback) ? $fallback : './assets/images/default.png');
+                ?>
+
+                <img src="<?php echo $finalImage; ?>" class="img-fluid object-fit-cover" alt="<?php echo $product['name']; ?>" />
+
+                <!-- <img src="<?php echo "./admin/assets/images/" . $product['image1']; ?> ?? <?php echo "./assets/images/" . $product['image1']; ?>" class="img-fluid object-fit-cover" alt="<?php echo $product['name']; ?>" /> -->
               </div>
               <div class="card-body">
                 <h5 class="card-title fw-semibold"><?php echo $product['name']; ?></h5>
