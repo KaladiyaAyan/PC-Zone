@@ -3,6 +3,11 @@
 session_start();
 include('./includes/db_connect.php');
 
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+  header("Location: login.php");
+  exit;
+}
+
 if (!isset($_SESSION['user_id']) || strlen($_SESSION['user_id']) == 0) {
   header('Location: logout.php');
   exit();
@@ -237,6 +242,27 @@ $page = "";
     </section>
 
   </main>
+
+
+  <script>
+    // Wait for the DOM to load
+    document.addEventListener("DOMContentLoaded", function() {
+      const hamburger = document.getElementById("hamburger");
+      const sidebar = document.getElementById("sidebar");
+
+      // Load the sidebar state from localStorage
+      const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+      if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+      }
+
+      // Toggle sidebar and save state
+      hamburger.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+        localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+      });
+    });
+  </script>
 
 
   <script src="./assets/vendor/jquery/jquery-3.7.1.min.js"></script>

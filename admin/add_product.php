@@ -11,7 +11,6 @@ $errors = [];
 $success = false;
 
 // Handle form submission
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name        = trim($_POST['name']);
   $description = trim($_POST['description']);

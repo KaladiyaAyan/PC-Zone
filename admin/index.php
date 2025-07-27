@@ -1,21 +1,12 @@
 <?php
 // File: pcparts-admin-panel/index.php
-// session_start();
+session_start();
 
 // If not logged in, send to login
 // if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 //   header("Location: login.php");
 //   exit;
 // }
-
-// Already logged in as admin: go to dashboard
-// header("Location: pages/dashboard.php");
-// exit;
-?>
-
-
-<?php
-session_start();
 include('./includes/db_connect.php');
 
 // ini_set('display_errors', 1);

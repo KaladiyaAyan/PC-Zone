@@ -87,7 +87,7 @@ body {
   position: fixed;
   top: 60px;
   left: 0;
-  width: 240px;
+  width: 250px;
   height: 100%;
   background-color: #1f2937;
   color: white;
@@ -101,6 +101,15 @@ body {
 .sidebar.collapsed {
   width: 60px;
 }
+
+.sidebar.collapsed .admin-profile {
+  margin-bottom: 10px;
+}
+
+.sidebar.collapsed .admin-avatar {
+  margin-left: -8px;
+}
+
 .sidebar.collapsed .label,
 .sidebar.collapsed .admin-info,
 .sidebar.collapsed .nav-title {
@@ -383,7 +392,7 @@ body {
     position: fixed;
     z-index: 1000;
     height: 100%;
-    width: 240px;
+    width: 250px;
     background: #2c3e50;
     transition: transform 0.3s ease;
   }
@@ -532,6 +541,7 @@ body {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   position: relative;
   font-family: "Segoe UI", sans-serif;
+  z-index: 9999;
 }
 
 .close-btn {

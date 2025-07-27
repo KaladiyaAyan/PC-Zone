@@ -25,9 +25,9 @@ $stmt->execute();
 $result = $stmt->get_result();
 ?>
 
-<?php if (isset($_GET['update']) && $_GET['update'] === 'success'): ?>
-  <div class="alert-success">✅ Product updated successfully!</div>
-<?php endif; ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -54,6 +54,31 @@ $result = $stmt->get_result();
   include './includes/sidebar.php' ?>
 
   <main class="main-content">
+
+    <?php if (isset($_GET['delete']) || isset($_GET['update']) || isset($_GET['insert'])): ?>
+      <div id="flash-alert">
+        <?php if (isset($_GET['delete'])): ?>
+          <?php if ($_GET['delete'] === 'success'): ?>
+            <div class="alert-success">✅ Product deleted successfully!</div>
+          <?php elseif ($_GET['delete'] === 'failed'): ?>
+            <div class="alert-danger">❌ Failed to delete product. Please try again.</div>
+          <?php elseif ($_GET['delete'] === 'invalid'): ?>
+            <div class="alert-warning">⚠️ Invalid product ID.</div>
+          <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['update']) && $_GET['update'] === 'success'): ?>
+          <div class="alert-success">✅ Product updated successfully!</div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['insert']) && $_GET['insert'] === 'success'): ?>
+          <div class="alert-success">✅ Product inserted successfully!</div>
+        <?php endif; ?>
+      </div>
+    <?php endif; ?>
+
+
+
     <div class="products-header">
       <h1>Products</h1>
       <a href="add_product.php" class="btn-add"><i class="fa-solid fa-plus"></i> Add New Product</a>
@@ -124,6 +149,30 @@ $result = $stmt->get_result();
       document.getElementById("productModal").style.display = "none";
     }
 
+    // Wait for the DOM to load
+    document.addEventListener("DOMContentLoaded", function() {
+      const hamburger = document.getElementById("hamburger");
+      const sidebar = document.getElementById("sidebar");
+
+      // Load the sidebar state from localStorage
+      const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+      if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+      }
+
+      // Toggle sidebar and save state
+      hamburger.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+        localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+      });
+    });
+
+    document.querySelectorAll(".btn-edit, .btn-delete").forEach(btn => {
+      btn.addEventListener("click", function(e) {
+        e.stopPropagation(); // ⛔ Prevent row click from triggering
+      });
+    });
+
     // Open modal with row data
     document.querySelectorAll(".product-row").forEach(row => {
       row.addEventListener("click", () => {
@@ -151,6 +200,24 @@ $result = $stmt->get_result();
         document.getElementById("productModal").style.display = "block";
       });
     });
+
+    // Auto-close alert after 3 seconds
+    setTimeout(() => {
+      const alertBox = document.getElementById('flash-alert');
+      if (alertBox) {
+        alertBox.style.transition = 'opacity 0.5s';
+        alertBox.style.opacity = 0;
+        setTimeout(() => alertBox.remove(), 500); // remove after fade out
+      }
+
+      // Remove query string from URL to prevent alert re-showing on refresh
+      if (window.history.replaceState) {
+        const url = new URL(window.location);
+        url.searchParams.delete('delete');
+        url.searchParams.delete('update');
+        window.history.replaceState({}, document.title, url.pathname);
+      }
+    }, 3000);
   </script>
 
 
