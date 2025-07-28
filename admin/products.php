@@ -188,7 +188,8 @@ $result = $stmt->get_result();
         imgContainer.innerHTML = "";
         product.images.forEach(img => {
           const image = document.createElement("img");
-          image.src = "../assets/images/" + img;
+          console.log(img);
+          image.src = "../uploads/" + img;
           image.alt = product.name;
           image.style.maxWidth = "100px";
           image.style.margin = "5px";

@@ -71,34 +71,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 INSERT INTO products (name, description, price, stock, brand_id, category_id, image1, image2, image3, image4) VALUES
-('inter i9 13900k', 'Game without compromise. Play harder and work smarter with Intel Core 14th Gen processors
-24 cores (8 P-cores + 16 E-cores) and 32 threads. Integrated Intel UHD Graphics 770 included
-Leading max clock speed of up to 6.0 GHz gives you smoother game play, higher frame rates, and rapid responsiveness
-Compatible with Intel 600-series (with potential BIOS update) or 700-series chipset-based motherboards
-DDR4 and DDR5 platform support cuts your load times and gives you the space to run the most demanding games', 99.99, 10, 1, 1, 'i9-13900k-front.jpg', 'i9-13900k-back.jpg', 'image3.jpg', 'image4.jpg'),
-('RTX 3090', 'Chipset: NVIDIA GeForce RTX 3090
-Video Memory: 24GB GDDR6X; Memory Interface: 384-bit
-Output: DisplayPort x 3 (v1.4a) / HDMI 2.1 x 1
-Nvidia India 3 Year Warranty; Graphics Card Interface: Pci E
-Graphics Card Interface: Pci E', 49.99, 5, 2, 2, 'rtx3090-front.jpg', 'rtx3090-back.jpg', 'image3.jpg', 'image4.jpg'),
-('ryzen 5', '6 Cores & 12 Threads
-Base Clock: 3.6GHz, Max Boost Clock: up to 4.2GHz, 35MB Cache, TDP: 95W. Platform : Boxed Processor
-System Memory Specification: 3200MHz, System Memory Type: DDR4, Memory Channels: 2
-Socket: AM4, Motherboard Compatibility: AMD 300, 400, 500 serles chipset based motherboards
-Graphics: Separate Graphics Card is required, Heatsink Fan: Wraith Stealth, Warranty: 3 Years
-For performance or compatibility related issues customers will have to reach out to AMDs technical support. For more details, kindly refer to our Refund Policy page.', 79.99, 15, 3, 3, 'ryzen-5-1.jpg', 'ryzen-5-2.jpg', 'image3.jpg', 'image4.jpg'),
-('ryzen 7', 'AMD Ryzen 7 5800X processor is the newest CPU in the Ryzen family based on Zen 3 Architecture. It is designed to offer you high-speed gaming performance. Supports dual channel DDR4 support for up to 3200MHz.
-The 8 core and 16 threads combo processor come with a full suite of technologies designed to elevate your PC’s processing power including Precision Boost 2, Precision Boost Overdrive and PCIe 4.0. It will offer you brilliant gaming experience when paired with an equally capable graphics card.
-The 8 core and 16 threads combo processor come with a full suite of technologies designed to elevate your PC’s processing power including Precision Boost 2, Precision Boost Overdrive and PCIe 4.0. It will offer you brilliant gaming experience when paired with an equally capable graphics card.
-All this paired with 36MB of combined cache for rapid access to large data sets. The massive Cache memory on-board translates to superior game performance and other multi-threaded processes.
-It supports AMD StoreMI Technology AMD Ryzen Master Utility and AMD Ryzen VR-Ready Premium extending the numerous wonders you can perform with the 5000 series AMD processor.', 59.99, 8, 4, 4, 'ryzen-7-1.jpg', 'ryzen-7-2.jpg', 'image3.jpg', 'image4.jpg'),
-('ryzen 9', '12 Cores & 24 Threads, 70MB Cache
-Base Clock: 3.7 GHz, Max Boost Clock: up to 4.8 GHz
-Memory Support: DDR4 Upto 3200MHz, Memory Channels: 2, TDP: 105 W, PCI Express Generation : PCIe Gen 4
-Compatible with Motherboards based on 500 Series Chipset, Socket AM4
-Separate Graphic Card Required, Included Heatsink Fan: No
-For performance or compatibility related issues customers will have to reach out to AMDs technical support', 69.99, 12, 5, 5, 'ryzen-9-5950x-front.jpg', 'ryzen-9-5950x-back.jpg', 'image3.jpg', 'image4.jpg');
-
+  ('Sample Product', 'This is a sample product.', 99.99, 10, 1, 1, 'image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg');
 -- Create categories table
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,

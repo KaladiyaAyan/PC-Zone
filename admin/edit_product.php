@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES[$imgField]) && $_FILES[$imgField]['error'] === 0) {
       $ext = pathinfo($_FILES[$imgField]['name'], PATHINFO_EXTENSION);
       $filename = uniqid("img_", true) . '.' . $ext;
-      $target = '../assets/images/' . $filename;
+      $target = '../uploads/' . $filename;
       move_uploaded_file($_FILES[$imgField]['tmp_name'], $target);
       $imagePaths[$i] = $filename;
     } else {
@@ -164,7 +164,7 @@ $brands = $brandStmt->fetch_all(MYSQLI_ASSOC);
           <label class="form-label">Image <?= $i ?></label>
           <input type="file" name="image<?= $i ?>" accept="image/*" class="form-control">
           <?php if (!empty($product["image$i"])): ?>
-            <img src="../assets/images/<?= $product["image$i"] ?>" alt="Image <?= $i ?>" class="img-fluid mt-1" style="max-height: 100px;">
+            <img src="../uploads/<?= $product["image$i"] ?>" alt="Image <?= $i ?>" class="img-fluid mt-1" style="max-height: 100px;">
           <?php endif; ?>
         </div>
       <?php endfor; ?>

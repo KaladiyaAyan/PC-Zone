@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES[$imgField]) && $_FILES[$imgField]['error'] === 0) {
       $ext = pathinfo($_FILES[$imgField]['name'], PATHINFO_EXTENSION);
       $filename = uniqid("img_", true) . '.' . $ext;
-      $target = '../assets/images/' . $filename;
+      $target = '../uploads/' . $filename;
       move_uploaded_file($_FILES[$imgField]['tmp_name'], $target);
       $imagePaths[] = $filename;
     } else {
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
-  // ✅ New check: Require at least one image
+  // Require at least one image
   if (count(array_filter($imagePaths)) < 1) {
     $errors[] = "At least one product image is required.";
   }
@@ -68,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 }
-
 
 // Fetch categories
 $categoryStmt = $conn->query("SELECT id, name FROM categories ORDER BY name");
