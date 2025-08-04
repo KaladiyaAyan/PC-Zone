@@ -9,7 +9,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'admin') {
 
 // 2️⃣ Include your DB connection
 //    Make sure this path is correct from the location of login.php
-include  './includes/db_connect.php';
+include __DIR__ . '/includes/db_connect.php';
 
 $error = '';
 
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->bind_result($id, $hash, $role);
-  // echo $stmt . $id . $hash . $role;
+  echo $stmt . $id . $hash . $role;
   if ($stmt->fetch()) {
 
     if (password_verify($password, $hash) && $role === 'admin') {

@@ -1,6 +1,6 @@
 <aside id="sidebar" class="sidebar">
   <div class="admin-profile">
-    <img src="./assets/images/admin.jpg" class="admin-avatar" alt="Admin">
+    <img src="../assets/images/admin.jpg" class="admin-avatar" alt="Admin">
     <div class="admin-info">
       <strong>Administrator</strong>
       <span class="status online">● Online</span>

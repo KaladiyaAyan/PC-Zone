@@ -128,11 +128,49 @@ function searchProducts($keyword)
 }
 
 // Category functions
+// function getAllCategories()
+// {
+//   $mysqli = getConnection();
+//   $result = $mysqli->query("SELECT * FROM categories ORDER BY name");
+//   return $result->fetch_all(MYSQLI_ASSOC);
+// }
+
+// Header dropdown functions
 function getAllCategories()
 {
-  $mysqli = getConnection();
-  $result = $mysqli->query("SELECT * FROM categories ORDER BY name");
-  return $result->fetch_all(MYSQLI_ASSOC);
+  global $conn;
+  $sql = "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name ASC";
+  $result = mysqli_query($conn, $sql);
+  return mysqli_fetch_all($result, MYSQLI_ASSOC);
+}
+
+function getSubcategories($parent_id)
+{
+  global $conn;
+  $sql = "SELECT * FROM categories WHERE parent_id = $parent_id ORDER BY name ASC";
+  $result = mysqli_query($conn, $sql);
+  return mysqli_fetch_all($result, MYSQLI_ASSOC);
+}
+
+function getCategoryImage($categoryName)
+{
+  $map = [
+    'Processor' => 'Processor-Icon.webp',
+    'Motherboard' => 'motherboard-icon.webp',
+    'CPU Cooler' => 'liquid-cooler-icon.webp',
+    'RAM' => 'RAM-icon.webp',
+    'Graphics Card' => 'graphics-card-icon.webp',
+    // 'SSD' => 'ssd-icon.webp',
+    // 'HDD' => 'hdd-icon.webp',
+    'Storage' => 'hdd-icon.webp',
+    'Power Supply' => 'psu-icon.webp',
+    'Cabinet' => 'cabinet-icon.webp',
+    'Cooling System' => 'liquid-cooler-icon.webp',
+    'Monitor' => 'monitor-icon.webp',
+    'Keyboard' => 'keyboard-icon.webp',
+    'Mouse' => 'mouse-icon.webp',
+  ];
+  return $map[$categoryName] ?? 'default-icon-300x300.webp';
 }
 
 function getCategoryById($id)
