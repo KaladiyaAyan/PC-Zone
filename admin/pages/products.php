@@ -110,9 +110,16 @@ $result = mysqli_query($conn, $query);
                 <td><?= $product['id'] ?></td>
                 <td class="product-image ">
                   <?php if ($product['main_image']): ?>
-                    <img src="../uploads/<?= $product['main_image'] ?>"
+                    <?php
+                    $imagePath = "../uploads/" . $product['main_image'];
+                    if (!file_exists($imagePath)) {
+                      $imagePath = "../assets/images/" . $product['main_image'];
+                    }
+                    ?>
+                    <img src="<?= $imagePath ?>"
                       alt="<?= htmlspecialchars($product['name']) ?>"
-                      class="product-thumb img-fluid " style="max-width: 100px; height: auto;">
+                      class="product-thumb img-fluid" style="max-width: 100px; ">
+
                   <?php else: ?>
                     <div class="no-image">No Image</div>
                   <?php endif; ?>
@@ -220,6 +227,14 @@ $result = mysqli_query($conn, $query);
             image.style.height = "auto";
             image.style.border = "1px solid #ddd";
             image.style.borderRadius = "5px";
+            imgContainer.appendChild(image);
+
+            // Fallback if image not found in uploads
+            image.onerror = function() {
+              this.onerror = null; // Prevent infinite loop
+              this.src = "../assets/images/" + product.image;
+            };
+
             imgContainer.appendChild(image);
           } else {
             imgContainer.innerHTML = "<p>No image available</p>";

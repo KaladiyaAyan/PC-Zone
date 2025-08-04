@@ -261,7 +261,7 @@ INSERT INTO product_images (product_id, image_path, is_main) VALUES
   ((SELECT id FROM products WHERE sku='CPU-INT-12400F'), 'intel12400f-main.jpg', TRUE),
   ((SELECT id FROM products WHERE sku='CPU-INT-12400F'), 'intel12400f-box.jpg', FALSE),
   ((SELECT id FROM products WHERE sku='CPU-AMD-5600X'), 'ryzen5600x-main.jpg', TRUE),
-  ((SELECT id FROM products WHERE sku='RAM-COR-16GB'), 'vengeance-lpx-16gb.jpg', TRUE),
+  ((SELECT id FROM products WHERE sku='RAM-COR-16GB'), 'XPG_ADATA_D30_DDR4_16GB_3200MHz_2.jpg', TRUE),
   ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-main.jpg', TRUE),
   ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-box.jpg', FALSE),
   ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-inside.jpg', FALSE),
