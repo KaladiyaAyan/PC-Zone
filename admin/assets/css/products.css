@@ -5,20 +5,6 @@
   margin-bottom: 20px;
 }
 
-.btn-add {
-  background-color: #5d5dee;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-}
-
-.btn-add:hover {
-  background-color: #4949c3;
-}
-
 .table-container {
   overflow-x: auto;
 }
@@ -38,17 +24,6 @@
 
 .product-table th {
   background-color: #f4f4f4;
-}
-
-.btn-edit {
-  color: #007bff;
-  text-decoration: none;
-  margin-right: 10px;
-}
-
-.btn-delete {
-  color: #dc3545;
-  text-decoration: none;
 }
 
 /* Row hover - slightly darker */

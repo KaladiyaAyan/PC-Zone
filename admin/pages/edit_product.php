@@ -21,7 +21,11 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $product_id = intval($_GET['id']);
 
 // Get existing product data
-$productQuery = "SELECT * FROM products WHERE id = $product_id";
+$productQuery = "SELECT p.*, c.name as category_name, b.name as brand_name 
+                FROM products p 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                LEFT JOIN brands b ON p.brand_id = b.id 
+                WHERE p.id = $product_id";
 $productResult = mysqli_query($conn, $productQuery);
 
 if (!$productResult || mysqli_num_rows($productResult) === 0) {
@@ -61,12 +65,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // Check SKU uniqueness (excluding current product)
   if (!empty($sku)) {
-    $checkQuery = "SELECT COUNT(*) as count FROM products WHERE sku = '$sku' AND id != $product_id";
+    $checkQuery = "SELECT COUNT(*) as count FROM products WHERE sku = '" . mysqli_real_escape_string($conn, $sku) . "' AND id != $product_id";
     $result = mysqli_query($conn, $checkQuery);
     $data = mysqli_fetch_assoc($result);
 
     if ($data['count'] > 0) {
       $errors[] = "SKU already exists. Please use a unique SKU.";
+    }
+  }
+
+  // Validate brand belongs to selected category
+  if ($category_id > 0 && $brand_id > 0) {
+    $brandCategoryQuery = "SELECT COUNT(*) as count FROM brand_categories 
+                          WHERE brand_id = $brand_id AND category_id = $category_id";
+    $brandCategoryResult = mysqli_query($conn, $brandCategoryQuery);
+    $brandCategoryData = mysqli_fetch_assoc($brandCategoryResult);
+
+    if ($brandCategoryData['count'] == 0) {
+      $errors[] = "Selected brand is not valid for the chosen category.";
     }
   }
 
@@ -132,12 +148,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-// Get categories and brands for dropdowns
-$categoriesQuery = "SELECT id, name FROM categories WHERE parent_id IS NULL ORDER BY name ASC";
+// Get categories for dropdown
+$categoriesQuery = "SELECT id, name FROM categories WHERE is_active = 1 ORDER BY name ASC";
 $categoriesResult = mysqli_query($conn, $categoriesQuery);
 
-$brandsQuery = "SELECT id, name, category_id FROM brands ORDER BY name ASC";
+// Get all brands with their categories for JavaScript filtering
+$brandsQuery = "SELECT b.id, b.name, GROUP_CONCAT(bc.category_id) as category_ids 
+                FROM brands b 
+                LEFT JOIN brand_categories bc ON b.id = bc.brand_id 
+                WHERE b.is_active = 1 
+                GROUP BY b.id, b.name 
+                ORDER BY b.name ASC";
 $brandsResult = mysqli_query($conn, $brandsQuery);
+$brandsData = [];
+while ($brand = mysqli_fetch_assoc($brandsResult)) {
+  $brandsData[] = $brand;
+}
 ?>
 
 <!DOCTYPE html>
@@ -206,6 +232,20 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       border-radius: 3px;
       font-size: 10px;
     }
+
+    .brand-info {
+      font-size: 0.85em;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+
+    .current-selection {
+      background-color: #e7f3ff;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      border-left: 4px solid #0066cc;
+    }
   </style>
 </head>
 
@@ -224,6 +264,22 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
               <a href="products.php" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Products
               </a>
+            </div>
+
+            <!-- Current Selection Info -->
+            <div class="current-selection">
+              <h6 class="mb-2"><i class="fas fa-info-circle"></i> Current Product Details</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <strong>Name:</strong> <?= htmlspecialchars($product['name']) ?>
+                </div>
+                <div class="col-md-3">
+                  <strong>Category:</strong> <?= htmlspecialchars($product['category_name']) ?>
+                </div>
+                <div class="col-md-3">
+                  <strong>Brand:</strong> <?= htmlspecialchars($product['brand_name']) ?>
+                </div>
+              </div>
             </div>
 
             <?php if (!empty($errors)): ?>
@@ -298,13 +354,10 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   <label class="form-label">Brand <span class="required">*</span></label>
                   <select name="brand" class="form-select" id="brandSelect" required>
                     <option value="">-- Select Brand --</option>
-                    <?php while ($brand = mysqli_fetch_assoc($brandsResult)): ?>
-                      <option value="<?= $brand['id'] ?>" data-category="<?= $brand['category_id'] ?>"
-                        <?= ($product['brand_id'] == $brand['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($brand['name']) ?>
-                      </option>
-                    <?php endwhile; ?>
                   </select>
+                  <div class="brand-info" id="brandInfo">
+                    Brands will be filtered based on selected category
+                  </div>
                 </div>
 
                 <!-- Weight -->
@@ -340,8 +393,14 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                     <h5 class="mt-3 mb-2">Existing Images</h5>
                     <div class="existing-images">
                       <?php foreach ($existingImages as $img): ?>
+                        <?php
+                        $imagePath = "../uploads/" . $img['image_path'];
+                        if (!file_exists($imagePath)) {
+                          $imagePath = "../assets/images/" . $img['image_path'];
+                        }
+                        ?>
                         <div class="image-container">
-                          <img src="../uploads/<?= $img['image_path'] ?>" alt="Product Image">
+                          <img src="<?= $imagePath ?>" alt="<?= $product['name'] ?>">
                           <?php if ($img['is_main']): ?>
                             <span class="main-image-badge">Main</span>
                           <?php endif; ?>
@@ -397,6 +456,11 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
   </main>
 
   <script>
+    // Brands data from PHP and current product data
+    const brandsData = <?= json_encode($brandsData) ?>;
+    const currentBrandId = <?= $product['brand_id'] ?>;
+    const currentCategoryId = <?= $product['category_id'] ?>;
+
     // Delete image function
     function deleteImage(imageId) {
       if (confirm('Are you sure you want to delete this image?')) {
@@ -426,29 +490,44 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
     function filterBrands() {
       const selectedCategory = document.getElementById('categorySelect').value;
       const brandSelect = document.getElementById('brandSelect');
-      const brandOptions = brandSelect.options;
-      const currentBrand = brandSelect.value;
+      const brandInfo = document.getElementById('brandInfo');
 
-      // Show/hide brand options based on category
-      for (let i = 0; i < brandOptions.length; i++) {
-        const option = brandOptions[i];
+      // Clear current options
+      brandSelect.innerHTML = '<option value="">-- Select Brand --</option>';
 
-        if (option.value === '') {
-          option.style.display = 'block';
-          continue;
-        }
-
-        const brandCategory = option.getAttribute('data-category');
-        if (selectedCategory === '' || brandCategory === selectedCategory) {
-          option.style.display = 'block';
-        } else {
-          option.style.display = 'none';
-          // If current selection is being hidden, reset it
-          if (option.value === currentBrand) {
-            brandSelect.value = '';
-          }
-        }
+      if (selectedCategory === '') {
+        brandInfo.textContent = 'Select a category first to see available brands';
+        return;
       }
+
+      // Filter brands for selected category
+      const availableBrands = brandsData.filter(brand => {
+        if (!brand.category_ids) return false;
+        const categoryIds = brand.category_ids.split(',');
+        return categoryIds.includes(selectedCategory);
+      });
+
+      if (availableBrands.length === 0) {
+        brandSelect.innerHTML = '<option value="">-- No brands available for this category --</option>';
+        brandInfo.textContent = 'No brands found for selected category';
+        return;
+      }
+
+      // Add filtered brands to dropdown
+      availableBrands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand.id;
+        option.textContent = brand.name;
+
+        // Select current brand if it matches
+        if (parseInt(brand.id) === currentBrandId) {
+          option.selected = true;
+        }
+
+        brandSelect.appendChild(option);
+      });
+
+      brandInfo.textContent = `${availableBrands.length} brand(s) available for this category`;
     }
 
     // Initialize on page load
@@ -456,7 +535,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       // Set up category change listener
       document.getElementById('categorySelect').addEventListener('change', filterBrands);
 
-      // Initial filter
+      // Initial filter to populate brands
       filterBrands();
 
       // Sidebar functionality
@@ -477,8 +556,8 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
     });
   </script>
 
-  <script src="./assets/vendor/jquery/jquery-3.7.1.min.js"></script>
-  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/jquery/jquery-3.7.1.min.js"></script>
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

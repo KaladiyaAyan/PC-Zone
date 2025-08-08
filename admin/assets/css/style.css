@@ -500,3 +500,59 @@ body {
   margin-bottom: 1rem;
   border-radius: 4px;
 }
+
+/* product and categories page */
+
+.btn-add {
+  background-color: #5d5dee;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+.btn-add:hover {
+  background-color: #5d5dee;
+  color: #fff;
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+}
+
+.btn-add:focus {
+  background-color: #5d5dee;
+  color: #fff;
+  box-shadow: none;
+}
+
+.btn-edit {
+  color: #007bff;
+  text-decoration: none;
+  margin-right: 10px;
+  background-color: inherit;
+  border: none;
+  outline: none;
+}
+
+.btn-delete {
+  color: #dc3545;
+  text-decoration: none;
+  background-color: inherit;
+  border: none;
+  outline: none;
+}
+
+.btn-edit:hover,
+.btn-delete:hover {
+  text-decoration: underline;
+}
+.btn-edit:hover {
+  color: #007bff;
+}
+.btn-delete:hover {
+  color: #dc3545;
+}
+
+/* Finish product and categories page */

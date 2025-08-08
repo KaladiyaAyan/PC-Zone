@@ -55,18 +55,8 @@ INSERT INTO categories (name, parent_id, level, slug) VALUES
 
 -- 2. Grab IDs into variables
 SET @proc_id      = (SELECT id FROM categories WHERE name = 'Processor');
-SET @gc_id        = (SELECT id FROM categories WHERE name = 'Graphics Card');
-SET @mb_id        = (SELECT id FROM categories WHERE name = 'Motherboard');
-SET @ram_id       = (SELECT id FROM categories WHERE name = 'RAM');
 SET @storage_id   = (SELECT id FROM categories WHERE name = 'Storage');
-SET @psu_id       = (SELECT id FROM categories WHERE name = 'Power Supply');
-SET @cab_id       = (SELECT id FROM categories WHERE name = 'Cabinet');
 SET @cooling_id   = (SELECT id FROM categories WHERE name = 'Cooling System');
-SET @monitor_id   = (SELECT id FROM categories WHERE name = 'Monitor');
-SET @keyboard_id  = (SELECT id FROM categories WHERE name = 'Keyboard');
-SET @mouse_id     = (SELECT id FROM categories WHERE name = 'Mouse');
-SET @mousepad_id  = (SELECT id FROM categories WHERE name = 'Mousepad');
--- SET @gamepad_id   = (SELECT id FROM categories WHERE name = 'Gamepad');
 
 -- 3. Insert subcategories using those variables
 INSERT INTO categories (name, parent_id, level, slug) VALUES
@@ -77,8 +67,6 @@ INSERT INTO categories (name, parent_id, level, slug) VALUES
   ('NVMe',           @storage_id,  1, 'nvme'),
   ('Air Cooler',     @cooling_id,  1, 'air-cooler'),
   ('Liquid Cooler',  @cooling_id,  1, 'liquid-cooler');
-  -- ('Mechanical',     @keyboard_id, 1, 'keyboard'),
-  -- ('Mousepad',       @mousepad_id, 1, 'mousepad');
 
 -- 4. BRANDS (linked to PC-part categories)
 CREATE TABLE IF NOT EXISTS brands (
@@ -97,7 +85,6 @@ INSERT INTO brands (name, category_id, slug) VALUES
 
 -- Graphics Card
 ('NVIDIA',        (SELECT id FROM categories WHERE name='Graphics Card'),'nvidia'),
-('AMD',           (SELECT id FROM categories WHERE name='Graphics Card'),'amd-gpu'),
 ('ASUS',          (SELECT id FROM categories WHERE name='Graphics Card'),'asus-gpu'),
 ('MSI',           (SELECT id FROM categories WHERE name='Graphics Card'),'msi-gpu'),
 ('Gigabyte',      (SELECT id FROM categories WHERE name='Graphics Card'),'gigabyte-gpu'),
@@ -110,7 +97,6 @@ INSERT INTO brands (name, category_id, slug) VALUES
 ('ASRock',        (SELECT id FROM categories WHERE name='Motherboard'),   'asrock'),
 ('MSI',           (SELECT id FROM categories WHERE name='Motherboard'),   'msi-mb'),
 ('Gigabyte',      (SELECT id FROM categories WHERE name='Motherboard'),   'gigabyte-mb'),
-('Intel',         (SELECT id FROM categories WHERE name='Motherboard'),   'intel-mb'),
 ('EVGA',          (SELECT id FROM categories WHERE name='Motherboard'),   'evga-mb'),
 
 -- RAM
@@ -119,14 +105,12 @@ INSERT INTO brands (name, category_id, slug) VALUES
 ('Kingston',      (SELECT id FROM categories WHERE name='RAM'),           'kingston'),
 ('Crucial',       (SELECT id FROM categories WHERE name='RAM'),           'crucial-ram'),
 ('ADATA',         (SELECT id FROM categories WHERE name='RAM'),           'adata'),
-('Samsung',       (SELECT id FROM categories WHERE name='RAM'),           'samsung-ram'),
 
 -- Storage
 ('Samsung',       (SELECT id FROM categories WHERE name='Storage'),       'samsung-storage'),
 ('WD',            (SELECT id FROM categories WHERE name='Storage'),       'wd'),
 ('Seagate',       (SELECT id FROM categories WHERE name='Storage'),       'seagate'),
 ('Crucial',       (SELECT id FROM categories WHERE name='Storage'),       'crucial-storage'),
-('SanDisk',       (SELECT id FROM categories WHERE name='Storage'),       'sandisk'),
 ('ADATA',         (SELECT id FROM categories WHERE name='Storage'),       'adata-storage'),
 ('Kingston',      (SELECT id FROM categories WHERE name='Storage'),       'kingston-storage'),
 
@@ -141,7 +125,6 @@ INSERT INTO brands (name, category_id, slug) VALUES
 -- Cabinet
 ('NZXT',          (SELECT id FROM categories WHERE name='Cabinet'),        'nzxt-case'),
 ('Lian Li',       (SELECT id FROM categories WHERE name='Cabinet'),        'lian-li'),
-('Corsair',       (SELECT id FROM categories WHERE name='Cabinet'),        'corsair-case'),
 ('Cooler Master', (SELECT id FROM categories WHERE name='Cabinet'),        'cooler-master-case'),
 ('Thermaltake',   (SELECT id FROM categories WHERE name='Cabinet'),        'thermaltake-case'),
 ('Antec',         (SELECT id FROM categories WHERE name='Cabinet'),        'antec-case'),
@@ -160,17 +143,14 @@ INSERT INTO brands (name, category_id, slug) VALUES
 ('LG',            (SELECT id FROM categories WHERE name='Monitor'),        'lg-monitor'),
 ('ASUS',          (SELECT id FROM categories WHERE name='Monitor'),        'asus-monitor'),
 ('Acer',          (SELECT id FROM categories WHERE name='Monitor'),        'acer-monitor'),
-('AOC',           (SELECT id FROM categories WHERE name='Monitor'),        'aoc'),
 ('Samsung',       (SELECT id FROM categories WHERE name='Monitor'),        'samsung-monitor'),
 ('MSI',           (SELECT id FROM categories WHERE name='Monitor'),        'msi-monitor'),
 
 -- Keyboard
 ('Logitech',      (SELECT id FROM categories WHERE name='Keyboard'),       'logitech-keyboard'),
-('Redragon',      (SELECT id FROM categories WHERE name='Keyboard'),       'redragon-keyboard'),
 ('Razer',         (SELECT id FROM categories WHERE name='Keyboard'),       'razer-keyboard'),
 ('Corsair',       (SELECT id FROM categories WHERE name='Keyboard'),       'corsair-keyboard'),
 ('HyperX',        (SELECT id FROM categories WHERE name='Keyboard'),       'hyperx'),
-('SteelSeries',   (SELECT id FROM categories WHERE name='Keyboard'),       'steelseries'),
 ('Zebronics',     (SELECT id FROM categories WHERE name='Keyboard'),       'zebronics'),
 
 -- Mouse
@@ -178,18 +158,12 @@ INSERT INTO brands (name, category_id, slug) VALUES
 ('Razer',         (SELECT id FROM categories WHERE name='Mouse'),          'razer-mouse'),
 ('Redragon',      (SELECT id FROM categories WHERE name='Mouse'),          'redragon-mouse'),
 ('Corsair',       (SELECT id FROM categories WHERE name='Mouse'),          'corsair-mouse'),
-('HP',            (SELECT id FROM categories WHERE name='Mouse'),          'hp-mouse'),
 ('Zebronics',     (SELECT id FROM categories WHERE name='Mouse'),          'zebronics-mouse'),
-('SteelSeries',   (SELECT id FROM categories WHERE name='Mouse'),          'steelseries-mouse'),
-('Glorious',      (SELECT id FROM categories WHERE name='Mouse'),          'glorious'),
 
 -- Mousepad & Gamepad (optional extras)
 ('SteelSeries',   (SELECT id FROM categories WHERE name='Mousepad'),       'steelseries-mousepad'),
 ('Corsair',       (SELECT id FROM categories WHERE name='Mousepad'),       'corsair-mousepad'),
-('Razer',         (SELECT id FROM categories WHERE name='Mousepad'),       'razer-mousepad'),
-('Sony',          (SELECT id FROM categories WHERE name='Gamepad'),        'sony-gamepad'),
-('Microsoft',     (SELECT id FROM categories WHERE name='Gamepad'),        'microsoft-gamepad'),
-('Logitech',      (SELECT id FROM categories WHERE name='Gamepad'),        'logitech-gamepad');
+('Razer',         (SELECT id FROM categories WHERE name='Mousepad'),       'razer-mousepad');
 
 -- 5. (The rest of the improved tables—products, images, specs, reviews, customers, addresses,
 --     orders, order_items, cart_items—should be created exactly as in the previously shared schema.)
@@ -263,14 +237,7 @@ INSERT INTO product_images (product_id, image_path, is_main) VALUES
   ((SELECT id FROM products WHERE sku='CPU-AMD-5600X'), 'ryzen5600x-main.jpg', TRUE),
   ((SELECT id FROM products WHERE sku='RAM-COR-16GB'), 'XPG_ADATA_D30_DDR4_16GB_3200MHz_2.jpg', TRUE),
   ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-main.jpg', TRUE),
-  ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-box.jpg', FALSE),
-  ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-inside.jpg', FALSE),
-  ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-side.jpg', FALSE),
-  ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-back.jpg', FALSE),
-  ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-top.jpg', FALSE),
-  -- ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-bottom.jpg', FALSE),
   ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-left.jpg', FALSE),
-  -- ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-right.jpg', FALSE),
   ((SELECT id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-front.jpg', FALSE);
 
 -- PRODUCT SPECS (key-value pairs)
@@ -290,7 +257,6 @@ INSERT INTO product_specs (product_id, spec_name, spec_value) VALUES
   ((SELECT id FROM products WHERE sku='CPU-AMD-5600X'), 'Base Clock',  '3.7 GHz'),
   ((SELECT id FROM products WHERE sku='RAM-COR-16GB'),   'Capacity',    '16 GB'),
   ((SELECT id FROM products WHERE sku='RAM-COR-16GB'),   'Speed',       '3200 MHz');
-
 
 
 -- CUSTOMERS

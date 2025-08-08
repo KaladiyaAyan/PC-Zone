@@ -16,11 +16,11 @@
       <i class="fas fa-boxes icon"></i>
       <span class="label">Products</span>
     </a>
-    <a href="categories.php" class="nav-item">
+    <a href="categories.php" class="nav-item <?= ($page == 'categories' ?  'active' : '') ?>">
       <i class="fas fa-layer-group icon"></i>
       <span class="label">Categories</span>
     </a>
-    <a href="brands.php" class="nav-item">
+    <a href="brands.php" class="nav-item <?= ($page == 'brands' ?  'active' : '') ?>">
       <i class="fas fa-tags icon"></i>
       <span class="label">Brands</span>
     </a>

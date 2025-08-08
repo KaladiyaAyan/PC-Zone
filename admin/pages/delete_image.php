@@ -1,63 +1,78 @@
 <?php
 session_start();
-header('Content-Type: application/json');
 
 // Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+  http_response_code(403);
   echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
   exit;
 }
 
 include('../includes/db_connect.php');
 
-// Check if image ID is provided
-if (!isset($_POST['image_id']) || !is_numeric($_POST['image_id'])) {
-  echo json_encode(['success' => false, 'message' => 'Invalid image ID']);
+// Check if request method is POST and image_id is provided
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['image_id']) || !is_numeric($_POST['image_id'])) {
+  http_response_code(400);
+  echo json_encode(['success' => false, 'message' => 'Invalid request']);
   exit;
 }
 
 $image_id = intval($_POST['image_id']);
 
-// Get image details before deletion
-$imageQuery = "SELECT * FROM product_images WHERE id = $image_id";
-$imageResult = mysqli_query($conn, $imageQuery);
+try {
+  // Get image details before deletion
+  $imageQuery = "SELECT * FROM product_images WHERE id = $image_id";
+  $imageResult = mysqli_query($conn, $imageQuery);
 
-if (!$imageResult || mysqli_num_rows($imageResult) === 0) {
-  echo json_encode(['success' => false, 'message' => 'Image not found']);
-  exit;
-}
+  if (!$imageResult || mysqli_num_rows($imageResult) === 0) {
+    throw new Exception('Image not found');
+  }
 
-$image = mysqli_fetch_assoc($imageResult);
-$product_id = $image['product_id'];
-$image_path = $image['image_path'];
-$is_main = $image['is_main'];
+  $image = mysqli_fetch_assoc($imageResult);
+  $product_id = $image['product_id'];
+  $image_path = $image['image_path'];
+  $is_main = $image['is_main'];
 
-// Check if this is the only image for the product
-$countQuery = "SELECT COUNT(*) as count FROM product_images WHERE product_id = $product_id";
-$countResult = mysqli_query($conn, $countQuery);
-$countData = mysqli_fetch_assoc($countResult);
+  // Delete image record from database
+  $deleteQuery = "DELETE FROM product_images WHERE id = $image_id";
 
-if ($countData['count'] <= 1) {
-  echo json_encode(['success' => false, 'message' => 'Cannot delete the only image. Product must have at least one image.']);
-  exit;
-}
+  if (!mysqli_query($conn, $deleteQuery)) {
+    throw new Exception('Failed to delete image from database: ' . mysqli_error($conn));
+  }
 
-// Delete image from database
-$deleteQuery = "DELETE FROM product_images WHERE id = $image_id";
-if (mysqli_query($conn, $deleteQuery)) {
-  // If this was the main image, set another image as main
+  // Delete physical file
+  $file_path = '../uploads/' . $image_path;
+  if (file_exists($file_path)) {
+    if (!unlink($file_path)) {
+      // Log warning but don't fail the operation
+      error_log("Warning: Could not delete image file: $file_path");
+    }
+  }
+
+  // If this was the main image, set another image as main (if any exist)
   if ($is_main) {
-    $setMainQuery = "UPDATE product_images SET is_main = 1 WHERE product_id = $product_id LIMIT 1";
-    mysqli_query($conn, $setMainQuery);
+    $updateMainQuery = "UPDATE product_images 
+                        SET is_main = 1 
+                        WHERE product_id = $product_id 
+                        AND id = (
+                          SELECT min_id FROM (
+                            SELECT MIN(id) as min_id 
+                            FROM product_images 
+                            WHERE product_id = $product_id
+                          ) as temp
+                        )";
+    mysqli_query($conn, $updateMainQuery);
   }
 
-  // Delete image file from filesystem
-  $fullPath = '../uploads/' . $image_path;
-  if (file_exists($fullPath)) {
-    unlink($fullPath);
-  }
-
-  echo json_encode(['success' => true, 'message' => 'Image deleted successfully']);
-} else {
-  echo json_encode(['success' => false, 'message' => 'Failed to delete image: ' . mysqli_error($conn)]);
+  echo json_encode([
+    'success' => true,
+    'message' => 'Image deleted successfully',
+    'was_main' => $is_main
+  ]);
+} catch (Exception $e) {
+  http_response_code(500);
+  echo json_encode([
+    'success' => false,
+    'message' => $e->getMessage()
+  ]);
 }

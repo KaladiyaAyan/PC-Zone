@@ -1,15 +1,226 @@
 <?php
-$current = basename($_SERVER['PHP_SELF']);
+session_start();
+
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+  header("Location: index.php");
+  exit;
+}
+
+include '../includes/db_connect.php';
+
 ?>
-<?php include __DIR__ . '/includes/header.php'; ?>
-<?php include __DIR__ . '/includes/sidebar.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
 
-<main class="main-content">
-  <h1>Categories</h1>
-  <p>Here you’ll manage PC part categories.</p>
-</main>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PC-Zone Admin - Categories</title>
 
-<script src="./assets/js/script.js"></script>
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Bootstrap JS -->
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+</head>
+
+<body>
+  <?php include '../includes/header.php'; ?>
+  <?php $page = 'categories';
+  include '../includes/sidebar.php'; ?>
+
+  <main class="main-content pt-5 mt-2">
+    <div class="container my-4">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">Manage Categories</h2>
+        <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+          <i class="fas fa-plus"></i> Add Category
+        </button>
+      </div>
+
+      <!-- Categories Table -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Category Name</th>
+              <th>Parent</th>
+              <th>Slug</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $query = "SELECT c1.*, c2.name AS parent_name
+                    FROM categories c1
+                    LEFT JOIN categories c2 ON c1.parent_id = c2.id
+                    ORDER BY c1.id ASC";
+            $result = mysqli_query($conn, $query);
+            while ($row = mysqli_fetch_assoc($result)) {
+            ?>
+              <tr>
+                <td><?= $row['id'] ?></td>
+                <td><?= htmlspecialchars($row['name']) ?></td>
+                <td><?= $row['parent_name'] ?? '—' ?></td>
+                <td><?= $row['slug'] ?></td>
+                <td>
+                  <button class="btn-edit"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editCategoryModal"
+                    data-id="<?= $row['id'] ?>"
+                    data-name="<?= htmlspecialchars($row['name']) ?>"
+                    data-parent="<?= $row['parent_id'] ?>">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn-delete" onclick="deleteCategory(<?= $row['id'] ?>)">
+                    <i class="fas fa-trash-alt"></i> Delete
+                  </button>
+                </td>
+              </tr>
+            <?php } ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add Category Modal (Enhanced Design) -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form class="modal-content" method="POST" action="add_category.php">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="categoryName" class="form-label">Category Name *</label>
+              <input type="text" class="form-control" name="name" id="categoryName" required placeholder="Enter category name">
+            </div>
+            <div class="mb-3">
+              <label for="parentCategory" class="form-label">Parent Category</label>
+              <select class="form-select" name="parent_id" id="parentCategory">
+                <option value="">None (Top-level category)</option>
+                <?php
+                $cats = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name");
+                while ($cat = mysqli_fetch_assoc($cats)) {
+                  echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                }
+                ?>
+              </select>
+            </div>
+            <!-- <div class="mb-3">
+              <label for="categoryDescription" class="form-label">Description</label>
+              <textarea class="form-control" name="description" id="categoryDescription" rows="3" placeholder="Enter a short description"></textarea>
+            </div> -->
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="categoryStatus" name="status" checked>
+                <label class="form-check-label" for="categoryStatus">Active</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-plus me-1"></i> Add Category
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Category Modal (Enhanced Design) -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form class="modal-content" method="POST" action="update_category.php">
+          <input type="hidden" name="id" id="editCategoryId">
+
+          <div class="modal-header">
+            <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="editCategoryName" class="form-label">Category Name *</label>
+              <input type="text" class="form-control" name="name" id="editCategoryName" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="editParentCategory" class="form-label">Parent Category</label>
+              <select class="form-select" name="parent_id" id="editParentCategory">
+                <option value="">None (Top-level category)</option>
+                <?php
+                $catOptions = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name");
+                while ($cat = mysqli_fetch_assoc($catOptions)) {
+                  echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                }
+                ?>
+              </select>
+            </div>
+
+            <!-- <div class="mb-3">
+              <label for="editCategoryDescription" class="form-label">Description</label>
+              <textarea class="form-control" name="description" id="editCategoryDescription" rows="3"></textarea>
+            </div> -->
+
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="editCategoryStatus" name="status" checked>
+                <label class="form-check-label" for="editCategoryStatus">Active</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-save me-1"></i> Update Category
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <?php include '../includes/functions.php';
+    show_toast_script('Category');
+    ?>
+  </main>
+
+
+
+  <script>
+    // Edit category modal initialization
+    const editModal = document.getElementById('editCategoryModal');
+    editModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      const id = button.getAttribute('data-id');
+      const name = button.getAttribute('data-name');
+      const parentId = button.getAttribute('data-parent');
+
+      document.getElementById('editCategoryId').value = id;
+      document.getElementById('editCategoryName').value = name;
+      document.getElementById('editParentCategory').value = parentId || '';
+
+      // These would come from your database - just placeholder values
+      // document.getElementById('editCategoryDescription').value = "This is a sample description for the category";
+    });
+
+    // Delete category confirmation
+    function deleteCategory(id) {
+      if (confirm("Are you sure you want to delete this category? All subcategories will also be deleted.")) {
+        window.location.href = "delete_category.php?id=" + id;
+      }
+    }
+  </script>
 </body>
 
 </html>

@@ -167,7 +167,7 @@ Off-canvas for mobile
 </header> -->
 
 <!-- ======= HEADER ======= -->
-<header class="sticky-top bg-white shadow-sm">
+<header class=" bg-white shadow-sm">
   <div class="container px-3 px-lg-4">
     <div class="d-flex align-items-center py-3 gap-3">
       <!-- Brand -->
@@ -207,13 +207,14 @@ Off-canvas for mobile
     </div>
 
     <!-- ======= NAVBAR ======= -->
-    <nav class="navbar navbar-expand-lg border-top">
+    <nav class="sticky-top navbar navbar-expand-lg border-top">
       <div class="container-fluid px-0">
-        <button class="navbar-toggler ms-auto" type="button"
+        <button class="navbar-toggler shadow-none ms-auto border-0" type="button"
           data-bs-toggle="offcanvas" data-bs-target="#navDrawer"
           aria-controls="navDrawer" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+          <i class="fa-solid fa-bars fs-4 text-primary"></i>
         </button>
+
 
         <!-- Desktop / large menu -->
         <div class="collapse navbar-collapse">

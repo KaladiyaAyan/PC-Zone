@@ -81,7 +81,7 @@ mysqli_close($conn);
                   // }
                   // echo "src='" . $path . "'";
                   ?>
-                  src="<?= file_exists("./admin/assets/images/" . $product['image_path']) ? "./admin/assets/images" : "./uploads" ?>/<?= $product['image_path'] ?>"
+                  src="<?= file_exists("./admin/assets/images/" . $product['image_path']) ? "./admin/assets/images" : "./admin/uploads" ?>/<?= $product['image_path'] ?>"
                   alt="<?= $product['name'] ?>"
                   class="img-fluid p-3 product-image"
                   loading="lazy">
