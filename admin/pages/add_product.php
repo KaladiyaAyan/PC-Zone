@@ -165,9 +165,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .required {
-      color: #dc3545;
-    }
+
 
     .preview-images {
       display: flex;

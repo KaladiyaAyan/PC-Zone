@@ -98,8 +98,8 @@ include '../includes/db_connect.php';
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label for="categoryName" class="form-label">Category Name *</label>
-              <input type="text" class="form-control" name="name" id="categoryName" required placeholder="Enter category name">
+              <label for="categoryName" class="form-label">Category Name <span class="required">*</span></label>
+              <input type="text" class="form-control" name="name" id="categoyName" required placeholder="Enter category name">
             </div>
             <div class="mb-3">
               <label for="parentCategory" class="form-label">Parent Category</label>
@@ -117,13 +117,13 @@ include '../includes/db_connect.php';
               <label for="categoryDescription" class="form-label">Description</label>
               <textarea class="form-control" name="description" id="categoryDescription" rows="3" placeholder="Enter a short description"></textarea>
             </div> -->
-            <div class="mb-3">
+            <!-- <div class="mb-3">
               <label class="form-label">Status</label>
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="categoryStatus" name="status" checked>
                 <label class="form-check-label" for="categoryStatus">Active</label>
               </div>
-            </div>
+            </div> -->
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -148,7 +148,7 @@ include '../includes/db_connect.php';
 
           <div class="modal-body">
             <div class="mb-3">
-              <label for="editCategoryName" class="form-label">Category Name *</label>
+              <label for="editCategoryName" class="form-label">Category Name <span class="required">*</span></label>
               <input type="text" class="form-control" name="name" id="editCategoryName" required>
             </div>
 

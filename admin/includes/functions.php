@@ -9,7 +9,6 @@ function slugify($string)
   return trim($slug, '-');                           // trim hyphens
 }
 
-
 function show_toast_script($page = '')
 {
 
@@ -28,6 +27,8 @@ function show_toast_script($page = '')
   </div>
 
   <script>
+    // console.log(<?= json_encode($extraTitles) ?>);
+    console.log(<?= json_encode($page) ?>);
     const toastTypes = {
       success: {
         class: 'bg-success text-white',
@@ -53,6 +54,7 @@ function show_toast_script($page = '')
     const params = new URLSearchParams(window.location.search);
     ['success', 'error'].forEach(type => {
       const key = params.get(type);
+      console.log(key);
       if (key && toastTypes[type].titles[key]) {
         const toastId = 'toast-' + type + '-' + key;
         const toastHtml = `

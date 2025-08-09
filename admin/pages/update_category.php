@@ -19,8 +19,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header("Location: categories.php?error=duplicate");
       exit;
     }
-    $stmt = mysqli_prepare($conn, "UPDATE categories SET name=?, parent_id=?, slug=? WHERE id=?");
-    mysqli_stmt_bind_param($stmt, "sssi", $name, $parent_id, $slug, $id);
+
+    if ($parent_id) {
+      $stmt = mysqli_prepare($conn, "UPDATE categories SET name=?, parent_id=?, level=1, slug=? WHERE id=?");
+      mysqli_stmt_bind_param($stmt, "sssi", $name, $parent_id, $slug, $id);
+    } else {
+      $stmt = mysqli_prepare($conn, "UPDATE categories SET name=?, level=0, slug=? WHERE id=?");
+      mysqli_stmt_bind_param($stmt, "ssi", $name, $slug, $id);
+    }
+
+    // $stmt = mysqli_prepare($conn, "UPDATE categories SET name=?, parent_id=?, slug=? WHERE id=?");
+    // mysqli_stmt_bind_param($stmt, "sssi", $name, $parent_id, $slug, $id);
 
     if (mysqli_stmt_execute($stmt)) {
       header("Location: categories.php?success=updated");

@@ -556,3 +556,8 @@ body {
 }
 
 /* Finish product and categories page */
+
+/* required field */
+.required {
+  color: #dc3545;
+}
