@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = mysqli_real_escape_string($conn, $description);
 
     // Insert product
-    $insertQuery = "INSERT INTO products (name, sku, slug, description, price, discount, stock, weight, brand_id, category_id, is_featured, is_active) 
+    $insertQuery = "INSERT INTO products (product_name, sku, slug, description, price, discount, stock, weight, brand_id, category_id, is_featured, is_active) 
                        VALUES ('$name', '$sku', '$slug', '$description', $price, $discount, $stock, $weight, $brand_id, $category_id, $is_featured, $is_active)";
 
     if (mysqli_query($conn, $insertQuery)) {
@@ -140,10 +140,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get categories and brands for dropdowns
-$categoriesQuery = "SELECT id, name FROM categories WHERE parent_id IS NULL ORDER BY name ASC";
+$categoriesQuery = "SELECT category_id, category_name FROM categories WHERE parent_id IS NULL ORDER BY category_name ASC";
 $categoriesResult = mysqli_query($conn, $categoriesQuery);
 
-$brandsQuery = "SELECT id, name, category_id FROM brands ORDER BY name ASC";
+$brandsQuery = "SELECT brand_id, brand_name, category_id FROM brands ORDER BY brand_name ASC";
 $brandsResult = mysqli_query($conn, $brandsQuery);
 ?>
 
@@ -260,9 +260,9 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   <select name="category" class="form-select" id="categorySelect" required>
                     <option value="">-- Select Category --</option>
                     <?php while ($category = mysqli_fetch_assoc($categoriesResult)): ?>
-                      <option value="<?= $category['id'] ?>"
+                      <option value="<?= $category['category_id'] ?>"
                         <?= (isset($_POST['category']) && $_POST['category'] == $category['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($category['name']) ?>
+                        <?= htmlspecialchars($category['category_name']) ?>
                       </option>
                     <?php endwhile; ?>
                   </select>
@@ -274,9 +274,9 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   <select name="brand" class="form-select" id="brandSelect" required>
                     <option value="">-- Select Brand --</option>
                     <?php while ($brand = mysqli_fetch_assoc($brandsResult)): ?>
-                      <option value="<?= $brand['id'] ?>" data-category="<?= $brand['category_id'] ?>"
-                        <?= (isset($_POST['brand']) && $_POST['brand'] == $brand['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($brand['name']) ?>
+                      <option value="<?= $brand['brand_id'] ?>" data-category="<?= $brand['category_id'] ?>"
+                        <?= (isset($_POST['brand']) && $_POST['brand'] == $brand['brand_id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($brand['brand_name']) ?>
                       </option>
                     <?php endwhile; ?>
                   </select>

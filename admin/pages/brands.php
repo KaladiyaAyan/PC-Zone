@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 
 include '../includes/db_connect.php';
+include '../includes/functions.php';
 
 ?>
 <!DOCTYPE html>
@@ -55,29 +56,31 @@ include '../includes/db_connect.php';
           </thead>
           <tbody>
             <?php
-            $sql = "SELECT brands.*, categories.name AS category_name 
-                FROM brands 
-                LEFT JOIN categories ON brands.category_id = categories.id 
-                ORDER BY brands.id ASC";
+            $sql = "SELECT b.brand_id, b.brand_name, b.slug, b.category_id,
+               c.category_name 
+        FROM brands AS b
+        LEFT JOIN categories AS c 
+               ON b.category_id = c.category_id
+        ORDER BY b.brand_id ASC";
             $result = mysqli_query($conn, $sql);
-            // $sn = 1;
+
             while ($row = mysqli_fetch_assoc($result)) {
             ?>
               <tr>
-                <td><?= $row['id'] ?></td>
-                <td><?= htmlspecialchars($row['name']) ?></td>
-                <td><?= htmlspecialchars($row['category_name']) ?></td>
-                <td><?= $row['slug'] ?></td>
+                <td><?= $row['brand_id'] ?></td>
+                <td><?= $row['brand_name'] ? htmlspecialchars($row['brand_name']) : 'N/A' ?></td>
+                <td><?= htmlspecialchars($row['category_name'] ?? 'N/A') ?></td>
+                <td><?= $row['slug'] ?? 'N/A' ?></td>
                 <td>
                   <button class="btn-edit"
                     data-bs-toggle="modal"
                     data-bs-target="#editBrandModal"
-                    data-id="<?= $row['id'] ?>"
-                    data-name="<?= htmlspecialchars($row['name']) ?>"
+                    data-id="<?= $row['brand_id'] ?>"
+                    data-name="<?= htmlspecialchars($row['brand_name']) ?>"
                     data-category="<?= $row['category_id'] ?>">
                     <i class="fas fa-edit"></i> Edit
                   </button>
-                  <button class="btn-delete" onclick="deleteBrand(<?= $row['id'] ?>)">
+                  <button class="btn-delete" onclick="deleteBrand(<?= $row['brand_id'] ?>)">
                     <i class="fas fa-trash-alt"></i> Delete
                   </button>
                 </td>
@@ -107,9 +110,9 @@ include '../includes/db_connect.php';
               <select class="form-select" name="category_id" required>
                 <option value="">Select Category</option>
                 <?php
-                $categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name");
+                $categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
                 while ($cat = mysqli_fetch_assoc($categories)) {
-                  echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                  echo '<option value="' . $cat['category_id'] . '">' . htmlspecialchars($cat['category_name']) . '</option>';
                 }
                 ?>
               </select>
@@ -144,9 +147,9 @@ include '../includes/db_connect.php';
               <select class="form-select" name="category_id" id="editBrandCategory" required>
                 <option value="">Select Category</option>
                 <?php
-                $categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name");
+                $categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
                 while ($cat = mysqli_fetch_assoc($categories)) {
-                  echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                  echo '<option value="' . $cat['category_id'] . '">' . htmlspecialchars($cat['category_name']) . '</option>';
                 }
                 ?>
               </select>
@@ -161,8 +164,9 @@ include '../includes/db_connect.php';
     </div>
 
     <!-- Toast Container -->
-    <?php include '../includes/functions.php';
-    show_toast_script('Brand'); ?>
+    <?php
+    show_toast_script('Brand');
+    ?>
 
   </main>
 

@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $username = trim($_POST['username']);
   $password = $_POST['password'];
 
-  $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
+  $stmt = $conn->prepare("SELECT user_id, password, role FROM users WHERE username = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->bind_result($id, $hash, $role);

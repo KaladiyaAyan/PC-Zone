@@ -24,7 +24,7 @@
       <i class="fas fa-tags icon"></i>
       <span class="label">Brands</span>
     </a>
-    <a href="orders.php" class="nav-item">
+    <a href="orders.php" class="nav-item <?= ($page == 'orders' ?  'active' : '') ?>">
       <i class="fas fa-shopping-cart icon"></i>
       <span class="label">Orders</span>
     </a>

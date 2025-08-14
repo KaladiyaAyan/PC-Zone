@@ -7,6 +7,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 
 include '../includes/db_connect.php';
+include '../includes/functions.php';
+
 
 ?>
 <!DOCTYPE html>
@@ -18,7 +20,9 @@ include '../includes/db_connect.php';
   <title>PC-Zone Admin - Categories</title>
 
   <!-- Bootstrap 5 -->
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css"> -->
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
   <!-- Custom styles -->
@@ -56,33 +60,39 @@ include '../includes/db_connect.php';
           </thead>
           <tbody>
             <?php
-            $query = "SELECT c1.*, c2.name AS parent_name
-                    FROM categories c1
-                    LEFT JOIN categories c2 ON c1.parent_id = c2.id
-                    ORDER BY c1.id ASC";
+            $query = "SELECT c1.category_id, 
+                 c1.category_name, 
+                 c1.parent_id, 
+                 c1.slug, 
+                 c2.category_name AS parent_name
+          FROM categories c1
+          LEFT JOIN categories c2 
+          ON c1.parent_id = c2.category_id
+          ORDER BY c1.category_id ASC";
             $result = mysqli_query($conn, $query);
             while ($row = mysqli_fetch_assoc($result)) {
             ?>
               <tr>
-                <td><?= $row['id'] ?></td>
-                <td><?= htmlspecialchars($row['name']) ?></td>
+                <td><?= $row['category_id'] ?></td>
+                <td><?= htmlspecialchars($row['category_name']) ?></td>
                 <td><?= $row['parent_name'] ?? '—' ?></td>
                 <td><?= $row['slug'] ?></td>
                 <td>
                   <button class="btn-edit"
                     data-bs-toggle="modal"
                     data-bs-target="#editCategoryModal"
-                    data-id="<?= $row['id'] ?>"
-                    data-name="<?= htmlspecialchars($row['name']) ?>"
+                    data-id="<?= $row['category_id'] ?>"
+                    data-name="<?= htmlspecialchars($row['category_name']) ?>"
                     data-parent="<?= $row['parent_id'] ?>">
                     <i class="fas fa-edit"></i> Edit
                   </button>
-                  <button class="btn-delete" onclick="deleteCategory(<?= $row['id'] ?>)">
+                  <button class="btn-delete" onclick="deleteCategory(<?= $row['category_id'] ?>)">
                     <i class="fas fa-trash-alt"></i> Delete
                   </button>
                 </td>
               </tr>
             <?php } ?>
+
           </tbody>
         </table>
       </div>
@@ -106,9 +116,9 @@ include '../includes/db_connect.php';
               <select class="form-select" name="parent_id" id="parentCategory">
                 <option value="">None (Top-level category)</option>
                 <?php
-                $cats = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name");
+                $cats = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
                 while ($cat = mysqli_fetch_assoc($cats)) {
-                  echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                  echo '<option value="' . $cat['category_id'] . '">' . htmlspecialchars($cat['category_name']) . '</option>';
                 }
                 ?>
               </select>
@@ -157,9 +167,9 @@ include '../includes/db_connect.php';
               <select class="form-select" name="parent_id" id="editParentCategory">
                 <option value="">None (Top-level category)</option>
                 <?php
-                $catOptions = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name");
+                $catOptions = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
                 while ($cat = mysqli_fetch_assoc($catOptions)) {
-                  echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['name']) . '</option>';
+                  echo '<option value="' . $cat['category_id'] . '">' . htmlspecialchars($cat['category_name']) . '</option>';
                 }
                 ?>
               </select>
@@ -189,13 +199,11 @@ include '../includes/db_connect.php';
       </div>
     </div>
 
-    <!-- Toast Container -->
-    <?php include '../includes/functions.php';
+    <!-- // Toast Container -->
+    <?php
     show_toast_script('Category');
     ?>
   </main>
-
-
 
   <script>
     // Edit category modal initialization
@@ -215,9 +223,9 @@ include '../includes/db_connect.php';
     });
 
     // Delete category confirmation
-    function deleteCategory(id) {
+    function deleteCategory(category_id) {
       if (confirm("Are you sure you want to delete this category? All subcategories will also be deleted.")) {
-        window.location.href = "delete_category.php?id=" + id;
+        window.location.href = "delete_category.php?id=" + category_id;
       }
     }
   </script>

@@ -11,17 +11,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 include('../includes/db_connect.php');
 
 // Check if request method is POST and image_id is provided
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['image_id']) || !is_numeric($_POST['image_id'])) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['product_image_id']) || !is_numeric($_POST['product_image_id'])) {
   http_response_code(400);
   echo json_encode(['success' => false, 'message' => 'Invalid request']);
   exit;
 }
 
-$image_id = intval($_POST['image_id']);
+$image_id = intval($_POST['product_image_id']);
 
 try {
   // Get image details before deletion
-  $imageQuery = "SELECT * FROM product_images WHERE id = $image_id";
+  $imageQuery = "SELECT * FROM product_images WHERE product_image_id = $image_id";
   $imageResult = mysqli_query($conn, $imageQuery);
 
   if (!$imageResult || mysqli_num_rows($imageResult) === 0) {
@@ -34,7 +34,7 @@ try {
   $is_main = $image['is_main'];
 
   // Delete image record from database
-  $deleteQuery = "DELETE FROM product_images WHERE id = $image_id";
+  $deleteQuery = "DELETE FROM product_images WHERE product_image_id = $image_id";
 
   if (!mysqli_query($conn, $deleteQuery)) {
     throw new Exception('Failed to delete image from database: ' . mysqli_error($conn));
@@ -54,9 +54,9 @@ try {
     $updateMainQuery = "UPDATE product_images 
                         SET is_main = 1 
                         WHERE product_id = $product_id 
-                        AND id = (
+                        AND product_image_id = (
                           SELECT min_id FROM (
-                            SELECT MIN(id) as min_id 
+                            SELECT MIN(product_image_id) as min_id 
                             FROM product_images 
                             WHERE product_id = $product_id
                           ) as temp

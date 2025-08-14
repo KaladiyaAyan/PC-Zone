@@ -10,17 +10,52 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 include('../includes/db_connect.php');
 
 // Get products with brand and category names and main image
+// $query = "
+//     SELECT 
+//         p.*, 
+//         c.name AS category_name, 
+//         b.name AS brand_name,
+//         (SELECT pi.image_path FROM product_images pi WHERE pi.product_id = p.product_id AND pi.is_main = 1 LIMIT 1) AS main_image 
+//     FROM products p
+//     LEFT JOIN categories c ON p.category_id = c.id
+//     LEFT JOIN brands b ON p.brand_id = b.id
+//     ORDER BY p.product_id DESC
+// ";
+
+// $query = "
+//     SELECT p.*, 
+//        b.brand_name, 
+//        c.category_name, 
+//        i.image_path AS main_image
+// FROM products p
+// JOIN brands b ON p.brand_id = b.brand_id
+// JOIN categories c ON p.category_id = c.category_id
+// LEFT JOIN product_images i 
+//        ON p.product_id = i.product_id 
+//       AND i.is_main = 1
+// ORDER BY p.product_id DESC
+// ";
+
 $query = "
-    SELECT 
-        p.*, 
-        c.name AS category_name, 
-        b.name AS brand_name,
-        (SELECT pi.image_path FROM product_images pi WHERE pi.product_id = p.id AND pi.is_main = 1 LIMIT 1) AS main_image 
+    SELECT p.product_id,
+           p.product_name,
+           p.description,
+           p.price,
+           p.stock,
+           b.brand_name,
+           c.category_name,
+           i.image_path AS main_image
     FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN brands b ON p.brand_id = b.id
-    ORDER BY p.id DESC
+    LEFT JOIN brands b 
+        ON p.brand_id = b.brand_id
+    LEFT JOIN categories c 
+        ON p.category_id = c.category_id
+    LEFT JOIN product_images i 
+        ON p.product_id = i.product_id 
+       AND i.is_main = 1
+    ORDER BY p.product_id DESC
 ";
+
 
 $result = mysqli_query($conn, $query);
 ?>
@@ -98,8 +133,8 @@ $result = mysqli_query($conn, $query);
           <?php if (mysqli_num_rows($result) > 0): ?>
             <?php while ($product = mysqli_fetch_assoc($result)): ?>
               <tr class="product-row" data-product='<?= json_encode([
-                                                      "id" => $product["id"],
-                                                      "name" => $product["name"],
+                                                      "id" => $product["product_id"],
+                                                      "name" => $product["product_name"],
                                                       "description" => $product["description"],
                                                       "price" => $product["price"],
                                                       "stock" => $product["stock"],
@@ -107,7 +142,7 @@ $result = mysqli_query($conn, $query);
                                                       "category" => $product["category_name"],
                                                       "image" => $product["main_image"]
                                                     ]) ?>'>
-                <td><?= $product['id'] ?></td>
+                <td><?= $product['product_id'] ?></td>
                 <td class="product-image ">
                   <?php if ($product['main_image']): ?>
                     <?php
@@ -116,15 +151,16 @@ $result = mysqli_query($conn, $query);
                       $imagePath = "../assets/images/" . $product['main_image'];
                     }
                     ?>
-                    <img src="<?= $imagePath ?>"
-                      alt="<?= htmlspecialchars($product['name']) ?>"
-                      class="product-thumb img-fluid" style="max-width: 100px; ">
+                    <img src="<?= htmlspecialchars($imagePath) ?>"
+                      alt="<?= htmlspecialchars($product['product_name']) ?>"
+                      class="product-thumb img-fluid"
+                      style="max-width: 100px;">
 
                   <?php else: ?>
                     <div class="no-image">No Image</div>
                   <?php endif; ?>
                 </td>
-                <td><?= htmlspecialchars($product['name']) ?></td>
+                <td><?= htmlspecialchars($product['product_name']) ?></td>
                 <td><?= htmlspecialchars($product['category_name'] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($product['brand_name'] ?? 'N/A') ?></td>
                 <td>₹<?= number_format($product['price'], 2) ?></td>
@@ -134,10 +170,10 @@ $result = mysqli_query($conn, $query);
                   </span>
                 </td>
                 <td>
-                  <a href="edit_product.php?id=<?= $product['id'] ?>" class="btn-edit">
+                  <a href="edit_product.php?product_id=<?= $product['product_id'] ?>" class="btn-edit">
                     <i class="fas fa-edit"></i> Edit
                   </a>
-                  <a href="delete_product.php?id=<?= $product['id'] ?>"
+                  <a href="delete_product.php?product_id=<?= $product['product_id'] ?>"
                     class="btn-delete d-flex gap-1 align-items-center"
                     onclick="return confirm('Are you sure you want to delete this product?')">
                     <i class="fas fa-trash"></i> Delete

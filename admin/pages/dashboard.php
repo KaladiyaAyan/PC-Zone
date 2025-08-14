@@ -107,7 +107,7 @@ $totalRevenue = getTotalRevenue($conn);
             if (mysqli_num_rows($recentOrders) > 0) {
               while ($order = mysqli_fetch_assoc($recentOrders)) {
                 echo "<tr>
-                                    <td>{$order['id']}</td>
+                                    <td>{$order['order_id']}</td>
                                     <td>{$order['customer_name']}</td>
                                     <td>₹" . number_format($order['total_amount'], 2) . "</td>
                                     <td>" . date('M d, Y', strtotime($order['order_date'])) . "</td>
@@ -144,8 +144,8 @@ $totalRevenue = getTotalRevenue($conn);
                 $statusClass = $product['stock'] == 0 ? 'out-of-stock' : 'low-stock';
                 $statusText = $product['stock'] == 0 ? 'Out of Stock' : 'Low Stock';
                 echo "<tr>
-                                    <td>{$product['id']}</td>
-                                    <td>{$product['name']}</td>
+                                    <td>{$product['product_id']}</td>
+                                    <td>{$product['product_name']}</td>
                                     <td>{$product['stock']}</td>
                                     <td><span class='status-{$statusClass}'>{$statusText}</span></td>
                                 </tr>";

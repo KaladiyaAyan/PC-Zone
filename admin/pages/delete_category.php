@@ -8,13 +8,13 @@ if (isset($_GET['id'])) {
   function deleteCategoryRecursive($conn, $categoryId)
   {
     // First, find all subcategories
-    $subCats = mysqli_query($conn, "SELECT id FROM categories WHERE parent_id = $categoryId");
+    $subCats = mysqli_query($conn, "SELECT category_id FROM categories WHERE parent_id = $categoryId");
     while ($sub = mysqli_fetch_assoc($subCats)) {
-      deleteCategoryRecursive($conn, $sub['id']);
+      deleteCategoryRecursive($conn, $sub['category_id']);
     }
 
     // Then delete the current category
-    mysqli_query($conn, "DELETE FROM categories WHERE id = $categoryId");
+    mysqli_query($conn, "DELETE FROM categories WHERE category_id = $categoryId");
   }
 
   // Start deletion process

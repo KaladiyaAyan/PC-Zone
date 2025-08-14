@@ -10,12 +10,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 include('../includes/db_connect.php');
 
 // Check if product ID is provided
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['product_id']) || !is_numeric($_GET['product_id'])) {
   header("Location: products.php?delete=invalid");
   exit;
 }
 
-$product_id = intval($_GET['id']);
+$product_id = intval($_GET['product_id']);
 
 // Get product images before deletion
 $imagesQuery = "SELECT image_path FROM product_images WHERE product_id = $product_id";
@@ -39,7 +39,7 @@ try {
   }
 
   // Delete product from database
-  $deleteProductQuery = "DELETE FROM products WHERE id = $product_id";
+  $deleteProductQuery = "DELETE FROM products WHERE product_id = $product_id";
   if (!mysqli_query($conn, $deleteProductQuery)) {
     throw new Exception("Failed to delete product from database");
   }
