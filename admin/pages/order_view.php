@@ -157,111 +157,18 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
   <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/style.css">
-  <style>
-    body {
-      background-color: #f4f4f4;
-      color: #1a1a1a;
-    }
-
-    .navbar,
-    .card-header {
-      background-color: #232f3e;
-      color: #fff;
-      border-bottom: none;
-    }
-
-    .navbar a,
-    .card-header a {
-      color: #fff;
-    }
-
-    .sidebar {
-      background-color: #232f3e;
-    }
-
-    .sidebar a {
-      color: #d5d5d5;
-      display: block;
-      padding: .6rem 1rem;
-      text-decoration: none;
-    }
-
-    .sidebar a.active {
-      background-color: #37475a;
-      color: #fff;
-    }
-
-    .card {
-      border: 1px solid #ddd;
-      background-color: #fff;
-      border-radius: 6px;
-    }
-
-    .card-body {
-      background-color: #fff;
-    }
-
-    /* AWS table style */
-    table {
-      border-collapse: separate;
-      border-spacing: 0;
-      width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    table thead th {
-      background-color: #f2f3f3;
-      color: #333;
-      font-weight: 600;
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
-
-    table tbody td {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-    }
-
-    table tbody tr:hover {
-      background-color: #f5f9fd;
-    }
-
-    table tfoot td {
-      font-weight: 600;
-      background-color: #fafafa;
-      padding: 10px;
-    }
-
-    .btn-aws {
-      background-color: #ff9900;
-      color: #232f3e;
-      border: none;
-    }
-
-    .btn-aws:hover {
-      background-color: #e68a00;
-      color: #fff;
-    }
-
-    .badge-status {
-      font-size: .85rem;
-      padding: .35em .55em;
-    }
-  </style>
 </head>
 
 <body>
   <?php include '../includes/header.php'; ?>
-  <?php $page = 'orders';
+  <?php $current_page = 'orders';
   include '../includes/sidebar.php'; ?>
 
   <div class="main-content pt-5 mt-4">
     <div class="container mt-2">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0"><i class="fas fa-receipt me-2"></i>Order #<?= (int)$order['order_id']; ?></h2>
-        <a href="orders.php" class="btn btn-aws"><i class="fas fa-arrow-left me-1"></i>Back</a>
+        <a href="orders.php" class="btn btn-add"><i class="fas fa-arrow-left me-1"></i>Back</a>
       </div>
 
       <!-- Order summary -->
@@ -275,15 +182,14 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
                 <strong>Order Status:</strong>
                 <?php
                 $osClass = match ($order['order_status']) {
-                  'Delivered' => 'bg-success',
-                  'Shipped'   => 'bg-primary',
-                  'Processing' => 'bg-info text-dark',
-                  'Cancelled' => 'bg-danger',
-                  'Returned'  => 'bg-warning text-dark',
-                  default     => 'bg-secondary'
+                  'Delivered' => 'status-completed',
+                  'Shipped', 'Processing' => 'status-pending',
+                  'Cancelled' => 'status-cancelled',
+                  'Returned' => 'stock-badge low-stock',
+                  default => 'stock-badge'
                 };
                 ?>
-                <span class="badge badge-status <?= $osClass; ?>"><?= h($order['order_status']); ?></span>
+                <span class="<?= h($osClass); ?> badge-status"><?= h($order['order_status']); ?></span>
               </div>
               <div class="mb-1">
                 <strong>Payment:</strong>
@@ -291,13 +197,13 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
                 <?php
                 $ps = $latestPayment ? $latestPayment['payment_status'] : '—';
                 $psClass = match ($ps) {
-                  'Paid'      => 'bg-success',
-                  'Failed'    => 'bg-danger',
-                  'Refunded'  => 'bg-warning text-dark',
-                  default     => 'bg-secondary'
+                  'Paid' => 'status-completed',
+                  'Failed' => 'status-cancelled',
+                  'Refunded' => 'stock-badge low-stock',
+                  default => 'stock-badge'
                 };
                 ?>
-                <span class="badge badge-status <?= $psClass; ?>"><?= h($ps); ?></span>
+                <span class="<?= h($psClass); ?> badge-status"><?= h($ps); ?></span>
               </div>
               <div class="mb-1"><strong>Total:</strong> <?= moneyINR($order['total_amount']); ?></div>
               <div class="mb-1"><strong>Shipping Method:</strong> <?= $order['shipping_method'] ? h($order['shipping_method']) : '—'; ?></div>
@@ -347,7 +253,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       <div class="card mt-3">
         <div class="card-header">Items</div>
         <div class="card-body table-responsive">
-          <table class="table align-middle">
+          <table class="data-table table align-middle">
             <thead>
               <tr>
                 <th>#</th>
@@ -395,7 +301,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       <div class="card mt-3">
         <div class="card-header">Payments</div>
         <div class="card-body table-responsive">
-          <table class="table align-middle">
+          <table class="data-table table align-middle">
             <thead>
               <tr>
                 <th>ID</th>
@@ -410,14 +316,21 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
             </thead>
             <tbody>
               <?php if (mysqli_num_rows($payRes) > 0): ?>
-                <?php while ($p = mysqli_fetch_assoc($payRes)): ?>
+                <?php while ($p = mysqli_fetch_assoc($payRes)):
+                  $payBadge = match ($p['payment_status']) {
+                    'Paid' => 'status-completed',
+                    'Failed' => 'status-cancelled',
+                    'Refunded' => 'stock-badge low-stock',
+                    default => 'stock-badge'
+                  };
+                ?>
                   <tr>
                     <td><?= (int)$p['payment_id']; ?></td>
                     <td><?= h($p['payment_method']); ?></td>
                     <td><?= h($p['transaction_id']); ?></td>
                     <td class="text-end"><?= number_format((float)$p['amount'], 2); ?></td>
                     <td><?= h($p['currency']); ?></td>
-                    <td><?= h($p['payment_status']); ?></td>
+                    <td><span class="<?= h($payBadge); ?> badge-status"><?= h($p['payment_status']); ?></span></td>
                     <td><?= fmtDate($p['paid_at']); ?></td>
                     <td><?= fmtDate($p['created_at']); ?></td>
                   </tr>

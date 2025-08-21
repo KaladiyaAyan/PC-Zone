@@ -1,8 +1,8 @@
 <?php
 // sidebar.php - admin sidebar
-// Expects $page variable to be set by caller (e.g. $page = 'dashboard';)
-$active = function ($name) use ($page) {
-  return isset($page) && $page === $name ? 'active' : '';
+// Expects $current_page variable to be set by caller (e.g. $current_page = 'dashboard';)
+$active = function ($name) use ($current_page) {
+  return isset($current_page) && $current_page === $name ? 'active' : '';
 };
 ?>
 <aside id="sidebar" class="sidebar">

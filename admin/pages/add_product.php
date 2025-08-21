@@ -161,7 +161,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
 
 <body>
   <?php include '../includes/header.php'; ?>
-  <?php $page = 'products';
+  <?php $current_page = 'products';
   include '../includes/sidebar.php'; ?>
 
   <main class="main-content my-4">

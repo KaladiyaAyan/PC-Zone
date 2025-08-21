@@ -29,7 +29,7 @@ include '../includes/functions.php';
 
 <body>
   <?php include '../includes/header.php'; ?>
-  <?php $page = 'categories';
+  <?php $current_page = 'categories';
   include '../includes/sidebar.php'; ?>
 
   <main class="main-content pt-5 mt-2">

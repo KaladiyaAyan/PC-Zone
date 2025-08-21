@@ -235,14 +235,15 @@ CREATE TABLE IF NOT EXISTS customers (
     profile_image VARCHAR(255) DEFAULT NULL,
     newsletter_subscribed BOOLEAN DEFAULT FALSE,
     status ENUM('active','inactive','banned') DEFAULT 'active',
+    last_login DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 7. CUSTOMERS
-INSERT INTO customers (first_name, last_name, email, phone, password) VALUES
-  ('Alice', 'Johnson', 'alice@johnson.com', '777-777-7777', 'password123'),
-  ('Bob', 'Smith',     'bob@smith.com',     '555-555-5555', 'password456');
+INSERT INTO customers (first_name, last_name, email, phone, password, date_of_birth, gender, profile_image, newsletter_subscribed) VALUES
+  ('Alice', 'Johnson', 'alice@johnson.com', '777-777-7777', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Female', 'https://example.com/alice.jpg', TRUE),
+  ('Bob', 'Smith', 'bob@smith.com', '555-555-5555', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1985-05-15', 'Male', 'https://example.com/bob.jpg', FALSE);
 
 
 -- ADDRESSES
@@ -344,6 +345,17 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (order_id)   REFERENCES orders(order_id)   ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price) VALUES
+  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com')),
+   (SELECT product_id FROM products WHERE slug='corsair-vengeance-lpx-16gb'),
+   1,
+   999.99, 0.00, 999.99),
+  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com')),
+   (SELECT product_id FROM products WHERE slug='nvidia-geforce-rtx-3060'),
+   1,
+   499.99, 0.00, 499.99);
+
 CREATE TABLE IF NOT EXISTS payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -357,6 +369,10 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
 
+INSERT INTO payments (order_id, payment_method, transaction_id, amount, currency, payment_status, paid_at) VALUES
+  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com')), 'cash_on_delivery', NULL, 999.99, 'INR', 'Paid', NOW()),
+  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com')), 'cash_on_delivery', NULL, 499.99, 'INR', 'Paid', NOW());
+
 CREATE TABLE IF NOT EXISTS shipments (
     shipment_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -368,6 +384,10 @@ CREATE TABLE IF NOT EXISTS shipments (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
+
+INSERT INTO shipments (order_id, tracking_number, shipping_method, shipped_date, delivered_date, status) VALUES
+  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com')), '1234567890', 'FedEx', NOW(), NULL, 'Shipped'),
+  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com')), '9876543210', 'UPS', NOW(), NULL, 'Shipped');
 
 -- PRODUCT IMAGES
 CREATE TABLE IF NOT EXISTS product_images (

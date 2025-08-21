@@ -81,7 +81,7 @@ $result = mysqli_query($conn, $sql);
 
 <body>
   <?php include '../includes/header.php'; ?>
-  <?php $page = 'orders';
+  <?php $current_page = 'orders';
   include '../includes/sidebar.php'; ?>
 
   <div class="main-content pt-5 mt-4">

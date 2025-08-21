@@ -59,7 +59,7 @@ $totalRevenue = getTotalRevenue($conn);
 
 <body>
   <?php include '../includes/header.php'; ?>
-  <?php $page = 'dashboard';
+  <?php $current_page = 'dashboard';
   include '../includes/sidebar.php'; ?>
 
   <main class="main-content">

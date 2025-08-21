@@ -1,15 +1,210 @@
 <?php
-$current = basename($_SERVER['PHP_SELF']);
+session_start();
+if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
+  header('Location: ../login.php');
+  exit;
+}
+require_once '../includes/db_connect.php'; // provides $conn (mysqli)
+
+/* helper */
+function h($s)
+{
+  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+}
+
+$perPage = 15;
+$page = max(1, (int)($_GET['page'] ?? 1));
+$search = trim($_GET['q'] ?? '');
+$offset = ($page - 1) * $perPage;
+
+/* POST action: toggle status */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action']) && ctype_digit($_POST['id'])) {
+  $id = (int)$_POST['id'];
+  if ($_POST['action'] === 'toggle') {
+    $stmt = mysqli_prepare($conn, "UPDATE customers SET status = IF(status='active','inactive','active') WHERE customer_id = ?");
+    mysqli_stmt_bind_param($stmt, 'i', $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    header('Location: customers.php?q=' . urlencode($search) . '&page=' . $page);
+    exit;
+  }
+}
+
+/* Count total matching customers (exclude deleted) */
+if ($search !== '') {
+  $like = '%' . $search . '%';
+  $cnt_sql = "SELECT COUNT(*) FROM customers WHERE status != 'deleted' AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)";
+  $stmt = mysqli_prepare($conn, $cnt_sql);
+  mysqli_stmt_bind_param($stmt, 'ssss', $like, $like, $like, $like);
+} else {
+  $cnt_sql = "SELECT COUNT(*) FROM customers WHERE status != 'deleted'";
+  $stmt = mysqli_prepare($conn, $cnt_sql);
+}
+mysqli_stmt_execute($stmt);
+mysqli_stmt_bind_result($stmt, $total);
+mysqli_stmt_fetch($stmt);
+mysqli_stmt_close($stmt);
+$total = (int)$total;
+$totalPages = $total > 0 ? (int)ceil($total / $perPage) : 1;
+
+/* Fetch customers with last purchase date and orders count, ordered by recent purchase */
+if ($search !== '') {
+  $like = '%' . $search . '%';
+  $sql = "
+    SELECT
+      c.customer_id,
+      c.first_name,
+      c.last_name,
+      c.email,
+      c.phone,
+      c.status,
+      c.created_at,
+      MAX(o.created_at) AS last_order,
+      COUNT(o.order_id) AS orders_count
+    FROM customers c
+    LEFT JOIN orders o ON o.customer_id = c.customer_id
+    WHERE c.status != 'deleted'
+      AND (c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)
+    GROUP BY c.customer_id
+    ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, c.created_at DESC
+    LIMIT ?, ?
+  ";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, 'ssssii', $like, $like, $like, $like, $offset, $perPage);
+} else {
+  $sql = "
+    SELECT
+      c.customer_id,
+      c.first_name,
+      c.last_name,
+      c.email,
+      c.phone,
+      c.status,
+      c.created_at,
+      MAX(o.created_at) AS last_order,
+      COUNT(o.order_id) AS orders_count
+    FROM customers c
+    LEFT JOIN orders o ON o.customer_id = c.customer_id
+    WHERE c.status != 'deleted'
+    GROUP BY c.customer_id
+    ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, c.created_at DESC
+    LIMIT ?, ?
+  ";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, 'ii', $offset, $perPage);
+}
+
+mysqli_stmt_execute($stmt);
+$res = mysqli_stmt_get_result($stmt);
 ?>
-<?php include __DIR__ . '/includes/header.php'; ?>
-<?php include __DIR__ . '/includes/sidebar.php'; ?>
+<!doctype html>
+<html lang="en">
 
-<main class="main-content">
-  <h1>Customers</h1>
-  <p>Here you’ll manage your customer records.</p>
-</main>
+<head>
+  <meta charset="utf-8">
+  <title>Customers - PCZone Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
 
-<script src="./assets/js/script.js"></script>
+<body>
+  <?php
+  $current_page = 'customers';
+  include '../includes/header.php';
+  include '../includes/sidebar.php';
+  ?>
+  <div class="main-content pt-5 mt-4">
+    <div class="container mt-2">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 class="mb-0">Customers</h2>
+          <small class="text-muted">Sorted by most recent purchase. Use search to filter by name, email or phone.</small>
+        </div>
+        <form class="d-flex" method="get" action="customers.php">
+          <input name="q" class="form-control form-control-sm" placeholder="Search name/email/phone" value="<?= h($search) ?>">
+          <button class="btn btn-add btn-sm ms-2" type="submit">Search</button>
+        </form>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table table table-hover table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Orders</th>
+              <th>Last Purchase</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $i = $offset + 1;
+            while ($r = mysqli_fetch_assoc($res)):
+              $lastOrder = $r['last_order'];
+            ?>
+              <tr>
+                <td><?= $i++; ?></td>
+                <td><?= h($r['first_name'] . ' ' . $r['last_name']); ?></td>
+                <td><?= h($r['email']); ?></td>
+                <td><?= h($r['phone'] ?: '—'); ?></td>
+                <td><?= (int)$r['orders_count']; ?></td>
+                <td><?= $lastOrder ? h(date('d M Y, H:i', strtotime($lastOrder))) : '—'; ?></td>
+                <td>
+                  <span class="badge-status <?= $r['status'] === 'active' ? 'status-completed' : 'stock-badge' ?>">
+                    <?= h(ucfirst($r['status'])) ?>
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="customer_view.php?id=<?= (int)$r['customer_id'] ?>" class="btn btn-edit btn-sm">View</a>
+
+                  <form method="post" style="display:inline-block" onsubmit="return confirm('Toggle status?');">
+                    <input type="hidden" name="id" value="<?= (int)$r['customer_id'] ?>">
+                    <input type="hidden" name="action" value="toggle">
+                    <button class="btn btn-add btn-sm" type="submit">Toggle</button>
+                  </form>
+                </td>
+              </tr>
+            <?php endwhile;
+            if ($total === 0): ?>
+              <tr>
+                <td colspan="8" class="text-center text-muted">No customers found.</td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- pagination -->
+      <?php if ($totalPages > 1): ?>
+        <nav class="mt-3">
+          <ul class="pagination">
+            <?php
+            // keep current search in links
+            for ($p = 1; $p <= $totalPages; $p++):
+            ?>
+              <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                <a class="page-link" href="customers.php?q=<?= urlencode($search) ?>&page=<?= $p ?>"><?= $p ?></a>
+              </li>
+            <?php endfor; ?>
+          </ul>
+        </nav>
+      <?php endif; ?>
+
+    </div>
+  </div>
+
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
+<?php
+// cleanup
+mysqli_free_result($res);
+mysqli_stmt_close($stmt);
+?>
