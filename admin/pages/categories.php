@@ -8,28 +8,23 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 
 include '../includes/db_connect.php';
 include '../includes/functions.php';
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PC-Zone Admin - Categories</title>
 
-  <!-- Bootstrap 5 -->
-  <!-- <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css"> -->
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Local Bootstrap to match other pages -->
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
   <!-- Custom styles -->
   <link rel="stylesheet" href="../assets/css/style.css">
   <!-- Bootstrap JS -->
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
 </head>
 
 <body>
@@ -38,7 +33,7 @@ include '../includes/functions.php';
   include '../includes/sidebar.php'; ?>
 
   <main class="main-content pt-5 mt-2">
-    <div class="container my-4">
+    <div class="content-wrapper container my-4">
       <div class="d-flex align-items-center justify-content-between mb-4">
         <h2 class="mb-0">Manage Categories</h2>
         <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
@@ -47,9 +42,9 @@ include '../includes/functions.php';
       </div>
 
       <!-- Categories Table -->
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-          <thead class="table-light">
+      <div class="table-box">
+        <table class="data-table table table-hover align-middle">
+          <thead>
             <tr>
               <th>#</th>
               <th>Category Name</th>
@@ -92,19 +87,19 @@ include '../includes/functions.php';
                 </td>
               </tr>
             <?php } ?>
-
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Add Category Modal (Enhanced Design) -->
+    <!-- Add Category Modal -->
     <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form class="modal-content" method="POST" action="add_category.php">
+        <!-- apply form-container so modal form uses admin form styles -->
+        <form class="modal-content form-container" method="POST" action="add_category.php">
           <div class="modal-header">
             <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn close-btn position-static p-0" data-bs-dismiss="modal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
@@ -123,17 +118,6 @@ include '../includes/functions.php';
                 ?>
               </select>
             </div>
-            <!-- <div class="mb-3">
-              <label for="categoryDescription" class="form-label">Description</label>
-              <textarea class="form-control" name="description" id="categoryDescription" rows="3" placeholder="Enter a short description"></textarea>
-            </div> -->
-            <!-- <div class="mb-3">
-              <label class="form-label">Status</label>
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="categoryStatus" name="status" checked>
-                <label class="form-check-label" for="categoryStatus">Active</label>
-              </div>
-            </div> -->
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -145,10 +129,10 @@ include '../includes/functions.php';
       </div>
     </div>
 
-    <!-- Edit Category Modal (Enhanced Design) -->
+    <!-- Edit Category Modal -->
     <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form class="modal-content" method="POST" action="update_category.php">
+        <form class="modal-content form-container" method="POST" action="update_category.php">
           <input type="hidden" name="id" id="editCategoryId">
 
           <div class="modal-header">
@@ -175,11 +159,6 @@ include '../includes/functions.php';
               </select>
             </div>
 
-            <!-- <div class="mb-3">
-              <label for="editCategoryDescription" class="form-label">Description</label>
-              <textarea class="form-control" name="description" id="editCategoryDescription" rows="3"></textarea>
-            </div> -->
-
             <div class="mb-3">
               <label class="form-label">Status</label>
               <div class="form-check form-switch">
@@ -199,7 +178,7 @@ include '../includes/functions.php';
       </div>
     </div>
 
-    <!-- // Toast Container -->
+    <!-- Toast script -->
     <?php
     show_toast_script('Category');
     ?>
@@ -208,19 +187,19 @@ include '../includes/functions.php';
   <script>
     // Edit category modal initialization
     const editModal = document.getElementById('editCategoryModal');
-    editModal.addEventListener('show.bs.modal', function(event) {
-      const button = event.relatedTarget;
-      const id = button.getAttribute('data-id');
-      const name = button.getAttribute('data-name');
-      const parentId = button.getAttribute('data-parent');
+    if (editModal) {
+      editModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const parentId = button.getAttribute('data-parent');
 
-      document.getElementById('editCategoryId').value = id;
-      document.getElementById('editCategoryName').value = name;
-      document.getElementById('editParentCategory').value = parentId || '';
+        document.getElementById('editCategoryId').value = id;
+        document.getElementById('editCategoryName').value = name;
+        document.getElementById('editParentCategory').value = parentId || '';
+      });
+    }
 
-      // These would come from your database - just placeholder values
-      // document.getElementById('editCategoryDescription').value = "This is a sample description for the category";
-    });
 
     // Delete category confirmation
     function deleteCategory(category_id) {

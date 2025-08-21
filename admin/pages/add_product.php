@@ -157,31 +157,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
   <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/style.css">
 
-  <style>
-    .form-container {
-      background: white;
-      border-radius: 8px;
-      padding: 2rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-
-
-    .preview-images {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .preview-images img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 5px;
-      border: 2px solid #ddd;
-    }
-  </style>
 </head>
 
 <body>

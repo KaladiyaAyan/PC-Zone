@@ -74,7 +74,7 @@ $result = mysqli_query($conn, $query);
   <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
   <!-- Custom styles -->
   <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="stylesheet" href="../assets/css/products.css">
+  <!-- <link rel="stylesheet" href="../assets/css/products.css"> -->
 </head>
 
 <body>
@@ -213,22 +213,6 @@ $result = mysqli_query($conn, $query);
 
     // Sidebar functionality
     document.addEventListener("DOMContentLoaded", function() {
-      const hamburger = document.getElementById("hamburger");
-      const sidebar = document.getElementById("sidebar");
-
-      // Load sidebar state
-      const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-      if (isCollapsed) {
-        sidebar.classList.add("collapsed");
-      }
-
-      // Toggle sidebar
-      if (hamburger) {
-        hamburger.addEventListener("click", () => {
-          sidebar.classList.toggle("collapsed");
-          localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
-        });
-      }
 
       // Prevent row click when clicking action buttons
       document.querySelectorAll(".btn-edit, .btn-delete").forEach(btn => {

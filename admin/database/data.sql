@@ -76,29 +76,68 @@ CREATE TABLE IF NOT EXISTS addresses (
     is_default BOOLEAN DEFAULT 0,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
 );
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
+    billing_address_id INT NOT NULL,
     shipping_address_id INT NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(50) NOT NULL,
-    status ENUM('Pending','Processing','Shipped','Delivered','Cancelled') DEFAULT 'Pending',
-    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    -- payment_method ENUM('cash_on_delivery','credit_card','debit_card','upi') NOT NULL,
+    -- payment_status ENUM('Pending','Paid','Failed','Refunded') DEFAULT 'Pending',
+    order_status ENUM('Pending','Processing','Shipped','Delivered','Cancelled','Returned') DEFAULT 'Pending',
+    tracking_number VARCHAR(100) DEFAULT NULL,
+    shipping_method VARCHAR(100) DEFAULT NULL,
+    order_notes TEXT DEFAULT NULL,
+    paid_at DATETIME DEFAULT NULL,
+    cancelled_at DATETIME DEFAULT NULL,
+    refunded_at DATETIME DEFAULT NULL,
     shipped_date DATE DEFAULT NULL,
     delivered_date DATE DEFAULT NULL,
+    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (billing_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE,
     FOREIGN KEY (shipping_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE
 );
+
 CREATE TABLE IF NOT EXISTS order_items (
     order_item_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     unit_price DECIMAL(10,2) NOT NULL,
+    discount DECIMAL(6,2) DEFAULT 0,
+    total_price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id)   REFERENCES orders(order_id)   ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    payment_method ENUM('cash_on_delivery','credit_card','debit_card','upi') NOT NULL,
+    transaction_id VARCHAR(150) DEFAULT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'INR',
+    payment_status ENUM('Pending','Paid','Failed','Refunded') DEFAULT 'Pending',
+    paid_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shipments (
+    shipment_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    tracking_number VARCHAR(100) NOT NULL,
+    shipping_method VARCHAR(100) NOT NULL,
+    shipped_date DATETIME DEFAULT NULL,
+    delivered_date DATETIME DEFAULT NULL,
+    status ENUM('Pending','Shipped','Delivered','Returned') DEFAULT 'Pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
+);
+
+-- PRODUCT IMAGES
 CREATE TABLE IF NOT EXISTS product_images (
     product_image_id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,

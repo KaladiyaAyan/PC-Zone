@@ -55,9 +55,9 @@ $result = mysqli_query($conn, $sql);
       color: white;
     } */
 
-    .table-hover tbody tr:hover {
+    /* .table-hover tbody tr:hover {
       background-color: #e9ecef;
-    }
+    } */
 
     .status-badge {
       padding: 5px 10px;
@@ -89,8 +89,8 @@ $result = mysqli_query($conn, $sql);
     <div class="container mt-2">
       <h2 class="mb-4"><i class="fas fa-shopping-cart"></i> Orders</h2>
 
-      <div class="table-responsive card-body">
-        <table class="table table-bordered table-hover align-middle">
+      <div class="table-box">
+        <table class="data-table table table-hover align-middle">
           <thead>
             <tr>
               <th>Order ID</th>

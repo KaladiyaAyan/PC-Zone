@@ -301,11 +301,11 @@ INSERT INTO addresses (customer_id, full_name, phone, address_line1, address_lin
 CREATE TABLE IF NOT EXISTS orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
+    billing_address_id INT NOT NULL,
     shipping_address_id INT NOT NULL,
-    billing_address_id INT DEFAULT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(50) NOT NULL,
-    payment_status ENUM('Pending','Paid','Failed','Refunded') DEFAULT 'Pending',
+    -- payment_method ENUM('cash_on_delivery','credit_card','debit_card','upi') NOT NULL,
+    -- payment_status ENUM('Pending','Paid','Failed','Refunded') DEFAULT 'Pending',
     order_status ENUM('Pending','Processing','Shipped','Delivered','Cancelled','Returned') DEFAULT 'Pending',
     tracking_number VARCHAR(100) DEFAULT NULL,
     shipping_method VARCHAR(100) DEFAULT NULL,
@@ -319,19 +319,18 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
-    FOREIGN KEY (shipping_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE,
-    FOREIGN KEY (billing_address_id) REFERENCES addresses(address_id) ON DELETE SET NULL
+    FOREIGN KEY (billing_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE,
+    FOREIGN KEY (shipping_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE
 );
-
-INSERT INTO orders (customer_id, shipping_address_id, billing_address_id, total_amount, payment_method) VALUES
+INSERT INTO orders (customer_id, billing_address_id, shipping_address_id, total_amount) VALUES
   ((SELECT customer_id FROM customers WHERE email='alice@johnson.com'),
    (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com')),
    (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com')),
-   599.99, 'Credit Card'),
+   999.99),
   ((SELECT customer_id FROM customers WHERE email='bob@smith.com'),
    (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com')),
    (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com')),
-   1199.99, 'PayPal');
+   499.99);
 
 -- ORDER ITEMS
 CREATE TABLE IF NOT EXISTS order_items (
@@ -345,14 +344,13 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (order_id)   REFERENCES orders(order_id)   ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
-
 CREATE TABLE IF NOT EXISTS payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    payment_method VARCHAR(50) NOT NULL,
+    payment_method ENUM('cash_on_delivery','credit_card','debit_card','upi') NOT NULL,
     transaction_id VARCHAR(150) DEFAULT NULL,
     amount DECIMAL(10,2) NOT NULL,
-    currency VARCHAR(10) DEFAULT 'USD',
+    currency VARCHAR(10) DEFAULT 'INR',
     payment_status ENUM('Pending','Paid','Failed','Refunded') DEFAULT 'Pending',
     paid_at DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

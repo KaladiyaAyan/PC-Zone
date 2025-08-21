@@ -203,77 +203,6 @@ while ($brand = mysqli_fetch_assoc($brandsResult)) {
   <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/style.css">
 
-  <style>
-    .form-container {
-      background: white;
-      border-radius: 8px;
-      padding: 2rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .required {
-      color: #dc3545;
-    }
-
-    .existing-images {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .existing-images img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 5px;
-      border: 2px solid #ddd;
-    }
-
-    .image-container {
-      position: relative;
-      display: inline-block;
-    }
-
-    .delete-image {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 25px;
-      height: 25px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .main-image-badge {
-      position: absolute;
-      bottom: 5px;
-      left: 5px;
-      background: #28a745;
-      color: white;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 10px;
-    }
-
-    .brand-info {
-      font-size: 0.85em;
-      color: #6c757d;
-      margin-top: 5px;
-    }
-
-    .current-selection {
-      background-color: #e7f3ff;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      border-left: 4px solid #0066cc;
-    }
-  </style>
 </head>
 
 <body>
@@ -483,7 +412,7 @@ while ($brand = mysqli_fetch_assoc($brandsResult)) {
                 <!-- Submit Buttons -->
                 <div class="col-12 mt-4">
                   <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-success">
                       <i class="fas fa-save"></i> Update Product
                     </button>
                     <a href="products.php" class="btn btn-secondary">
