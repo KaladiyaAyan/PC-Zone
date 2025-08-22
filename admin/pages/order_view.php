@@ -148,7 +148,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
   <meta charset="UTF-8" />
@@ -164,7 +164,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
   <?php $current_page = 'orders';
   include '../includes/sidebar.php'; ?>
 
-  <div class="main-content pt-5 mt-4">
+  <main class="main-content pt-5 mt-4">
     <div class="container mt-2">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0"><i class="fas fa-receipt me-2"></i>Order #<?= (int)$order['order_id']; ?></h2>
@@ -172,9 +172,9 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       </div>
 
       <!-- Order summary -->
-      <div class="row g-3">
+      <div class="row g-3 ">
         <div class="col-lg-6">
-          <div class="card">
+          <div class="card theme-card">
             <div class="card-header">Order Information</div>
             <div class="card-body">
               <div class="mb-1"><strong>Date:</strong> <?= fmtDate($order['order_date']); ?></div>
@@ -218,7 +218,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
 
         <!-- Customer + addresses -->
         <div class="col-lg-6">
-          <div class="card mb-3">
+          <div class="card mb-3 theme-card">
             <div class="card-header">Customer</div>
             <div class="card-body">
               <div class="mb-1"><strong>Name:</strong> <?= h($order['first_name'] . ' ' . $order['last_name']); ?></div>
@@ -227,7 +227,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
             </div>
           </div>
 
-          <div class="card mb-3">
+          <div class="card mb-3 theme-card">
             <div class="card-header">Shipping Address</div>
             <div class="card-body">
               <div class="mb-1"><strong>Contact:</strong> <?= $order['ship_full_name'] ? h($order['ship_full_name']) : '—'; ?><?= $order['ship_phone'] ? ' · ' . h($order['ship_phone']) : ''; ?></div>
@@ -235,7 +235,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
             </div>
           </div>
 
-          <div class="card">
+          <div class="card theme-card">
             <div class="card-header">Billing Address</div>
             <div class="card-body">
               <?php if ($order['bill_addr1'] || $order['bill_addr2'] || $order['bill_city'] || $order['bill_state'] || $order['bill_zip'] || $order['bill_country']): ?>
@@ -250,9 +250,9 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       </div>
 
       <!-- Items -->
-      <div class="card mt-3">
+      <div class="card mt-3 theme-card">
         <div class="card-header">Items</div>
-        <div class="card-body table-responsive">
+        <div class="card-body table-responsive table-container">
           <table class="data-table table align-middle">
             <thead>
               <tr>
@@ -298,9 +298,9 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       </div>
 
       <!-- Payments -->
-      <div class="card mt-3">
+      <div class="card mt-3 theme-card">
         <div class="card-header">Payments</div>
-        <div class="card-body table-responsive">
+        <div class="card-body table-responsive table-container">
           <table class="data-table table align-middle">
             <thead>
               <tr>
@@ -346,7 +346,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       </div>
 
       <!-- Shipment -->
-      <div class="card mt-3 mb-4">
+      <div class="card mt-3 mb-4 theme-card">
         <div class="card-header">Latest Shipment</div>
         <div class="card-body">
           <?php if ($shipment): ?>
@@ -363,7 +363,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
       </div>
 
     </div>
-  </div>
+  </main>
 
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>

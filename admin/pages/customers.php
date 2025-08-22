@@ -17,12 +17,15 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 $search = trim($_GET['q'] ?? '');
 $offset = ($page - 1) * $perPage;
 
-/* POST action: toggle status */
+/* POST action: update status */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action']) && ctype_digit($_POST['id'])) {
   $id = (int)$_POST['id'];
-  if ($_POST['action'] === 'toggle') {
-    $stmt = mysqli_prepare($conn, "UPDATE customers SET status = IF(status='active','inactive','active') WHERE customer_id = ?");
-    mysqli_stmt_bind_param($stmt, 'i', $id);
+  if ($_POST['action'] === 'update_status' && isset($_POST['status'])) {
+    $allowed = ['active', 'inactive', 'banned'];
+    $new = $_POST['status'];
+    if (!in_array($new, $allowed, true)) $new = 'inactive';
+    $stmt = mysqli_prepare($conn, "UPDATE customers SET status = ? WHERE customer_id = ?");
+    mysqli_stmt_bind_param($stmt, 'si', $new, $id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
     header('Location: customers.php?q=' . urlencode($search) . '&page=' . $page);
@@ -30,14 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action']) && ctype_d
   }
 }
 
-/* Count total matching customers (exclude deleted) */
+/* Count total matching customers */
 if ($search !== '') {
   $like = '%' . $search . '%';
-  $cnt_sql = "SELECT COUNT(*) FROM customers WHERE status != 'deleted' AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)";
+  $cnt_sql = "SELECT COUNT(*) FROM customers WHERE (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)";
   $stmt = mysqli_prepare($conn, $cnt_sql);
   mysqli_stmt_bind_param($stmt, 'ssss', $like, $like, $like, $like);
 } else {
-  $cnt_sql = "SELECT COUNT(*) FROM customers WHERE status != 'deleted'";
+  $cnt_sql = "SELECT COUNT(*) FROM customers";
   $stmt = mysqli_prepare($conn, $cnt_sql);
 }
 mysqli_stmt_execute($stmt);
@@ -47,7 +50,7 @@ mysqli_stmt_close($stmt);
 $total = (int)$total;
 $totalPages = $total > 0 ? (int)ceil($total / $perPage) : 1;
 
-/* Fetch customers with last purchase date and orders count, ordered by recent purchase */
+/* Fetch customers with last purchase, orders count and total purchases */
 if ($search !== '') {
   $like = '%' . $search . '%';
   $sql = "
@@ -60,11 +63,11 @@ if ($search !== '') {
       c.status,
       c.created_at,
       MAX(o.created_at) AS last_order,
-      COUNT(o.order_id) AS orders_count
+      COUNT(o.order_id) AS orders_count,
+      COALESCE(SUM(o.total_amount), 0) AS total_purchases
     FROM customers c
     LEFT JOIN orders o ON o.customer_id = c.customer_id
-    WHERE c.status != 'deleted'
-      AND (c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)
+    WHERE (c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)
     GROUP BY c.customer_id
     ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, c.created_at DESC
     LIMIT ?, ?
@@ -82,10 +85,10 @@ if ($search !== '') {
       c.status,
       c.created_at,
       MAX(o.created_at) AS last_order,
-      COUNT(o.order_id) AS orders_count
+      COUNT(o.order_id) AS orders_count,
+      COALESCE(SUM(o.total_amount), 0) AS total_purchases
     FROM customers c
     LEFT JOIN orders o ON o.customer_id = c.customer_id
-    WHERE c.status != 'deleted'
     GROUP BY c.customer_id
     ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, c.created_at DESC
     LIMIT ?, ?
@@ -123,7 +126,8 @@ $res = mysqli_stmt_get_result($stmt);
           <small class="text-muted">Sorted by most recent purchase. Use search to filter by name, email or phone.</small>
         </div>
         <form class="d-flex" method="get" action="customers.php">
-          <input name="q" class="form-control form-control-sm" placeholder="Search name/email/phone" value="<?= h($search) ?>">
+          <input name="q" class="form-control form-control-sm search-input" placeholder="Search name/email/phone" value="<?= h($search) ?>">
+
           <button class="btn btn-add btn-sm ms-2" type="submit">Search</button>
         </form>
       </div>
@@ -138,6 +142,7 @@ $res = mysqli_stmt_get_result($stmt);
               <th>Phone</th>
               <th>Orders</th>
               <th>Last Purchase</th>
+              <th>Total Purchases</th>
               <th>Status</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -155,25 +160,30 @@ $res = mysqli_stmt_get_result($stmt);
                 <td><?= h($r['phone'] ?: '—'); ?></td>
                 <td><?= (int)$r['orders_count']; ?></td>
                 <td><?= $lastOrder ? h(date('d M Y, H:i', strtotime($lastOrder))) : '—'; ?></td>
+                <td>₹ <?= number_format((float)$r['total_purchases'], 2) ?></td>
                 <td>
-                  <span class="badge-status <?= $r['status'] === 'active' ? 'status-completed' : 'stock-badge' ?>">
-                    <?= h(ucfirst($r['status'])) ?>
-                  </span>
+                  <form method="post" style="display:inline-block">
+                    <input type="hidden" name="id" value="<?= (int)$r['customer_id'] ?>">
+                    <input type="hidden" name="action" value="update_status">
+                    <select name="status" class="form-select form-select-sm status-select" onchange="this.form.submit()">
+
+                      <?php
+                      $statuses = ['active', 'inactive', 'banned'];
+                      foreach ($statuses as $s):
+                      ?>
+                        <option value="<?= $s ?>" <?= $r['status'] === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </form>
                 </td>
                 <td class="text-end">
                   <a href="customer_view.php?id=<?= (int)$r['customer_id'] ?>" class="btn btn-edit btn-sm">View</a>
-
-                  <form method="post" style="display:inline-block" onsubmit="return confirm('Toggle status?');">
-                    <input type="hidden" name="id" value="<?= (int)$r['customer_id'] ?>">
-                    <input type="hidden" name="action" value="toggle">
-                    <button class="btn btn-add btn-sm" type="submit">Toggle</button>
-                  </form>
                 </td>
               </tr>
             <?php endwhile;
             if ($total === 0): ?>
               <tr>
-                <td colspan="8" class="text-center text-muted">No customers found.</td>
+                <td colspan="9" class="text-center text-muted">No customers found.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -184,10 +194,7 @@ $res = mysqli_stmt_get_result($stmt);
       <?php if ($totalPages > 1): ?>
         <nav class="mt-3">
           <ul class="pagination">
-            <?php
-            // keep current search in links
-            for ($p = 1; $p <= $totalPages; $p++):
-            ?>
+            <?php for ($p = 1; $p <= $totalPages; $p++): ?>
               <li class="page-item <?= $p === $page ? 'active' : '' ?>">
                 <a class="page-link" href="customers.php?q=<?= urlencode($search) ?>&page=<?= $p ?>"><?= $p ?></a>
               </li>
