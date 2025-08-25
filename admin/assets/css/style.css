@@ -101,14 +101,27 @@ body {
   font-size: 18px;
   background: none;
   border: none;
-  color: var(--text-color);
+  color: #ffffff;
   cursor: pointer;
   padding: 8px;
   border-radius: 2px;
   transition: background-color 0.18s;
 }
 .hamburger:hover {
-  background-color: var(--border-color);
+  background-color: #16191f;
+}
+
+.user-btn {
+  background-color: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 2px;
+  transition: background-color 0.18s;
+}
+.user-btn:hover {
+  background-color: #16191f;
 }
 .admin-avatar {
   width: 40px;
@@ -130,12 +143,12 @@ body {
   background-color: var(--primary-hover);
 }
 
-/* ---------- Dropdown ---------- */
+/* ---------- Header Dropdown ---------- */
 .dropdown-menu {
   min-width: 200px;
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-  padding: 0;
+  padding: 6px 0;
   background-color: var(--bg-dropdown);
   border: 1px solid var(--border-color);
 }
@@ -155,6 +168,13 @@ body {
 .dropdown-menu .text-danger:hover {
   background-color: #d13212 !important;
   color: #fff !important;
+}
+.dropdown-divider {
+  border-bottom: 1px solid var(--text-color);
+  margin: 0;
+}
+[data-theme="light"] .dropdown-divider {
+  border-bottom: 1px solid var(--bg-dropdown);
 }
 
 /* ---------- Sidebar ---------- */
@@ -503,6 +523,10 @@ body {
   gap: 6px;
   border: none;
   cursor: pointer;
+}
+.btn-add:hover {
+  background-color: var(--primary-hover);
+  color: var(--primary-text);
 }
 .btn-edit,
 .btn-delete {
@@ -941,12 +965,6 @@ body {
 [data-theme="light"] .dropdown-menu .dropdown-item:hover {
   background-color: var(--hover-bg);
 }
-[data-theme="light"] .hamburger i {
-  color: var(--text-color);
-}
-[data-theme="light"] .hamburger:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
 [data-theme="light"] .dashboard-section h2 {
   color: var(--text-color);
   border-bottom: 1px solid var(--border-color);
@@ -1168,6 +1186,14 @@ body {
 }
 
 /* header stripe inside themed card */
+.card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.card:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+}
+
 .theme-card > .card-header,
 .theme-card .card-header {
   background-color: var(--table-header);

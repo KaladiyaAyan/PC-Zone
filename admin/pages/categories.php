@@ -34,8 +34,8 @@ include '../includes/functions.php';
 
   <main class="main-content pt-5 mt-2">
     <div class="content-wrapper container my-4">
-      <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="mb-0">Manage Categories</h2>
+      <div class="products-header">
+        <h1>Manage Categories</h1>
         <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
           <i class="fas fa-plus"></i> Add Category
         </button>

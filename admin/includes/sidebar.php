@@ -1,9 +1,17 @@
 <?php
-// sidebar.php - admin sidebar
-// Expects $current_page variable to be set by caller (e.g. $current_page = 'dashboard';)
-$active = function ($name) use ($current_page) {
-  return isset($current_page) && $current_page === $name ? 'active' : '';
-};
+
+
+function active($name)
+{
+  // prefer explicit page marker if set
+  if (!empty($GLOBALS['current_page'])) {
+    return ($GLOBALS['current_page'] === $name) ? 'active' : '';
+  }
+  // fallback to filename check
+  return (basename($_SERVER['PHP_SELF']) === $name . '.php') ? 'active' : '';
+}
+
+
 ?>
 <aside id="sidebar" class="sidebar">
   <div class="admin-profile d-flex align-items-center px-3 mb-3">
@@ -16,44 +24,44 @@ $active = function ($name) use ($current_page) {
 
   <nav class="nav-links px-2">
     <div class="nav-title">Main</div>
-    <a href="dashboard.php" class="<?= $active('dashboard') ?>">
+    <a href="dashboard.php" class="<?= active('dashboard') ?>">
       <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
       <span class="label">Dashboard</span>
     </a>
 
-    <a href="products.php" class="<?= $active('products') ?>">
+    <a href="products.php" class="<?= active('products') ?>">
       <span class="icon"><i class="fas fa-boxes"></i></span>
       <span class="label">Products</span>
     </a>
 
-    <a href="categories.php" class="<?= $active('categories') ?>">
+    <a href="categories.php" class="<?= active('categories') ?>">
       <span class="icon"><i class="fas fa-tags"></i></span>
       <span class="label">Categories</span>
     </a>
 
-    <a href="orders.php" class="<?= $active('orders') ?>">
+    <a href="orders.php" class="<?= active('orders') ?>">
       <span class="icon"><i class="fas fa-shopping-cart"></i></span>
       <span class="label">Orders</span>
     </a>
 
-    <a href="customers.php" class="<?= $active('customers') ?>">
+    <a href="customers.php" class="<?= active(name: 'customers') ?>">
       <span class="icon"><i class="fas fa-users"></i></span>
       <span class="label">Customers</span>
     </a>
 
-    <a href="payments.php" class="<?= $active('payments') ?>">
+    <a href="payments.php" class="<?= active('payments') ?>">
       <span class="icon"><i class="fas fa-credit-card"></i></span>
       <span class="label">Payments</span>
     </a>
 
     <div class="nav-title mt-3">Reports</div>
-    <a href="reports.php" class="<?= $active('reports') ?>">
+    <a href="reports.php" class="<?= active('reports') ?>">
       <span class="icon"><i class="fas fa-chart-line"></i></span>
       <span class="label">Reports</span>
     </a>
 
     <div class="nav-title mt-3">Settings</div>
-    <a href="settings.php" class="<?= $active('settings') ?>">
+    <a href="settings.php" class="<?= active('settings') ?>">
       <span class="icon"><i class="fas fa-cog"></i></span>
       <span class="label">Settings</span>
     </a>

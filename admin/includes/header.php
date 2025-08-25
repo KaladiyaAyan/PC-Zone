@@ -15,7 +15,6 @@ $avatarSrc = '';
 
   <div class="right-section">
     <!-- Theme toggle (small icon button) -->
-    <!-- Replace the existing theme toggle button with this -->
     <button id="themeToggle" class="admin-button" type="button" aria-label="Toggle theme">
       <i id="themeIcon" class="fas fa-moon"></i>
       <!-- <span id="themeText">Dark Mode</span> -->
