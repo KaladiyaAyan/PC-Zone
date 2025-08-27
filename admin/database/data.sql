@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS customers (
     profile_image VARCHAR(255) DEFAULT NULL,
     newsletter_subscribed BOOLEAN DEFAULT FALSE,
     status ENUM('active','inactive','banned') DEFAULT 'active',
+    last_login DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -136,8 +137,6 @@ CREATE TABLE IF NOT EXISTS shipments (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
-
--- PRODUCT IMAGES
 CREATE TABLE IF NOT EXISTS product_images (
     product_image_id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,
