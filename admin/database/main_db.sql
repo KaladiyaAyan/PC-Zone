@@ -523,14 +523,15 @@ CREATE TABLE IF NOT EXISTS product_images (
 
 -- 5. PRODUCT IMAGES
 INSERT INTO product_images (product_id, image_path, is_main) VALUES
- ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'intel12900k-main.jpg', TRUE),
+ ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'intel13900k-main.jpg', TRUE),
   ((SELECT product_id FROM products WHERE sku='CPU-INT-12700K'), 'intel12700k-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='CPU-AMD-5800X'), 'ryzen5800x-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 'corsair-vengeance-lpx-16gb.jpg', TRUE),
+  ((SELECT product_id FROM products WHERE sku='CPU-AMD-5800X'), 'ryzen5600x-main.jpg', TRUE),
+  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 'Corsair_Vengeance_LPX_16GB_DDR4_3200MHZ_2.jpg', TRUE),
   ((SELECT product_id FROM products WHERE sku='SSD-SAM-970EVO-1TB'), 'samsung-970-evo-plus-1tb.jpg', TRUE),
   ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-main.jpg', TRUE),
   ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-4090'), 'rtx4090-main.jpg', TRUE),
   ((SELECT product_id FROM products WHERE sku='MON-DLL-27-1440P'), 'dell-27-1440p.jpg', TRUE);
+
 
 
 -- PRODUCT SPECS (key-value pairs)

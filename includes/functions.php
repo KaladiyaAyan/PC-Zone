@@ -1,5 +1,23 @@
 <?php
-// Database connection function (MySQLi Object-Oriented)
+// PCZone - functions.php
+// MySQLi procedural helper functions aligned to provided schema.
+// Use require_once or include where needed.
+
+session_start();
+
+function e($v)
+{
+  return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+function clip($v, $len = 80)
+{
+  $s = (string)($v ?? '');
+  return function_exists('mb_substr')
+    ? (mb_strlen($s) > $len ? mb_substr($s, 0, $len) . '…' : $s)
+    : (strlen($s) > $len ? substr($s, 0, $len) . '…' : $s);
+}
+
 function getConnection()
 {
   $host = "localhost";
@@ -7,288 +25,582 @@ function getConnection()
   $pass = "";
   $dbname = "pczone";
 
-  $mysqli = new mysqli($host, $user, $pass, $dbname);
-
-  if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
+  $conn = mysqli_connect($host, $user, $pass, $dbname);
+  if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
   }
-
-  return $mysqli;
+  // ensure utf8
+  mysqli_set_charset($conn, 'utf8mb4');
+  return $conn;
 }
 
-// User functions
-function registerUser($username, $email, $password, $phone = null)
-{
-  $mysqli = getConnection();
-  $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+/* ====================
+   USER (admin) FUNCTIONS
+   Table: users
+==================== */
 
-  $stmt = $mysqli->prepare("INSERT INTO users (username, email, password, phone) VALUES (?, ?, ?, ?)");
-  $stmt->bind_param("ssss", $username, $email, $hashedPassword, $phone);
-  return $stmt->execute();
+function registerUser($username, $email, $password, $phone = null, $full_name = null, $role = 'user')
+{
+  $conn = getConnection();
+  $hashed = password_hash($password, PASSWORD_DEFAULT);
+  $sql = "INSERT INTO users (username, full_name, email, password, phone, role) VALUES (?, ?, ?, ?, ?, ?)";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "ssssss", $username, $full_name, $email, $hashed, $phone, $role);
+  $res = mysqli_stmt_execute($stmt);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $res;
 }
 
 function loginUser($email, $password)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
-  $stmt->bind_param("s", $email);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  $user = $result->fetch_assoc();
+  $conn = getConnection();
+  $sql = "SELECT * FROM users WHERE email = ? AND status = 'active' LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "s", $email);
+  mysqli_stmt_execute($stmt);
+  $result = mysqli_stmt_get_result($stmt);
+  $user = mysqli_fetch_assoc($result);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
 
   if ($user && password_verify($password, $user['password'])) {
-    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['user_name'] = $user['username'];
     $_SESSION['user_email'] = $user['email'];
+    $_SESSION['role'] = $user['role'];
     return true;
   }
   return false;
 }
 
-function isLoggedIn()
-{
-  return isset($_SESSION['user_id']);
-}
-
 function getUserById($id)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
-  $stmt->bind_param("i", $id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_assoc();
+  $conn = getConnection();
+  $sql = "SELECT * FROM users WHERE user_id = ? LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $id);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $row;
 }
 
-// Product functions
-function getAllProducts($limit = null, $offset = 0)
-{
-  $mysqli = getConnection();
-  $sql = "SELECT p.*, c.name as category_name 
-          FROM products p 
-          LEFT JOIN categories c ON p.category_id = c.id 
-          ORDER BY p.created_at DESC";
+/* ====================
+   CUSTOMER FUNCTIONS
+   Table: customers, addresses
+==================== */
 
-  if ($limit !== null) {
-    $sql .= " LIMIT ?, ?";
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("ii", $offset, $limit);
-  } else {
-    $stmt = $mysqli->prepare($sql);
+function registerCustomer($first_name, $last_name, $email, $password, $phone = null)
+{
+  $conn = getConnection();
+  $hashed = password_hash($password, PASSWORD_DEFAULT);
+  $sql = "INSERT INTO customers (first_name, last_name, email, password, phone) VALUES (?, ?, ?, ?, ?)";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "sssss", $first_name, $last_name, $email, $hashed, $phone);
+  $res = mysqli_stmt_execute($stmt);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $res;
+}
+
+function loginCustomer($email, $password)
+{
+  $conn = getConnection();
+  $sql = "SELECT * FROM customers WHERE email = ? AND status = 'active' LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "s", $email);
+  mysqli_stmt_execute($stmt);
+  $result = mysqli_stmt_get_result($stmt);
+  $customer = mysqli_fetch_assoc($result);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+
+  if ($customer && password_verify($password, $customer['password'])) {
+    $_SESSION['customer_id'] = $customer['customer_id'];
+    $_SESSION['customer_name'] = $customer['first_name'] . ' ' . $customer['last_name'];
+    $_SESSION['customer_email'] = $customer['email'];
+    return true;
   }
-
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_all(MYSQLI_ASSOC);
+  return false;
 }
 
-function getProductById($id)
+function getCustomerById($id)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT p.*, c.name as category_name 
-                            FROM products p 
-                            LEFT JOIN categories c ON p.category_id = c.id 
-                            WHERE p.id = ?");
-  $stmt->bind_param("i", $id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_assoc();
+  $conn = getConnection();
+  $sql = "SELECT * FROM customers WHERE customer_id = ? LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $id);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $row;
 }
 
-function getProductsByCategory($categoryId, $limit = null)
+function getAddressesByCustomer($customerId)
 {
-  $mysqli = getConnection();
-  $sql = "SELECT * FROM products WHERE category_id = ? ORDER BY created_at DESC";
-  if ($limit !== null) {
-    $sql .= " LIMIT ?";
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("ii", $categoryId, $limit);
-  } else {
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("i", $categoryId);
-  }
-
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_all(MYSQLI_ASSOC);
+  $conn = getConnection();
+  $sql = "SELECT * FROM addresses WHERE customer_id = ? ORDER BY is_default DESC, address_id DESC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $customerId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
-function searchProducts($keyword)
-{
-  $mysqli = getConnection();
-  $searchTerm = '%' . $keyword . '%';
-  $stmt = $mysqli->prepare("SELECT p.*, c.name as category_name 
-                            FROM products p 
-                            LEFT JOIN categories c ON p.category_id = c.id 
-                            WHERE p.name LIKE ? OR p.description LIKE ?");
-  $stmt->bind_param("ss", $searchTerm, $searchTerm);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_all(MYSQLI_ASSOC);
-}
+/* ====================
+   CATEGORY & BRAND FUNCTIONS
+   Tables: categories, brands
+==================== */
 
-// Category functions
-// function getAllCategories()
-// {
-//   $mysqli = getConnection();
-//   $result = $mysqli->query("SELECT * FROM categories ORDER BY name");
-//   return $result->fetch_all(MYSQLI_ASSOC);
-// }
-
-// Header dropdown functions
 function getAllCategories()
 {
-  global $conn;
-  $sql = "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name ASC";
-  $result = mysqli_query($conn, $sql);
-  return mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $conn = getConnection();
+  $sql = "SELECT * FROM categories ORDER BY level ASC, category_name ASC";
+  $res = mysqli_query($conn, $sql);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_close($conn);
+  return $rows;
+}
+
+function getRootCategories()
+{
+  $conn = getConnection();
+  $sql = "SELECT * FROM categories WHERE parent_id IS NULL OR parent_id = 0 ORDER BY category_name ASC";
+  $res = mysqli_query($conn, $sql);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_close($conn);
+  return $rows;
 }
 
 function getSubcategories($parent_id)
 {
-  global $conn;
-  $sql = "SELECT * FROM categories WHERE parent_id = $parent_id ORDER BY name ASC";
-  $result = mysqli_query($conn, $sql);
-  return mysqli_fetch_all($result, MYSQLI_ASSOC);
-}
-
-function getCategoryImage($categoryName)
-{
-  $map = [
-    'Processor' => 'Processor-Icon.webp',
-    'Motherboard' => 'motherboard-icon.webp',
-    'CPU Cooler' => 'liquid-cooler-icon.webp',
-    'RAM' => 'RAM-icon.webp',
-    'Graphics Card' => 'graphics-card-icon.webp',
-    // 'SSD' => 'ssd-icon.webp',
-    // 'HDD' => 'hdd-icon.webp',
-    'Storage' => 'hdd-icon.webp',
-    'Power Supply' => 'psu-icon.webp',
-    'Cabinet' => 'cabinet-icon.webp',
-    'Cooling System' => 'liquid-cooler-icon.webp',
-    'Monitor' => 'monitor-icon.webp',
-    'Keyboard' => 'keyboard-icon.webp',
-    'Mouse' => 'mouse-icon.webp',
-  ];
-  return $map[$categoryName] ?? 'default-icon-300x300.webp';
+  $conn = getConnection();
+  $sql = "SELECT * FROM categories WHERE parent_id = ? ORDER BY category_name ASC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $parent_id);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
 function getCategoryById($id)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT * FROM categories WHERE id = ?");
-  $stmt->bind_param("i", $id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_assoc();
+  $conn = getConnection();
+  $sql = "SELECT * FROM categories WHERE category_id = ? LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $id);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $row;
 }
 
-// Cart functions
-function addToCart($userId, $productId, $quantity = 1)
+function getBrandsByCategory($categoryId)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT * FROM cart WHERE user_id = ? AND product_id = ?");
-  $stmt->bind_param("ii", $userId, $productId);
-  $stmt->execute();
-  $result = $stmt->get_result();
+  $conn = getConnection();
+  $sql = "SELECT * FROM brands WHERE category_id = ? ORDER BY brand_name ASC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $categoryId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
+}
 
-  if ($result->num_rows > 0) {
-    $stmt = $mysqli->prepare("UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?");
-    $stmt->bind_param("iii", $quantity, $userId, $productId);
+/* ====================
+   PRODUCT FUNCTIONS
+   Tables: products, product_images, product_specs, product_reviews
+==================== */
+
+function getProductRating($productId)
+{
+  $conn = getConnection();
+  $sql = "SELECT COALESCE(AVG(rating),0) AS avg_rating, COUNT(*) AS review_count FROM product_reviews WHERE product_id = ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $productId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return [
+    'avg' => round((float)($row['avg_rating'] ?? 0), 2),
+    'count' => (int)($row['review_count'] ?? 0)
+  ];
+}
+
+function getProductImages($productId)
+{
+  $conn = getConnection();
+  $sql = "SELECT * FROM product_images WHERE product_id = ? ORDER BY is_main DESC, product_image_id ASC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $productId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
+}
+
+function getProductSpecs($productId)
+{
+  $conn = getConnection();
+  $sql = "SELECT * FROM product_specs WHERE product_id = ? ORDER BY product_spec_id ASC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $productId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
+}
+
+function getAllProducts($limit = null, $offset = 0, $onlyActive = true)
+{
+  $conn = getConnection();
+  $where = $onlyActive ? "WHERE p.is_active = 1" : "";
+  $sql = "SELECT 
+                p.*,
+                c.category_name,
+                b.brand_name,
+                (p.price - (p.price * (p.discount/100))) AS final_price,
+                pi.image_path AS main_image,
+                pr.avg_rating,
+                pr.review_count
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+            LEFT JOIN (
+                SELECT product_id, AVG(rating) AS avg_rating, COUNT(*) AS review_count
+                FROM product_reviews
+                GROUP BY product_id
+            ) pr ON p.product_id = pr.product_id
+            $where
+            ORDER BY p.created_at DESC";
+
+  if ($limit !== null) {
+    $sql .= " LIMIT ?, ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "ii", $offset, $limit);
   } else {
-    $stmt = $mysqli->prepare("INSERT INTO cart (user_id, product_id, quantity, created_at) VALUES (?, ?, ?, NOW())");
-    $stmt->bind_param("iii", $userId, $productId, $quantity);
+    $stmt = mysqli_prepare($conn, $sql);
   }
 
-  return $stmt->execute();
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
-function getCartItems($userId)
+function getFeaturedProducts($limit = 8)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT c.*, p.name, p.price, p.image1 as image 
-                            FROM cart c 
-                            JOIN products p ON c.product_id = p.id 
-                            WHERE c.user_id = ?");
-  $stmt->bind_param("i", $userId);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_all(MYSQLI_ASSOC);
+  $conn = getConnection();
+  $sql = "SELECT p.*, pi.image_path AS main_image FROM products p
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+            WHERE p.is_featured = 1 AND p.is_active = 1
+            ORDER BY p.created_at DESC LIMIT ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $limit);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
-function getCartTotal($userId)
+function getProductById($id)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT SUM(c.quantity * p.price) as total 
-                            FROM cart c 
-                            JOIN products p ON c.product_id = p.id 
-                            WHERE c.user_id = ?");
-  $stmt->bind_param("i", $userId);
-  $stmt->execute();
-  $result = $stmt->get_result()->fetch_assoc();
-  return $result['total'] ?? 0;
+  $conn = getConnection();
+  $sql = "SELECT p.*, c.category_name, b.brand_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+            WHERE p.product_id = ? LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $id);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $row;
 }
 
-function removeFromCart($userId, $productId)
+function searchProducts($keyword)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("DELETE FROM cart WHERE user_id = ? AND product_id = ?");
-  $stmt->bind_param("ii", $userId, $productId);
-  return $stmt->execute();
+  $conn = getConnection();
+  $term = '%' . $keyword . '%';
+  $sql = "SELECT p.*, c.category_name, pi.image_path AS main_image
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+            WHERE p.product_name LIKE ? OR p.description LIKE ?
+            ORDER BY p.created_at DESC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "ss", $term, $term);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
-function clearCart($userId)
+function getProductsByCategory($categoryId, $limit = null, $offset = 0)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("DELETE FROM cart WHERE user_id = ?");
-  $stmt->bind_param("i", $userId);
-  return $stmt->execute();
+  $conn = getConnection();
+  $sql = "SELECT p.*, pi.image_path AS main_image FROM products p
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+            WHERE p.category_id = ? AND p.is_active = 1
+            ORDER BY p.created_at DESC";
+  if ($limit !== null) {
+    $sql .= " LIMIT ?, ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "iii", $categoryId, $offset, $limit);
+  } else {
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $categoryId);
+  }
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
-// Order functions
-function createOrder($userId, $totalAmount, $shippingAddress)
+/* ====================
+   CART FUNCTIONS
+   Table: cart_items
+==================== */
+
+function addToCart($customerId, $productId, $quantity = 1)
 {
-  $mysqli = getConnection();
-  $mysqli->begin_transaction();
+  $conn = getConnection();
+
+  // ensure product exists and stock check can be added here
+  $sql = "SELECT cart_item_id, quantity FROM cart_items WHERE customer_id = ? AND product_id = ? LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "ii", $customerId, $productId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $existing = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+
+  if ($existing) {
+    $sql = "UPDATE cart_items SET quantity = quantity + ? WHERE cart_item_id = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "ii", $quantity, $existing['cart_item_id']);
+  } else {
+    $sql = "INSERT INTO cart_items (customer_id, product_id, quantity) VALUES (?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "iii", $customerId, $productId, $quantity);
+  }
+
+  $res = mysqli_stmt_execute($stmt);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $res;
+}
+
+function getCartItems($customerId)
+{
+  $conn = getConnection();
+  $sql = "SELECT c.*, p.product_name, p.price, p.discount, pi.image_path AS main_image
+            FROM cart_items c
+            JOIN products p ON c.product_id = p.product_id
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+            WHERE c.customer_id = ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $customerId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
+}
+
+function getCartTotal($customerId)
+{
+  $conn = getConnection();
+  $sql = "SELECT SUM(c.quantity * (p.price - (p.price * (p.discount/100)))) as total
+            FROM cart_items c
+            JOIN products p ON c.product_id = p.product_id
+            WHERE c.customer_id = ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $customerId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return (float)($row['total'] ?? 0);
+}
+
+function clearCart($customerId)
+{
+  $conn = getConnection();
+  $sql = "DELETE FROM cart_items WHERE customer_id = ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $customerId);
+  $res = mysqli_stmt_execute($stmt);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $res;
+}
+
+/* ====================
+   ORDER FUNCTIONS
+   Tables: orders, order_items, payments, shipments
+==================== */
+
+function createOrder($customerId, $billingAddressId, $shippingAddressId, $totalAmount, $order_notes = null)
+{
+  $conn = getConnection();
+  mysqli_begin_transaction($conn);
 
   try {
-    $stmt = $mysqli->prepare("INSERT INTO orders (customer_id, customer_name, total_amount, status, order_date) 
-                              VALUES (?, ?, ?, 'pending', NOW())");
-    $stmt->bind_param("isd", $userId, $shippingAddress, $totalAmount);
-    $stmt->execute();
-    $orderId = $mysqli->insert_id;
+    $sql = "INSERT INTO orders (customer_id, billing_address_id, shipping_address_id, total_amount, order_notes, order_status, order_date)
+                VALUES (?, ?, ?, ?, ?, 'Pending', NOW())";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "iiids", $customerId, $billingAddressId, $shippingAddressId, $totalAmount, $order_notes);
+    mysqli_stmt_execute($stmt);
+    $orderId = mysqli_insert_id($conn);
+    mysqli_stmt_close($stmt);
 
-    $cartItems = getCartItems($userId);
+    $cartItems = getCartItems($customerId);
     foreach ($cartItems as $item) {
-      $stmt = $mysqli->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price) 
-                                VALUES (?, ?, ?, ?)");
-      $stmt->bind_param("iiid", $orderId, $item['product_id'], $item['quantity'], $item['price']);
-      $stmt->execute();
+      $unit_price = (float)$item['price'] - ((float)$item['price'] * ((float)$item['discount'] / 100));
+      $total_price = $unit_price * (int)$item['quantity'];
+      $sql = "INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+                    VALUES (?, ?, ?, ?, ?, ?)";
+      $stmt = mysqli_prepare($conn, $sql);
+      mysqli_stmt_bind_param($stmt, "iiiddd", $orderId, $item['product_id'], $item['quantity'], $unit_price, $item['discount'], $total_price);
+      mysqli_stmt_execute($stmt);
+      mysqli_stmt_close($stmt);
     }
 
-    clearCart($userId);
-    $mysqli->commit();
+    clearCart($customerId);
+    mysqli_commit($conn);
+    mysqli_close($conn);
     return $orderId;
   } catch (Exception $e) {
-    $mysqli->rollback();
+    mysqli_rollback($conn);
+    mysqli_close($conn);
     return false;
   }
 }
 
-function getUserOrders($userId)
+function getUserOrders($customerId)
 {
-  $mysqli = getConnection();
-  $stmt = $mysqli->prepare("SELECT * FROM orders WHERE customer_id = ? ORDER BY order_date DESC");
-  $stmt->bind_param("i", $userId);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  return $result->fetch_all(MYSQLI_ASSOC);
+  $conn = getConnection();
+  $sql = "SELECT * FROM orders WHERE customer_id = ? ORDER BY order_date DESC";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $customerId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
 }
 
-// Utility functions
+function getOrderById($orderId)
+{
+  $conn = getConnection();
+  $sql = "SELECT o.*, c.first_name, c.last_name FROM orders o
+            LEFT JOIN customers c ON o.customer_id = c.customer_id
+            WHERE o.order_id = ? LIMIT 1";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $orderId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $row = mysqli_fetch_assoc($res);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $row;
+}
+
+function getOrderItems($orderId)
+{
+  $conn = getConnection();
+  $sql = "SELECT oi.*, p.product_name, pi.image_path AS main_image
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.product_id
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+            WHERE oi.order_id = ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "i", $orderId);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
+}
+
+/* ====================
+   REVIEWS & RATINGS
+==================== */
+
+function addProductReview($productId, $customerId, $rating, $comment = null)
+{
+  $conn = getConnection();
+  $sql = "INSERT INTO product_reviews (product_id, customer_id, rating, comment) VALUES (?, ?, ?, ?)";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "iiis", $productId, $customerId, $rating, $comment);
+  $res = mysqli_stmt_execute($stmt);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $res;
+}
+
+function getProductReviews($productId, $limit = 20)
+{
+  $conn = getConnection();
+  $sql = "SELECT pr.*, c.first_name, c.last_name FROM product_reviews pr
+            LEFT JOIN customers c ON pr.customer_id = c.customer_id
+            WHERE pr.product_id = ?
+            ORDER BY pr.created_at DESC LIMIT ?";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "ii", $productId, $limit);
+  mysqli_stmt_execute($stmt);
+  $res = mysqli_stmt_get_result($stmt);
+  $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+  mysqli_stmt_close($stmt);
+  mysqli_close($conn);
+  return $rows;
+}
+
+/* ====================
+   UTILITIES
+==================== */
+
 function formatPrice($price)
 {
-  return '₹' . number_format($price, 2);
+  return '₹' . number_format((float)$price, 2);
 }
 
 function sanitizeInput($input)

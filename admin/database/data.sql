@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS categories (
     slug VARCHAR(250) UNIQUE,
     FOREIGN KEY (parent_id) REFERENCES categories(category_id) ON DELETE SET NULL
 );
+SET @proc_id      = (SELECT category_id FROM categories WHERE category_name = 'Processor');
+SET @storage_id   = (SELECT category_id FROM categories WHERE category_name = 'Storage');
+SET @cooling_id   = (SELECT category_id FROM categories WHERE category_name = 'Cooling System');
 CREATE TABLE IF NOT EXISTS brands (
     brand_id INT AUTO_INCREMENT PRIMARY KEY,
     brand_name VARCHAR(100) NOT NULL,
