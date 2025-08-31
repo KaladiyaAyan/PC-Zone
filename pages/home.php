@@ -1,7 +1,8 @@
 <?php
 require './includes/db_connect.php';
 // Get featured products (limit 8)
-$featuredProducts = getFeaturedProducts(4);
+$featuredProducts = getFeaturedProducts(4, true);
+
 
 // Sample pricing for custom builds (you can fetch from database or config)
 $intelStartingPrice = 45000; // Starting price for Intel builds

@@ -312,22 +312,50 @@ function getAllProducts($limit = null, $offset = 0, $onlyActive = true)
   return $rows;
 }
 
-function getFeaturedProducts($limit = 8)
+// function getFeaturedProducts($limit = 8)
+// {
+//   $conn = getConnection();
+//   $sql = "SELECT p.*, pi.image_path AS main_image FROM products p
+//             LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+//             WHERE p.is_featured = 1 AND p.is_active = 1
+//             ORDER BY p.created_at DESC LIMIT ?";
+//   $stmt = mysqli_prepare($conn, $sql);
+//   mysqli_stmt_bind_param($stmt, "i", $limit);
+//   mysqli_stmt_execute($stmt);
+//   $res = mysqli_stmt_get_result($stmt);
+//   $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+//   mysqli_stmt_close($stmt);
+//   mysqli_close($conn);
+//   return $rows;
+// }
+
+function getFeaturedProducts($limit = 8, $random = false)
 {
   $conn = getConnection();
-  $sql = "SELECT p.*, pi.image_path AS main_image FROM products p
-            LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_main = 1
+
+  // Choose ordering based on $random flag
+  $orderBy = $random ? "ORDER BY RAND()" : "ORDER BY p.created_at DESC";
+
+  $sql = "SELECT p.*, pi.image_path AS main_image 
+            FROM products p
+            LEFT JOIN product_images pi 
+              ON p.product_id = pi.product_id AND pi.is_main = 1
             WHERE p.is_featured = 1 AND p.is_active = 1
-            ORDER BY p.created_at DESC LIMIT ?";
+            $orderBy 
+            LIMIT ?";
+
   $stmt = mysqli_prepare($conn, $sql);
   mysqli_stmt_bind_param($stmt, "i", $limit);
   mysqli_stmt_execute($stmt);
   $res = mysqli_stmt_get_result($stmt);
   $rows = mysqli_fetch_all($res, MYSQLI_ASSOC);
+
   mysqli_stmt_close($stmt);
   mysqli_close($conn);
+
   return $rows;
 }
+
 
 function getProductById($id)
 {
