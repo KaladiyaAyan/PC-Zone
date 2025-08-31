@@ -1,69 +1,54 @@
-/* Custom styles for the e-commerce site */
-
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
-
 .navbar-brand {
   font-weight: bold;
   font-size: 1.5rem;
 }
-
 .card {
   border: none;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
-
 .card-img-top {
   height: 200px;
   object-fit: cover;
 }
-
 .btn {
   border-radius: 25px;
 }
-
 .jumbotron {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 15px;
 }
-
 .footer {
   margin-top: 50px;
 }
-
 .product-image {
   max-height: 400px;
   object-fit: cover;
 }
-
 .cart-item-image {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 5px;
 }
-
 .price {
   color: #28a745;
   font-weight: bold;
   font-size: 1.2rem;
 }
-
 .badge {
   font-size: 0.8rem;
 }
-
 .alert {
   border-radius: 10px;
 }
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .card-img-top {
@@ -74,14 +59,11 @@ body {
     font-size: 2rem;
   }
 }
-
 .hover-white:hover {
   color: #ffffff !important;
   text-decoration: underline;
 }
-
 /* Product card styling */
-
 .product-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border-radius: 10px;
@@ -97,7 +79,6 @@ body {
 .product-card .card-title a:hover {
   color: #007185; /* Amazon-like hover link */
 }
-
 /* title hover */
 .product-link {
   color: #0f1111;
@@ -109,7 +90,6 @@ body {
   color: #c45500;
   text-decoration: underline;
 }
-
 /* stars */
 .star-fill {
   color: #f5c518;
@@ -121,7 +101,6 @@ body {
   font-size: 1rem;
   margin-right: 3px;
 }
-
 /* review count link */
 .review-count {
   color: #007185;
@@ -132,4 +111,179 @@ body {
 .review-count:hover {
   text-decoration: underline;
   color: #004b65;
+}
+
+/* Add these styles to your existing style.css */
+
+/* Custom PC Build Section */
+.custom-build-section {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  margin: 3rem 0;
+}
+
+.build-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.build-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.build-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.build-info {
+  padding: 2rem;
+}
+
+.brand-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.intel-brand {
+  background: linear-gradient(45deg, #0071c5, #0096d6);
+}
+
+.amd-brand {
+  background: linear-gradient(45deg, #ed1c24, #ff6b35);
+}
+
+.price-tag {
+  background: linear-gradient(45deg, #28a745, #20c997);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-weight: bold;
+  display: inline-block;
+  margin: 1rem 0;
+}
+
+/* Categories Section */
+.categories-section {
+  padding: 4rem 0;
+  background: #fff;
+}
+
+.category-card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
+  text-decoration: none;
+  color: inherit;
+}
+
+.category-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+}
+
+.category-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-count {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Hero section enhancements */
+.jumbotron {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.jumbotron::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="15" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="35" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="25" cy="50" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="65" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="45" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .custom-build-section {
+    padding: 2rem 1rem;
+    margin: 2rem 0;
+  }
+
+  .build-info {
+    padding: 1.5rem;
+  }
+
+  .build-card img {
+    height: 200px;
+  }
+
+  .category-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .category-card {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .custom-build-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .build-info {
+    padding: 1rem;
+  }
+
+  .price-tag {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
 }

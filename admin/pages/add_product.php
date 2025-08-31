@@ -89,53 +89,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $insertQuery = "INSERT INTO products (product_name, sku, slug, description, price, discount, stock, weight, brand_id, category_id, is_featured, is_active) 
                        VALUES ('$name', '$sku', '$slug', '$description', $price, $discount, $stock, $weight, $brand_id, $category_id, $is_featured, $is_active)";
 
+    // ------------------- REPLACE START -------------------
     if (mysqli_query($conn, $insertQuery)) {
-      $product_id = mysqli_insert_id($conn);
+      // get inserted product id
+      $product_id = (int) mysqli_insert_id($conn);
 
-      // Handle image uploads
+      // === Image upload (uses prepared statement) ===
       $uploadedImages = 0;
       $uploadDir = '../uploads/';
+      if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
-      // Create upload directory if it doesn't exist
-      if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
+      $imgStmt = mysqli_prepare($conn, "INSERT INTO product_images (product_id, image_path, is_main) VALUES (?, ?, ?)");
+      if ($imgStmt === false) {
+        $errors[] = "Failed to prepare image insert statement: " . mysqli_error($conn);
+      } else {
+        for ($i = 1; $i <= 4; $i++) {
+          $field = 'image' . $i;
+          if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES[$field];
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+            if (in_array($extension, $allowedTypes)) {
+              $filename = uniqid('img_', true) . '.' . $extension;
+              $targetPath = $uploadDir . $filename;
+              if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                $isMain = ($uploadedImages === 0) ? 1 : 0;
+                // bind and execute
+                mysqli_stmt_bind_param($imgStmt, 'isi', $product_id, $filename, $isMain);
+                mysqli_stmt_execute($imgStmt);
+                if (mysqli_stmt_errno($imgStmt)) {
+                  $errors[] = "Image insert failed: " . mysqli_stmt_error($imgStmt);
+                } else {
+                  $uploadedImages++;
+                }
+              } else {
+                $errors[] = "Failed to move uploaded file for $field.";
+              }
+            } // else ignore unsupported type
+          }
+        }
+        mysqli_stmt_close($imgStmt);
       }
 
-      for ($i = 1; $i <= 4; $i++) {
-        $field = 'image' . $i;
+      // === Save product specs (delete existing then insert) ===
+      if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
+        $delStmt = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
+        mysqli_stmt_bind_param($delStmt, 'i', $product_id);
+        mysqli_stmt_execute($delStmt);
+        mysqli_stmt_close($delStmt);
 
-        if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
-          $file = $_FILES[$field];
-          $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-          $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+        $insStmt = mysqli_prepare(
+          $conn,
+          "INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES (?, ?, ?, ?, ?)"
+        );
+        foreach ($_POST['spec_group_name'] as $gIdx => $groupRaw) {
+          $groupName = trim($groupRaw) ?: 'General';
+          $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName);
 
-          if (in_array($extension, $allowedTypes)) {
-            // Generate unique filename
-            $filename = uniqid('img_', true) . '.' . $extension;
-            $targetPath = $uploadDir . $filename;
+          $names  = $_POST['spec_name_' . $safeKey]  ?? [];
+          $values = $_POST['spec_value_' . $safeKey] ?? [];
+          $orders = $_POST['spec_order_' . $safeKey] ?? [];
 
-            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-              // Set first image as main image
-              $isMain = ($uploadedImages == 0) ? 1 : 0;
-
-              $imageQuery = "INSERT INTO product_images (product_id, image_path, is_main) VALUES ($product_id, '$filename', $isMain)";
-              mysqli_query($conn, $imageQuery);
-
-              $uploadedImages++;
+          $rows = max(count($names), count($values));
+          for ($j = 0; $j < $rows; $j++) {
+            $sname  = trim($names[$j]  ?? '');
+            $svalue = trim($values[$j] ?? '');
+            if ($sname === '' && $svalue === '') continue;
+            $sorder = isset($orders[$j]) ? intval($orders[$j]) : ($j * 10);
+            mysqli_stmt_bind_param($insStmt, 'isssi', $product_id, $sname, $svalue, $groupName, $sorder);
+            mysqli_stmt_execute($insStmt);
+            if (mysqli_stmt_errno($insStmt)) {
+              $errors[] = "Spec insert failed: " . mysqli_stmt_error($insStmt);
             }
           }
         }
+        if ($insStmt) mysqli_stmt_close($insStmt);
       }
 
-      if ($uploadedImages > 0) {
+      // === Redirect / finish ===
+      if (empty($errors)) {
+        // success even if no images; preserve admin experience
         header("Location: products.php?insert=success");
         exit;
       } else {
-        $errors[] = "Product added but no images were uploaded. At least one image is recommended.";
+        // show errors on the page (do not redirect)
+        // no exit here so errors bubble up to the alert block
       }
     } else {
       $errors[] = "Failed to add product: " . mysqli_error($conn);
     }
+    // ------------------- REPLACE END -------------------
+
+
   }
 }
 
@@ -284,6 +329,41 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   </div>
                 </div>
 
+                <!-- Product Specifications (paste here, after Status Options and before Product Images) -->
+                <div class="col-12">
+                  <h5 class="mt-4 mb-3">Product Specifications</h5>
+
+                  <div id="specGroupsContainer">
+                    <!-- initial group -->
+                    <div class="spec-group mb-3 border rounded p-2" data-group-index="0">
+                      <div class="d-flex mb-2">
+                        <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="General" placeholder="Group name (e.g. Processor)">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
+                      </div>
+
+                      <div class="spec-rows">
+                        <div class="input-group mb-2 spec-row">
+                          <input name="spec_name_General[]" class="form-control" placeholder="Spec name (e.g. Cores)">
+                          <input name="spec_value_General[]" class="form-control" placeholder="Spec value (e.g. 8)">
+                          <input type="number" name="spec_order_General[]" class="form-control w-25" placeholder="Order" value="10">
+                          <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-2">
+                    <button id="addGroupBtn" type="button" class="btn btn-sm btn-success">+ Add Group</button>
+                    <small class="text-muted d-block mt-2">Create groups like "Processor", "Performance" and add related specs.</small>
+                  </div>
+                </div>
+                <!-- End Product Specifications -->
+
+
                 <!-- Product Images -->
                 <div class="col-12">
                   <h5 class="mt-4 mb-3">Product Images</h5>
@@ -333,6 +413,204 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       </div>
     </div>
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const KEY = "pczone_add_product_draft";
+      const form = document.querySelector('form');
+      const specContainer = document.getElementById('specGroupsContainer');
+      const addGroupBtn = document.getElementById('addGroupBtn');
+      const cancelBtn = document.querySelector('a[href="products.php"]');
+      const addBtn = form.querySelector('button[type="submit"]');
+
+      // helpers
+      function safeKey(name) {
+        return String(name || 'Group').replace(/[^a-zA-Z0-9]/g, '_');
+      }
+
+      function escapeHtml(s) {
+        return String(s || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+      }
+
+      // create spec row element
+      function createRowEl(safe, name = '', value = '', order = 10) {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 spec-row';
+        div.innerHTML = `
+      <input name="spec_name_${safe}[]" class="form-control" placeholder="Spec name" value="${escapeHtml(name)}">
+      <input name="spec_value_${safe}[]" class="form-control" placeholder="Spec value" value="${escapeHtml(value)}">
+      <input type="number" name="spec_order_${safe}[]" class="form-control w-25" placeholder="Order" value="${escapeHtml(order)}">
+      <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
+    `;
+        return div;
+      }
+
+      // build entire group node
+      function buildGroupNode(groupObj) {
+        const group = (groupObj && groupObj.group) ? groupObj.group : 'General';
+        const safe = safeKey(group);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'spec-group mb-3 border rounded p-2';
+        wrapper.innerHTML = `
+      <div class="d-flex mb-2">
+        <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="${escapeHtml(group)}" placeholder="Group name (e.g. Processor)">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
+      </div>
+      <div class="spec-rows"></div>
+      <div><button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button></div>
+    `;
+        const rowsContainer = wrapper.querySelector('.spec-rows');
+        const rows = (groupObj && Array.isArray(groupObj.rows) && groupObj.rows.length) ? groupObj.rows : [{
+          name: '',
+          value: '',
+          order: 10
+        }];
+        rows.forEach(r => rowsContainer.appendChild(createRowEl(safe, r.name, r.value, r.order)));
+
+        // keep input names in sync when group name changes
+        wrapper.querySelector('.spec-group-name').addEventListener('input', function() {
+          const newSafe = safeKey(this.value || 'General');
+          wrapper.querySelectorAll('.spec-row').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs.length >= 3) {
+              inputs[0].name = `spec_name_${newSafe}[]`;
+              inputs[1].name = `spec_value_${newSafe}[]`;
+              inputs[2].name = `spec_order_${newSafe}[]`;
+            }
+          });
+          saveDraft();
+        });
+
+        return wrapper;
+      }
+
+      // collect form + specs into an object
+      function getDraft() {
+        const data = {
+          fields: {},
+          specs: []
+        };
+
+        // simple fields to save (exclude file inputs)
+        ['name', 'sku', 'description', 'price', 'discount', 'stock', 'category', 'brand', 'weight'].forEach(k => {
+          const el = form.querySelector('[name="' + k + '"]');
+          if (!el) return;
+          if (el.type === 'checkbox') data.fields[k] = el.checked;
+          else data.fields[k] = el.value;
+        });
+        data.fields.is_featured = !!form.querySelector('[name="is_featured"]')?.checked;
+        data.fields.is_active = !!form.querySelector('[name="is_active"]')?.checked;
+
+        // specs
+        specContainer.querySelectorAll('.spec-group').forEach(g => {
+          const gname = g.querySelector('.spec-group-name')?.value || 'General';
+          const rowsArr = [];
+          g.querySelectorAll('.spec-row').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            const n = inputs[0]?.value || '';
+            const v = inputs[1]?.value || '';
+            const o = inputs[2]?.value || '';
+            if (n || v) rowsArr.push({
+              name: n,
+              value: v,
+              order: o
+            });
+          });
+          data.specs.push({
+            group: gname,
+            rows: rowsArr
+          });
+        });
+
+        return data;
+      }
+
+      // save to localStorage
+      function saveDraft() {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(getDraft()));
+        } catch (e) {
+          console.warn('saveDraft error', e);
+        }
+      }
+
+      // restore from localStorage
+      function restoreDraft() {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return;
+        try {
+          const data = JSON.parse(raw);
+          if (data.fields) {
+            Object.keys(data.fields).forEach(k => {
+              const el = form.querySelector('[name="' + k + '"]');
+              if (!el) return;
+              if (el.type === 'checkbox') el.checked = !!data.fields[k];
+              else el.value = data.fields[k];
+            });
+          }
+          if (Array.isArray(data.specs) && data.specs.length) {
+            specContainer.innerHTML = ''; // remove default
+            data.specs.forEach(g => specContainer.appendChild(buildGroupNode(g)));
+          }
+        } catch (e) {
+          console.warn('Invalid draft', e);
+        }
+      }
+
+      function clearDraft() {
+        localStorage.removeItem(KEY);
+      }
+
+      // delegated handlers for add/remove group/row
+      specContainer.addEventListener('click', function(e) {
+        if (e.target.matches('.remove-group-btn')) {
+          const g = e.target.closest('.spec-group');
+          if (g) {
+            g.remove();
+            saveDraft();
+          }
+          return;
+        }
+        if (e.target.matches('.add-row-btn')) {
+          const g = e.target.closest('.spec-group');
+          if (!g) return;
+          const key = safeKey(g.querySelector('.spec-group-name')?.value || 'General');
+          g.querySelector('.spec-rows').appendChild(createRowEl(key));
+          saveDraft();
+          return;
+        }
+        if (e.target.matches('.remove-row-btn')) {
+          const row = e.target.closest('.spec-row');
+          if (row) {
+            row.remove();
+            saveDraft();
+          }
+        }
+      });
+
+      // save when form inputs change (simple)
+      form.addEventListener('input', saveDraft);
+      form.addEventListener('change', saveDraft);
+
+      // add new group
+      addGroupBtn?.addEventListener('click', function() {
+        specContainer.appendChild(buildGroupNode({
+          group: 'New Group',
+          rows: []
+        }));
+        saveDraft();
+      });
+
+      // clear storage on submit or cancel
+      addBtn?.addEventListener('click', clearDraft);
+      cancelBtn?.addEventListener('click', clearDraft);
+
+      // initial restore
+      restoreDraft();
+    });
+  </script>
+
+
 
   <script>
     // Image preview function

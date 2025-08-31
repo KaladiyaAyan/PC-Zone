@@ -43,6 +43,19 @@ while ($img = mysqli_fetch_assoc($imagesResult)) {
   $existingImages[] = $img;
 }
 
+// Get existing product specs grouped
+$specGroups = [];
+$specsQuery = "SELECT spec_name, spec_value, spec_group, display_order FROM product_specs WHERE product_id = $product_id ORDER BY spec_group, display_order";
+$specsResult = mysqli_query($conn, $specsQuery);
+while ($s = mysqli_fetch_assoc($specsResult)) {
+  $group = $s['spec_group'] ?: 'General';
+  $specGroups[$group][] = [
+    'name' => $s['spec_name'],
+    'value' => $s['spec_value'],
+    'order' => $s['display_order']
+  ];
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Get form data
@@ -122,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (mysqli_query($conn, $updateQuery)) {
       // Handle new image uploads
       $uploadDir = '../uploads/';
+      // if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
       for ($i = 1; $i <= 4; $i++) {
         $field = 'image' . $i;
@@ -150,6 +164,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
       }
 
+      // === Save product specs ===
+      // Delete existing specs and insert new ones based on posted groups and rows.
+      if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
+        // delete existing
+        $delStmt = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
+        mysqli_stmt_bind_param($delStmt, 'i', $product_id);
+        mysqli_stmt_execute($delStmt);
+        mysqli_stmt_close($delStmt);
+
+        // prepare insert
+        $insStmt = mysqli_prepare(
+          $conn,
+          "INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES (?, ?, ?, ?, ?)"
+        );
+
+        foreach ($_POST['spec_group_name'] as $gIdx => $groupRaw) {
+          $groupName = trim($groupRaw) ?: 'General';
+          // safe key used in input names
+          $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName);
+
+          $names  = $_POST['spec_name_' . $safeKey]  ?? [];
+          $values = $_POST['spec_value_' . $safeKey] ?? [];
+          $orders = $_POST['spec_order_' . $safeKey] ?? [];
+
+          $rows = max(count($names), count($values));
+          for ($j = 0; $j < $rows; $j++) {
+            $sname  = trim($names[$j]  ?? '');
+            $svalue = trim($values[$j] ?? '');
+            if ($sname === '' && $svalue === '') continue;
+            $sorder = isset($orders[$j]) ? intval($orders[$j]) : ($j * 10);
+            mysqli_stmt_bind_param($insStmt, 'isssi', $product_id, $sname, $svalue, $groupName, $sorder);
+            mysqli_stmt_execute($insStmt);
+          }
+        }
+        if ($insStmt) mysqli_stmt_close($insStmt);
+      }
+
       header("Location: products.php?update=success");
       exit;
     } else {
@@ -160,8 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get categories for dropdown
 // $categoriesQuery = "SELECT id, name FROM categories WHERE is_active = 1 ORDER BY name ASC";
-$categoriesQuery = "SELECT category_id, category_name FROM categories WHERE level = 1 ORDER BY category_name ASC";
-$categoriesResult = mysqli_query($conn, $categoriesQuery);
+// $categoriesQuery = "SELECT category_id, category_name FROM categories WHERE level = 1 ORDER BY category_name ASC";
+// $categoriesResult = mysqli_query($conn, $categoriesQuery);
 
 // Get all brands with their categories for JavaScript filtering
 // $brandsQuery = "SELECT b.brand_id, b.brand_name, GROUP_CONCAT(bc.category_id) as category_ids 
@@ -360,6 +411,67 @@ while ($brand = mysqli_fetch_assoc($brandsResult)) {
                   </div>
                 </div>
 
+                <!-- Product Specifications -->
+                <div class="col-12">
+                  <h5 class="mt-4 mb-3">Product Specifications</h5>
+
+                  <div id="specGroupsContainer">
+                    <?php
+                    if (!empty($specGroups)) {
+                      foreach ($specGroups as $gName => $rows) {
+                        $safe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $gName);
+                    ?>
+                        <div class="spec-group mb-3 border rounded p-2">
+                          <div class="d-flex mb-2">
+                            <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="<?= htmlspecialchars($gName) ?>" placeholder="Group name (e.g. Processor)">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
+                          </div>
+                          <div class="spec-rows">
+                            <?php foreach ($rows as $r): ?>
+                              <div class="input-group mb-2 spec-row">
+                                <input name="spec_name_<?= $safe ?>[]" class="form-control" placeholder="Spec name" value="<?= htmlspecialchars($r['name']) ?>">
+                                <input name="spec_value_<?= $safe ?>[]" class="form-control" placeholder="Spec value" value="<?= htmlspecialchars($r['value']) ?>">
+                                <input type="number" name="spec_order_<?= $safe ?>[]" class="form-control w-25" placeholder="Order" value="<?= (int)$r['order'] ?>">
+                                <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
+                              </div>
+                            <?php endforeach; ?>
+                          </div>
+                          <div>
+                            <button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button>
+                          </div>
+                        </div>
+                      <?php
+                      }
+                    } else {
+                      // default single General group
+                      ?>
+                      <div class="spec-group mb-3 border rounded p-2">
+                        <div class="d-flex mb-2">
+                          <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="General" placeholder="Group name (e.g. Processor)">
+                          <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
+                        </div>
+                        <div class="spec-rows">
+                          <div class="input-group mb-2 spec-row">
+                            <input name="spec_name_General[]" class="form-control" placeholder="Spec name">
+                            <input name="spec_value_General[]" class="form-control" placeholder="Spec value">
+                            <input type="number" name="spec_order_General[]" class="form-control w-25" placeholder="Order" value="10">
+                            <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
+                          </div>
+                        </div>
+                        <div>
+                          <button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button>
+                        </div>
+                      </div>
+                    <?php } ?>
+                  </div>
+
+                  <div class="mt-2">
+                    <button id="addGroupBtn" type="button" class="btn btn-sm btn-success">+ Add Group</button>
+                    <small class="text-muted d-block mt-2">Create groups like "Processor", "Performance" and add related specs.</small>
+                  </div>
+                </div>
+                <!-- End Product Specifications -->
+
                 <!-- Existing Images -->
                 <?php if (!empty($existingImages)): ?>
                   <div class="col-12">
@@ -538,6 +650,88 @@ while ($brand = mysqli_fetch_assoc($brandsResult)) {
         });
       }
     });
+  </script>
+
+  <script>
+    // Simple spec groups/rows manager (add/remove, keep input names consistent)
+    (function() {
+      function safeKey(name) {
+        return String(name || 'Group').replace(/[^a-zA-Z0-9_-]/g, '_');
+      }
+
+      function escapeHtml(s) {
+        return String(s || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+      }
+
+      const container = document.getElementById('specGroupsContainer');
+      const addGroupBtn = document.getElementById('addGroupBtn');
+
+      function createRowEl(safe, name = '', value = '', order = 10) {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 spec-row';
+        div.innerHTML = `
+          <input name="spec_name_${safe}[]" class="form-control" placeholder="Spec name" value="${escapeHtml(name)}">
+          <input name="spec_value_${safe}[]" class="form-control" placeholder="Spec value" value="${escapeHtml(value)}">
+          <input type="number" name="spec_order_${safe}[]" class="form-control w-25" placeholder="Order" value="${escapeHtml(order)}">
+          <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
+        `;
+        return div;
+      }
+
+      function buildGroupNode(groupName) {
+        const safe = safeKey(groupName);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'spec-group mb-3 border rounded p-2';
+        wrapper.innerHTML = `
+          <div class="d-flex mb-2">
+            <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="${escapeHtml(groupName)}" placeholder="Group name (e.g. Processor)">
+            <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
+          </div>
+          <div class="spec-rows"></div>
+          <div><button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button></div>
+        `;
+        wrapper.querySelector('.spec-rows').appendChild(createRowEl(safe));
+        // update names when group name changes
+        wrapper.querySelector('.spec-group-name').addEventListener('input', function() {
+          const newSafe = safeKey(this.value || 'General');
+          wrapper.querySelectorAll('.spec-row').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs.length >= 3) {
+              inputs[0].name = `spec_name_${newSafe}[]`;
+              inputs[1].name = `spec_value_${newSafe}[]`;
+              inputs[2].name = `spec_order_${newSafe}[]`;
+            }
+          });
+        });
+        return wrapper;
+      }
+
+      // Delegated clicks
+      container.addEventListener('click', function(e) {
+        if (e.target.matches('.remove-group-btn')) {
+          const g = e.target.closest('.spec-group');
+          if (g) g.remove();
+          return;
+        }
+        if (e.target.matches('.add-row-btn')) {
+          const g = e.target.closest('.spec-group');
+          if (!g) return;
+          const key = safeKey(g.querySelector('.spec-group-name')?.value || 'General');
+          g.querySelector('.spec-rows').appendChild(createRowEl(key));
+          return;
+        }
+        if (e.target.matches('.remove-row-btn')) {
+          const row = e.target.closest('.spec-row');
+          if (row) row.remove();
+          return;
+        }
+      });
+
+      // Add new group
+      addGroupBtn?.addEventListener('click', function() {
+        container.appendChild(buildGroupNode('New Group'));
+      });
+    })();
   </script>
 
   <script src="../assets/vendor/jquery/jquery-3.7.1.min.js"></script>

@@ -38,13 +38,19 @@ try {
     throw new Exception("Failed to delete product images from database");
   }
 
+  // Delete product specs from database (explicitly)
+  $deleteSpecsQuery = "DELETE FROM product_specs WHERE product_id = $product_id";
+  if (!mysqli_query($conn, $deleteSpecsQuery)) {
+    throw new Exception("Failed to delete product specs from database");
+  }
+
   // Delete product from database
   $deleteProductQuery = "DELETE FROM products WHERE product_id = $product_id";
   if (!mysqli_query($conn, $deleteProductQuery)) {
     throw new Exception("Failed to delete product from database");
   }
 
-  // Check if product was actually deleted
+  // Make sure a product row was deleted
   if (mysqli_affected_rows($conn) === 0) {
     throw new Exception("Product not found or already deleted");
   }
@@ -56,7 +62,7 @@ try {
   foreach ($imagesToDelete as $imagePath) {
     $fullPath = '../uploads/' . $imagePath;
     if (file_exists($fullPath)) {
-      unlink($fullPath);
+      @unlink($fullPath);
     }
   }
 
@@ -66,6 +72,8 @@ try {
 } catch (Exception $e) {
   // Rollback transaction
   mysqli_rollback($conn);
+
+  // Optionally log $e->getMessage() to a file for debugging
 
   // Redirect with error message
   header("Location: products.php?delete=failed");

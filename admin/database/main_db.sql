@@ -33,24 +33,29 @@ CREATE TABLE IF NOT EXISTS categories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(100) NOT NULL UNIQUE,
     parent_id INT DEFAULT NULL,
+    icon_image VARCHAR(255) DEFAULT NULL,   -- filename or relative path, e.g. "cpu.png"
     level INT DEFAULT 0,
     slug VARCHAR(250) UNIQUE,
+    status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    sort_order INT DEFAULT 9999,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES categories(category_id) ON DELETE SET NULL
 );
 
-INSERT INTO categories (category_name, parent_id, level, slug) VALUES
-  ('Processor',      NULL, 0, 'processor'),        
-  ('Graphics Card',  NULL, 0, 'graphics-card'),    
-  ('Motherboard',    NULL, 0, 'motherboard'),      
-  ('RAM',            NULL, 0, 'ram'),              
-  ('Storage',        NULL, 0, 'storage'),          
-  ('Power Supply',   NULL, 0, 'power-supply'),     
-  ('Cabinet',        NULL, 0, 'cabinet'),          
-  ('Cooling System', NULL, 0, 'cooling-system'),   
-  ('Monitor',        NULL, 0, 'monitor'),          
-  ('Keyboard',       NULL, 0, 'keyboard'),         
-  ('Mouse',          NULL, 0, 'mouse'),            
-  ('Mousepad',       NULL, 0, 'mousepad');
+INSERT INTO categories (category_name, parent_id, icon_image, level, slug) VALUES
+  ('Processor',      NULL,'Processor-Icon.webp', 0,  'processor'),        
+  ('Graphics Card',  NULL, 'graphics-card-icon.webp', 0,  'graphics-card'),    
+  ('Motherboard',    NULL, 'motherboard-icon.webp', 0, 'motherboard'),      
+  ('RAM',            NULL, 'RAM-icon.webp', 0, 'ram'),              
+  ('Storage',        NULL, 'ssd-icon.webp', 0, 'storage'),          
+  ('Power Supply',   NULL, 'psu-icon.webp', 0, 'power-supply'),     
+  ('Cabinet',        NULL, 'cabinet-icon.webp', 0, 'cabinet'),          
+  ('Cooling System', NULL, 'liquid-cooler-icon.webp', 0, 'cooling-system'),   
+  ('Monitor',        NULL, 'monitor-icon.webp', 0, 'monitor'),          
+  ('Keyboard',       NULL, 'keyboard-icon.webp', 0, 'keyboard'),         
+  ('Mouse',          NULL, 'mouse-icon.webp', 0, 'mouse'),            
+  ('Mousepad',       NULL, 'mousepad-icon.webp', 0, 'mousepad');
   -- ('Gamepad',        NULL, 0, 'gamepad');       
 
 -- 2. Grab IDs into variables
@@ -540,17 +545,20 @@ CREATE TABLE IF NOT EXISTS product_specs (
     product_id INT,
     spec_name VARCHAR(100),
     spec_value VARCHAR(255),
+    spec_group VARCHAR(80) DEFAULT NULL,
+    display_order INT DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
 -- 6. PRODUCT SPECS
-INSERT INTO product_specs (product_id, spec_name, spec_value) VALUES
-   ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'Cores','16 (8P+8E)'),
-  ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'Base Clock','3.2 GHz'),
-  ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'VRAM','12 GB GDDR6'),
-  ((SELECT product_id FROM products WHERE sku='SSD-SAM-970EVO-1TB'), 'Interface','PCIe NVMe Gen3'),
-  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 'Capacity','16 GB (2x8GB)'),
-  ((SELECT product_id FROM products WHERE sku='PSU-COR-750W'), 'Wattage','750W');
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+   ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'Cores','16 (8P+8E)', 'CPU', 1),
+  ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'Base Clock','3.2 GHz', 'CPU', 2),
+  ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'VRAM','12 GB GDDR6', 'GPU', 1),
+  ((SELECT product_id FROM products WHERE sku='SSD-SAM-970EVO-1TB'), 'Interface','PCIe NVMe Gen3', 'SSD', 1),
+  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 'Capacity','16 GB (2x8GB)', 'RAM', 1),
+  ((SELECT product_id FROM products WHERE sku='PSU-COR-750W'), 'Wattage','750W', 'PSU', 1),
+  ((SELECT product_id FROM products WHERE sku='MON-DLL-27-1440P'), 'Resolution','1920x1080', 'Monitor', 1);
 
 
 -- PRODUCT REVIEWS

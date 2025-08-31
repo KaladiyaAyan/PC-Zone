@@ -1,8 +1,8 @@
 <?php
-require_once './includes/functions.php'; // uses getConnection() and helpers
+require_once __DIR__ . '../config/config.php';
+require_once __DIR__ . '../includes/db_connect.php';
+require_once __DIR__ . '../includes/functions.php';
 
-// Get featured products (limit 8)
-$featuredProducts = getFeaturedProducts(8);
 ?>
 <!doctype html>
 <html lang="en">
@@ -16,98 +16,147 @@ $featuredProducts = getFeaturedProducts(8);
   <link rel="stylesheet" href="./assets/vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="./assets/css/style.css">
+
+  <style>
+    /* Custom PC Build Section */
+    .custom-build-section {
+      background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      margin: 3rem 0;
+    }
+
+    .build-card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+
+    .build-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .build-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+    }
+
+    .build-info {
+      padding: 2rem;
+    }
+
+    .brand-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .intel-brand {
+      background: linear-gradient(45deg, #0071c5, #0096d6);
+    }
+
+    .amd-brand {
+      background: linear-gradient(45deg, #ed1c24, #ff6b35);
+    }
+
+    .price-tag {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      font-weight: bold;
+      display: inline-block;
+      margin: 1rem 0;
+    }
+
+    /* Categories Section */
+    .categories-section {
+      padding: 4rem 0;
+      background: #fff;
+    }
+
+    .category-card {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      border-color: #007bff;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .category-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+    }
+
+    .category-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-count {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .custom-build-section {
+        padding: 2rem 1rem;
+        margin: 2rem 0;
+      }
+
+      .build-info {
+        padding: 1.5rem;
+      }
+
+      .build-card img {
+        height: 200px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <?php include './includes/navbar.php'; ?>
 
-  <div class="container mt-4">
-    <!-- Hero Section -->
-    <div class="row">
-      <div class="col-12">
-        <div class="jumbotron bg-primary text-white p-5 rounded">
-          <h1 class="display-4">Welcome to PC ZONE</h1>
-          <p class="lead">Discover amazing products at great prices.</p>
-          <a class="btn btn-light btn-lg" href="pages/products.php" role="button">Shop Now</a>
-        </div>
-      </div>
-    </div>
+  <?php
+  require_once __DIR__ . '../includes/navbar.php';
+  include './pages/home.php';
+  ?>
 
-    <!-- Featured Products -->
-    <div class="row mt-5">
-      <div class="col-12">
-        <h2>Featured Products</h2>
-      </div>
-    </div>
-
-    <div class="row">
-      <?php if (empty($featuredProducts)): ?>
-        <div class="col-12">
-          <p class="text-muted">No featured products found.</p>
-        </div>
-      <?php else: ?>
-        <?php foreach ($featuredProducts as $product):
-          $pid = (int)($product['product_id'] ?? 0);
-          $name = $product['product_name'] ?? '';
-          $desc = $product['description'] ?? '';
-          // functions.php returns main_image alias
-          $img  = $product['main_image'] ?? ($product['image_path'] ?? 'placeholder.png');
-          $avg  = round(floatval($product['avg_rating'] ?? 0) * 2) / 2; // round to nearest 0.5
-          $reviews = (int)($product['review_count'] ?? 0);
-          $full = (int)floor($avg);
-          $half = (($avg - $full) == 0.5) ? 1 : 0;
-          $empty = 5 - $full - $half;
-          $priceToShow = $product['final_price'] ?? $product['price'];
-        ?>
-          <div class="col-md-3 mb-4">
-            <div class="card h-100 shadow-sm border-0 product-card">
-              <a href="pages/product-detail.php?id=<?php echo e($pid); ?>">
-                <img src="assets/images/products/<?php echo e($img); ?>"
-                  class="card-img-top p-3" alt="<?php echo e($name); ?>">
-              </a>
-
-              <div class="card-body d-flex flex-column">
-                <h5 class="card-title mb-1">
-                  <a href="pages/product-detail.php?id=<?php echo e($pid); ?>" class="product-link">
-                    <?php echo e($name); ?>
-                  </a>
-                </h5>
-
-                <!-- Rating stars + review count -->
-                <div class="mb-1">
-                  <?php
-                  for ($i = 0; $i < $full; $i++) echo '<i class="bi bi-star-fill star-fill"></i>';
-                  if ($half) echo '<i class="bi bi-star-half star-fill"></i>';
-                  for ($i = 0; $i < $empty; $i++) echo '<i class="bi bi-star star-empty"></i>';
-                  ?>
-                  <a href="pages/product-detail.php?id=<?php echo e($pid); ?>#reviews" class="review-count">
-                    <?php echo $reviews > 0 ? ' ' . e($reviews) : ' 0'; ?>
-                  </a>
-                </div>
-
-                <p class="card-text small text-muted mb-2"><?php echo e(mb_strimwidth($desc, 0, 80, '…')); ?></p>
-
-                <!-- Pricing -->
-                <div class="mb-2">
-                  <span class="fw-bold text-danger"><?php echo formatPrice($priceToShow); ?></span>
-                  <?php if (!empty($product['discount']) && $product['discount'] > 0): ?>
-                    <span class="text-muted text-decoration-line-through ms-2"><?php echo formatPrice($product['price']); ?></span>
-                    <span class="badge bg-success ms-2"><?php echo intval($product['discount']); ?>% off</span>
-                  <?php endif; ?>
-                </div>
-
-                <a href="pages/product-detail.php?id=<?php echo e($pid); ?>" class="btn btn-sm btn-warning mt-auto">View Details</a>
-              </div>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
-
-  </div>
-
-  <?php include './includes/footer.php'; ?>
 
   <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
