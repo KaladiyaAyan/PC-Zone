@@ -213,9 +213,27 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      (SELECT brand_id FROM brands WHERE slug='intel'),
      (SELECT category_id FROM categories WHERE slug='processor'),
      TRUE, TRUE),
+   ('Intel Core i7-13700K', 'CPU-INT-i7-13700K', 'intel-core-i7-13700k',
+     'High performance 12th Gen processor for gaming and content creation.',
+     349.99, 0.00, 15, 0.65, 4.6,
+     (SELECT brand_id FROM brands WHERE slug='intel'),
+     (SELECT category_id FROM categories WHERE slug='processor'),
+     TRUE, TRUE),
+   ('Intel Core i5-12400F', 'CPU-INT-i5-12400F', 'intel-core-i5-12400f',
+     'High performance 12th Gen processor for gaming and content creation.',
+     299.99, 0.00, 15, 0.65, 4.6,
+     (SELECT brand_id FROM brands WHERE slug='intel'),
+     (SELECT category_id FROM categories WHERE slug='processor'),
+     TRUE, TRUE),
 
   ('AMD Ryzen 7 5800X', 'CPU-AMD-5800X', 'amd-ryzen-7-5800x',
      '8-core Zen3 CPU. Excellent single-thread and multi-thread performance.',
+     299.99, 0.00, 30, 0.65, 4.6,
+     (SELECT brand_id FROM brands WHERE slug='amd'),
+     (SELECT category_id FROM categories WHERE slug='processor'),
+     TRUE, TRUE),
+   ('AMD Ryzen 7 7800X3D', 'CPU-AMD-7800X3D', 'amd-ryzen-7-7800x3d',
+     '8-core Zen4 CPU. Excellent single-thread and multi-thread performance.',
      299.99, 0.00, 30, 0.65, 4.6,
      (SELECT brand_id FROM brands WHERE slug='amd'),
      (SELECT category_id FROM categories WHERE slug='processor'),
@@ -242,9 +260,15 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      (SELECT category_id FROM categories WHERE slug='hdd'),
      FALSE, TRUE),
 
-  ('NVIDIA GeForce RTX 3060', 'GPU-NVIDIA-RTX-3060', 'nvidia-geforce-rtx-3060',
+  ('Gigabyte RTX 3060 Windforce OC 12GB', 'GV-N3060WF2OC-12GD', 'gigabyte-rtx-3060-windforce-oc-12gb',
      '12 GB GDDR6 graphics card for 1080p/1440p gaming.',
      599.99, 0.00, 20, 1.20, 4.8,
+     (SELECT brand_id FROM brands WHERE slug='gigabyte-gpu'),
+     (SELECT category_id FROM categories WHERE slug='graphics-card'),
+     TRUE, TRUE),
+   ('NVIDIA GeForce RTX 4080 16GB GDDR6X Graphics Card', '900-1G136-2560-000', 'nvidia-geforce-rtx-4080',
+     'Top-tier GPU for 4K gaming and heavy compute.',
+     1999.99, 0.00, 5, 2.0, 4.9,
      (SELECT brand_id FROM brands WHERE slug='nvidia'),
      (SELECT category_id FROM categories WHERE slug='graphics-card'),
      TRUE, TRUE),
@@ -256,12 +280,34 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      (SELECT category_id FROM categories WHERE slug='graphics-card'),
      TRUE, TRUE),
 
+   ('AMD Radeon RX 7900 XT', 'GPU-AMD-RX-7900XT', 'amd-radeon-rx-7900xt',
+     'Top-tier GPU for 4K gaming and heavy compute.',
+     1999.99, 0.00, 5, 2.0, 4.9,
+     (SELECT brand_id FROM brands WHERE slug='amd'),
+     (SELECT category_id FROM categories WHERE slug='graphics-card'),
+     TRUE, TRUE),
+
   ('ASUS ROG STRIX B660-F Motherboard', 'MB-ASUS-B660F', 'asus-rog-strix-b660-f',
      'ATX motherboard with robust power delivery and RGB headers.',
      189.99, 0.00, 30, 1.0, 4.5,
      (SELECT brand_id FROM brands WHERE slug='ASUS-MB'),
      (SELECT category_id FROM categories WHERE slug='motherboard'),
      FALSE, TRUE),
+
+   ('Corsair Vengeance LPX 16GB 2x8GB 32000MHz', 'CMK8GX4M1E3200C16', 'corsair-vengeance-lpx-32gb',
+     '2x8 GB DDR4-3200 MHz memory kit, low-profile heat spreader.',
+     79.99, 5.00, 50, 0.12, 4.3,
+     (SELECT brand_id FROM brands WHERE slug='corsair-ram'),
+     (SELECT category_id FROM categories WHERE slug='ram'),
+     TRUE, TRUE),
+
+  
+     ('G.Skill Trident Z5 RGB 32GB (2×16GB) DDR5 6000MHz', 'F5-6000J3636F16GX2-TZ5RW', 'ram-g-skill-trident-z5-rgb-32gb-ddr5-6000mhz',
+     '2x16 GB DDR5-6000 MHz memory kit, low-profile heat spreader.',
+     79.99, 5.00, 50, 0.12, 4.3,
+     (SELECT brand_id FROM brands WHERE slug='g-skill-ram'),
+     (SELECT category_id FROM categories WHERE slug='ram'),
+     TRUE, TRUE),
 
   ('Corsair RM750x 750W PSU', 'PSU-COR-750W', 'corsair-rm750x-750w',
      'Fully modular 80+ Gold power supply, high quality Japanese capacitors.',
@@ -551,14 +597,144 @@ CREATE TABLE IF NOT EXISTS product_specs (
 );
 
 -- 6. PRODUCT SPECS
+-- CPU 1: Intel Core i7-13700K
+-- Key Specs
 INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
-   ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'Cores','16 (8P+8E)', 'CPU', 1),
-  ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'Base Clock','3.2 GHz', 'CPU', 2),
-  ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'VRAM','12 GB GDDR6', 'GPU', 1),
-  ((SELECT product_id FROM products WHERE sku='SSD-SAM-970EVO-1TB'), 'Interface','PCIe NVMe Gen3', 'SSD', 1),
-  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 'Capacity','16 GB (2x8GB)', 'RAM', 1),
-  ((SELECT product_id FROM products WHERE sku='PSU-COR-750W'), 'Wattage','750W', 'PSU', 1),
-  ((SELECT product_id FROM products WHERE sku='MON-DLL-27-1440P'), 'Resolution','1920x1080', 'Monitor', 1);
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Cores', '16 (8P+8E)', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Threads', '24', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Base Clock', '3.4 GHz', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Boost Clock', '5.4 GHz', 'Key Specs', 4),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'TDP', '125W', 'Key Specs', 5);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Lithography', 'Intel 7', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Socket Type', 'LGA1700', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Cache', '30MB Intel Smart Cache', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Memory Support', 'DDR4-3200 / DDR5-5600', 'Detailed Specs', 4),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'PCIe Version', 'PCIe 5.0 / 4.0', 'Detailed Specs', 5),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 'Integrated Graphics', 'Intel UHD 770', 'Detailed Specs', 6);
+
+-- CPU 2: AMD Ryzen 7 7800X3D
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Cores', '8', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Threads', '16', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Base Clock', '4.2 GHz', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Boost Clock', '5.0 GHz', 'Key Specs', 4),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'TDP', '120W', 'Key Specs', 5);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Lithography', 'TSMC 5nm', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Socket Type', 'AM5', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Cache', '96MB L3 (3D V-Cache)', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Memory Support', 'DDR5-5200, Dual Channel', 'Detailed Specs', 4),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'PCIe Version', 'PCIe 5.0', 'Detailed Specs', 5),
+((SELECT product_id FROM products WHERE sku='CPU-RYZ-7-7800X3D'), 'Integrated Graphics', 'None', 'Detailed Specs', 6);
+
+-- CPU 3: Intel Core i5-12400F
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Cores', '6', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Threads', '12', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Base Clock', '2.5 GHz', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Boost Clock', '4.4 GHz', 'Key Specs', 4),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'TDP', '65W', 'Key Specs', 5);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Lithography', 'Intel 7', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Socket Type', 'LGA1700', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Cache', '18MB Intel Smart Cache', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Memory Support', 'DDR4-3200 / DDR5-4800', 'Detailed Specs', 4),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'PCIe Version', 'PCIe 5.0 / 4.0', 'Detailed Specs', 5),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i5-12400F'), 'Integrated Graphics', 'None (F-Series)', 'Detailed Specs', 6);
+
+-- GPU 1: NVIDIA GeForce RTX 4080
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'GPU Model', 'GeForce RTX 4080', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'VRAM Size', '16GB', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'VRAM Type', 'GDDR6X', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Base Clock', '2205 MHz', 'Key Specs', 4),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Boost Clock', '2505 MHz', 'Key Specs', 5);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'CUDA Cores', '9728', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Memory Bus Width', '256-bit', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Memory Bandwidth', '716.8 GB/s', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Power Requirement', '320W (3x 8-pin / 16-pin)', 'Detailed Specs', 4),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Outputs', 'HDMI 2.1, 3x DisplayPort 1.4a', 'Detailed Specs', 5),
+((SELECT product_id FROM products WHERE sku='900-1G136-2560-000'), 'Cooling Type', 'Triple Fan', 'Detailed Specs', 6);
+
+
+-- GPU 2: AMD Radeon RX 7900 XT
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'GPU Model', 'Radeon RX 7900 XT', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'VRAM Size', '20GB', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'VRAM Type', 'GDDR6', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Base Clock', '2000 MHz', 'Key Specs', 4),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Boost Clock', '2400 MHz', 'Key Specs', 5);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Stream Processors', '5376', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Memory Bus Width', '320-bit', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Memory Bandwidth', '800 GB/s', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Power Requirement', '315W (2x 8-pin)', 'Detailed Specs', 4),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Outputs', 'HDMI 2.1, 2x DisplayPort 2.1, USB-C', 'Detailed Specs', 5),
+((SELECT product_id FROM products WHERE sku='GPU-AMD-RX-7900XT'), 'Cooling Type', 'Triple Fan', 'Detailed Specs', 6);
+
+-- GPU 3: NVIDIA GeForce RTX 3060
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'GPU Model', 'GeForce RTX 3060', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'VRAM Size', '12GB', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'VRAM Type', 'GDDR6', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Base Clock', '1320 MHz', 'Key Specs', 4),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Boost Clock', '1777 MHz', 'Key Specs', 5);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'CUDA Cores', '3584', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Memory Bus Width', '192-bit', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Memory Bandwidth', '360 GB/s', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Power Requirement', '170W (1x 8-pin)', 'Detailed Specs', 4),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Outputs', 'HDMI 2.1, 3x DisplayPort 1.4a', 'Detailed Specs', 5),
+((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'Cooling Type', 'Dual Fan', 'Detailed Specs', 6);
+
+-- RAM 1: Corsair Vengeance LPX 16GB (2×8GB) DDR4 3200MHz
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'Capacity', '16GB (2×8GB)', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'Type', 'DDR4', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'Speed', '3200MHz', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'CAS Latency', 'CL16', 'Key Specs', 4);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'Voltage', '1.35V', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'ECC Support', 'No', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'RGB Lighting', 'No', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='CMK8GX4M1E3200C16'), 'Heatsink Type', 'Low Profile Black Aluminum', 'Detailed Specs', 4);
+
+-- RAM 2: G.Skill Trident Z5 RGB 32GB (2×16GB) DDR5 6000MHz
+-- Key Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'Capacity', '32GB (2×16GB)', 'Key Specs', 1),
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'Type', 'DDR5', 'Key Specs', 2),
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'Speed', '6000MHz', 'Key Specs', 3),
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'CAS Latency', 'CL36', 'Key Specs', 4);
+
+-- Detailed Specs
+INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'Voltage', '1.35V', 'Detailed Specs', 1),
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'ECC Support', 'No', 'Detailed Specs', 2),
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'RGB Lighting', 'Yes, Addressable RGB', 'Detailed Specs', 3),
+((SELECT product_id FROM products WHERE sku='F5-6000J3636F16GX2-TZ5RW'), 'Heatsink Type', 'Aluminum Heatspreader', 'Detailed Specs', 4);
 
 
 -- PRODUCT REVIEWS

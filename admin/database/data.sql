@@ -181,3 +181,227 @@ CREATE TABLE IF NOT EXISTS cart_items (
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id)  REFERENCES products(product_id)  ON DELETE CASCADE
 );
+
+
+-- 📌 Category-wise Naming Convention
+-- 1. Processor (CPU)
+
+    -- Key Specs
+
+        -- Cores
+
+        -- Threads
+
+        -- Base Clock
+
+        -- Boost Clock
+
+        -- TDP
+
+    -- Detailed Specs
+
+        -- Lithography
+
+        -- Socket Type
+
+        -- Cache (L2 / L3)
+
+        -- Max Memory Support
+
+        -- Integrated Graphics
+
+        -- PCIe Version
+
+-- 2. Graphics Card (GPU)
+
+    -- Key Specs
+
+        -- GPU Model
+
+        -- VRAM Size
+
+        -- VRAM Type
+
+        -- Base Clock
+
+        -- Boost Clock
+
+    -- Detailed Specs
+
+        -- CUDA / Stream / Core Count
+
+        -- Memory Bus Width
+
+        -- Memory Bandwidth
+
+        -- Power Requirement (Wattage + Connector type)
+
+        -- Outputs (HDMI, DP, etc.)
+
+        -- Cooling Type (Dual / Triple Fan, Waterblock)
+
+-- 3. Motherboard
+
+    -- Key Specs
+
+        -- Chipset
+
+        -- Form Factor (ATX / mATX / ITX)
+
+        -- Supported Socket
+
+        -- Memory Slots (Max RAM + Speed)
+
+    -- Detailed Specs
+
+        -- PCIe Slots (x16, x4, etc.)
+
+        -- Storage Support (SATA, M.2 count)
+
+        -- Expansion Slots
+
+        -- USB Ports (rear + internal)
+
+        -- Networking (LAN / WiFi)
+
+        -- Audio Codec
+
+-- 4. RAM (Memory)
+
+    -- Key Specs
+
+        -- Capacity (GB)
+
+        -- Type (DDR3 / DDR4 / DDR5)
+
+        -- Speed (MHz)
+
+        -- CAS Latency
+
+    -- Detailed Specs
+
+        -- Voltage
+
+        -- ECC Support
+
+        -- RGB Lighting
+
+        -- Module Count (1×16GB / 2×8GB etc.)
+
+        -- Heatsink Type
+
+-- 5. Storage (HDD / SSD / NVMe)
+
+    -- Key Specs
+
+        -- Capacity
+
+        -- Type (HDD, SATA SSD, NVMe)
+
+        -- Interface (SATA, PCIe Gen3/4/5)
+
+        -- Max Speed (Read / Write)
+
+    -- Detailed Specs
+
+        -- Endurance (TBW / MTBF)
+
+        -- NAND Type (TLC, QLC)
+
+        -- Cache Size
+
+        -- Form Factor (2.5", M.2 2280, etc.)
+
+-- 6. Power Supply (PSU)
+
+    -- Key Specs
+
+        -- Wattage
+
+        -- Certification (80+ Bronze/Gold/Platinum)
+
+        -- Form Factor (ATX, SFX)
+
+        -- Modular Type (Non / Semi / Fully)
+
+    -- Detailed Specs
+
+        -- PCIe / CPU Connectors
+
+        -- Protections (OCP, OVP, OTP, SCP, etc.)
+
+        -- Dimensions
+
+        -- Efficiency Curve
+
+-- 7. Cooling (Air / Liquid)
+
+    -- Key Specs
+
+        -- Cooler Type (Air / AIO / Custom Loop)
+
+        -- Fan Size (120mm, 140mm)
+
+        -- Radiator Size (240 / 360mm)
+
+        -- Max TDP Support
+
+    -- Detailed Specs
+
+        -- Fan Speed Range
+
+        -- Bearing Type
+
+        -- Noise Level (dBA)
+
+        -- Pump Speed (if liquid)
+
+        -- Socket Compatibility
+
+-- 8. PC Case (Cabinet)
+
+    -- Key Specs
+
+        -- Case Type (ATX, mATX, ITX, Full Tower)
+
+        -- Max GPU Length
+
+        -- Max CPU Cooler Height
+
+        -- PSU Support (ATX, SFX)
+
+    -- Detailed Specs
+
+        -- Drive Bays (2.5", 3.5")
+
+        -- Fan / Radiator Support
+
+        -- Expansion Slots
+
+        -- Front I/O Ports
+
+        -- Side Panel Type (Tempered Glass, Mesh)
+
+-- 9. Monitor
+
+    -- Key Specs
+
+        -- Size (Inches)
+
+        -- Resolution
+
+        -- Refresh Rate
+
+        -- Panel Type (IPS, VA, TN, OLED)
+
+    -- Detailed Specs
+
+        -- Response Time (ms)
+
+        -- HDR Support
+
+        -- Color Gamut (sRGB, DCI-P3 %)
+
+        -- Connectivity (HDMI, DP, USB-C)
+
+        -- Adaptive Sync (G-Sync / FreeSync)
