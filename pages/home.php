@@ -103,28 +103,35 @@ $amdStartingPrice = 42000;   // Starting price for AMD builds
     <div class="row g-4">
       <!-- Intel Build -->
       <div class="col-md-6">
-        <div class="build-card">
-          <img src="assets/images/Intel_Custom_Build.jpg" alt="Intel Custom PC Build"
-            onerror="this.src='assets/images/placeholder-intel-build.jpg'">
-          <div class="build-info">
-            <div class="intel-brand brand-logo">
-              <i class="fab fa-intel"></i>
-            </div>
-            <h4 class="fw-bold mb-3">Intel Custom Builds</h4>
-            <p class="text-muted mb-3">Powered by latest Intel processors for exceptional single-core performance and gaming excellence.</p>
+        <div class="card build-card-modern  shadow-sm position-relative h-100">
+          <div class="custom-build-img bg-light">
+            <img src="assets/images/intel_custom_build.jpg"
+              onerror="this.src='assets/images/placeholder-intel-build.jpg'"
+              alt="Intel Custom PC Build" class="w-100 h-100 object-fit-cover">
+          </div>
 
-            <div class="price-tag">
-              Starting from ₹<?php echo number_format($intelStartingPrice); ?>
+          <span class="brand-badge badge rounded-pill bg-light border text-dark fw-semibold">
+            Intel
+          </span>
+
+          <div class="card-body">
+            <h3 class="h5 fw-semibold mb-2">Intel Custom Builds</h3>
+            <p class="text-secondary mb-3">
+              Latest Intel CPUs for strong single-core performance and smooth gaming.
+            </p>
+
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+              <span class="price h5 mb-0">Starting from ₹<?= number_format($intelStartingPrice) ?></span>
             </div>
 
-            <ul class="list-unstyled mt-3">
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>Intel 12th/13th Gen Processors</li>
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>DDR5 Memory Support</li>
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>PCIe 5.0 Ready</li>
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>2 Year Warranty</li>
+            <ul class="specs list-unstyled text-secondary mb-3">
+              <li><i class="bi bi-check-circle-fill text-success"></i> 12th/13th/14th Gen options</li>
+              <li><i class="bi bi-check-circle-fill text-success"></i> DDR5 support</li>
+              <li><i class="bi bi-check-circle-fill text-success"></i> PCIe 5.0 ready</li>
+              <li><i class="bi bi-check-circle-fill text-success"></i> 2-year warranty</li>
             </ul>
 
-            <a href="pages/custom-pc.php?platform=intel" class="btn btn-primary w-100 mt-3">
+            <a href="pages/custom-pc.php?platform=intel" class="btn btn-primary w-100">
               Build Intel PC
             </a>
           </div>
@@ -133,33 +140,42 @@ $amdStartingPrice = 42000;   // Starting price for AMD builds
 
       <!-- AMD Build -->
       <div class="col-md-6">
-        <div class="build-card">
-          <img src="assets/images/AMD_Custom_Build.jpg" alt="AMD Custom PC Build"
-            onerror="this.src='assets/images/placeholder-amd-build.jpg'">
-          <div class="build-info">
-            <div class="amd-brand brand-logo">
-              AMD
-            </div>
-            <h4 class="fw-bold mb-3">AMD Custom Builds</h4>
-            <p class="text-muted mb-3">Experience superior multi-core performance with AMD Ryzen processors for content creation and gaming.</p>
+        <div class="card build-card-modern shadow-sm position-relative h-100">
+          <div class="custom-build-img bg-light">
+            <img src="assets/images/amd_custom_build.jpg"
+              onerror="this.src='assets/images/placeholder-amd-build.jpg'"
+              alt="AMD Custom PC Build" class="w-100 h-100 object-fit-cover">
+          </div>
 
-            <div class="price-tag">
-              Starting from ₹<?php echo number_format($amdStartingPrice); ?>
+          <span class="brand-badge badge rounded-pill bg-light border text-dark fw-semibold">
+            AMD
+          </span>
+
+          <div class="card-body">
+            <h3 class="h5 fw-semibold mb-2">AMD Custom Builds</h3>
+            <p class="text-secondary mb-3">
+              Ryzen multi-core power for creation and gaming at great value.
+            </p>
+
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+              <span class="price h5 mb-0">Starting from ₹<?= number_format($amdStartingPrice) ?></span>
             </div>
 
-            <ul class="list-unstyled mt-3">
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>AMD Ryzen 5000/7000 Series</li>
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>High Core Count Options</li>
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>Excellent Price-Performance</li>
-              <li><i class="bi bi-check-circle-fill text-success me-2"></i>2 Year Warranty</li>
+            <ul class="specs list-unstyled text-secondary mb-3">
+              <li><i class="bi bi-check-circle-fill text-success"></i> Ryzen 5000/7000 series</li>
+              <li><i class="bi bi-check-circle-fill text-success"></i> High core counts</li>
+              <li><i class="bi bi-check-circle-fill text-success"></i> Strong price-performance</li>
+              <li><i class="bi bi-check-circle-fill text-success"></i> 2-year warranty</li>
             </ul>
 
-            <a href="pages/custom-pc.php?platform=amd" class="btn btn-danger w-100 mt-3">
+            <a href="pages/custom-pc.php?platform=amd" class="btn btn-danger w-100">
               Build AMD PC
             </a>
           </div>
         </div>
       </div>
+
+
     </div>
   </div>
 

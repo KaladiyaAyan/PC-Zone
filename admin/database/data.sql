@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS products (
     rating FLOAT DEFAULT 0,
     brand_id INT,
     category_id INT,
+    platform ENUM('intel','amd','both','none') NOT NULL DEFAULT 'none',
     is_featured BOOLEAN DEFAULT 0,
     is_active BOOLEAN DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
