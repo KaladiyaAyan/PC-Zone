@@ -1,7 +1,7 @@
 <?php
 // header.php
 // $conn (mysqli)
-require_once BASE_URL . 'config/config.php';
+// require_once BASE_URL . 'config/config.php';
 // require_once __DIR__ . './includes/db_connect.php';
 // require_once __DIR__ . './includes/functions.php';
 // fetch categories
