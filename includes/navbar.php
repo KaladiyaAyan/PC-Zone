@@ -1,7 +1,9 @@
 <?php
 // header.php
 // $conn (mysqli)
-
+require_once BASE_URL . 'config/config.php';
+// require_once __DIR__ . './includes/db_connect.php';
+// require_once __DIR__ . './includes/functions.php';
 // fetch categories
 $categories = [];
 $sql = "SELECT category_id, category_name, parent_id, slug, icon_image
@@ -112,7 +114,7 @@ foreach ($categories as $c) {
               </div>
             </li>
 
-            <li class="nav-item"><a class="nav-link fw-semibold" href="/custom-pc.php">Custom PC</a></li>
+            <li class="nav-item"><a class="nav-link fw-semibold" href="./pages/custom-pc.php">Custom PC</a></li>
             <li class="nav-item"><a class="nav-link fw-semibold" href="/prebuilt-pc.php">Pre-built PC</a></li>
             <li class="nav-item"><a class="nav-link fw-semibold" href="/contact.php">Contact Us</a></li>
             <li class="nav-item"><a class="nav-link fw-semibold" href="/about.php">About Us</a></li>
