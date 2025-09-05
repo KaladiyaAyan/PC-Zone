@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../includes/db_connect.php';
-require_once __DIR__ . '/../includes/functions.php';
+require_once '../config/config.php';
+require_once INCLUDES_PATH . "db_connect.php";
 
 $platform = in_array($_GET['platform'] ?? 'amd', ['amd', 'intel']) ? $_GET['platform'] : 'amd';
 include __DIR__ . '/../includes/navbar.php';
@@ -346,7 +346,7 @@ foreach ($parts as $slug => $label) {
 
 <body>
   <main class="container my-4">
-    <form id="buildForm" action="/cart_add.php" method="POST" class="custom-build-row">
+    <form id="buildForm" action="<?php echo BASE_URL . 'pages/add_to_cart.php'; ?>" method="POST" class="custom-build-row">
       <div class="left-col">
         <div class="left-hero" aria-hidden="true">
           <img src="../assets/images/<?= e($platform) ?>_custom_build.jpg" alt="build image">

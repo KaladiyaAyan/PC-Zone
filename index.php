@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '../config/config.php';
-require_once __DIR__ . '../includes/db_connect.php';
-require_once __DIR__ . '../includes/functions.php';
+require_once __DIR__ . '/config/config.php';
+require_once INCLUDES_PATH . 'db_connect.php';
+require_once INCLUDES_PATH . 'functions.php';
 
 ?>
 <!doctype html>
@@ -62,8 +62,8 @@ require_once __DIR__ . '../includes/functions.php';
 
 
   <?php
-  require_once __DIR__ . '../includes/navbar.php';
-  include './pages/home.php';
+  require_once INCLUDES_PATH . "navbar.php";
+  require_once PAGES_PATH . "home.php";
   ?>
 
 

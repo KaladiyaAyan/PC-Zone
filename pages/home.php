@@ -1,5 +1,6 @@
 <?php
-require './includes/db_connect.php';
+require_once INCLUDES_PATH . 'db_connect.php';
+
 // Get featured products (limit 8)
 $featuredProducts = getFeaturedProducts(4, true);
 
@@ -131,7 +132,7 @@ $amdStartingPrice = 42000;   // Starting price for AMD builds
               <li><i class="bi bi-check-circle-fill text-success"></i> 2-year warranty</li>
             </ul>
 
-            <a href="pages/custom-pc.php?platform=intel" class="btn btn-primary w-100">
+            <a href="<?php echo BASE_URL . 'pages/custom-pc.php?platform=intel'; ?>" class="btn btn-primary w-100">
               Build Intel PC
             </a>
           </div>
@@ -168,7 +169,7 @@ $amdStartingPrice = 42000;   // Starting price for AMD builds
               <li><i class="bi bi-check-circle-fill text-success"></i> 2-year warranty</li>
             </ul>
 
-            <a href="pages/custom-pc.php?platform=amd" class="btn btn-danger w-100">
+            <a href="<?php echo BASE_URL . 'pages/custom-pc.php?platform=amd'; ?>" class="btn btn-danger w-100">
               Build AMD PC
             </a>
           </div>
