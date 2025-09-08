@@ -1,9 +1,12 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     full_name VARCHAR(150),
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    date_of_birth DATE DEFAULT NULL,
+    gender ENUM('Male','Female','Other') DEFAULT NULL,
     phone VARCHAR(20),
     email_verified BOOLEAN DEFAULT FALSE,
     role ENUM('admin','user') NOT NULL DEFAULT 'user',
@@ -49,6 +52,10 @@ CREATE TABLE IF NOT EXISTS products (
     rating FLOAT DEFAULT 0,
     brand_id INT,
     category_id INT,
+    main_image varchar(255) NOT NULL,
+    image_1 varchar(255) NOT NULL,
+    image_2 varchar(255) NOT NULL,
+    image_3 varchar(255) NOT NULL,
     platform ENUM('intel','amd','both','none') NOT NULL DEFAULT 'none',
     is_featured BOOLEAN DEFAULT 0,
     is_active BOOLEAN DEFAULT 1,
@@ -57,23 +64,8 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE,
     FOREIGN KEY (brand_id)     REFERENCES brands(brand_id)     ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS customers (
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    phone VARCHAR(20),
-    password VARCHAR(255) NOT NULL,
-    date_of_birth DATE DEFAULT NULL,
-    gender ENUM('Male','Female','Other') DEFAULT NULL,
-    profile_image VARCHAR(255) DEFAULT NULL,
-    newsletter_subscribed BOOLEAN DEFAULT FALSE,
-    status ENUM('active','inactive','banned') DEFAULT 'active',
-    last_login DATETIME DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-CREATE TABLE IF NOT EXISTS addresses (
+
+CREATE TABLE IF NOT EXISTS user_address (
     address_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
     full_name VARCHAR(150),
@@ -147,13 +139,7 @@ CREATE TABLE IF NOT EXISTS shipments (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS product_images (
-    product_image_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT,
-    image_path VARCHAR(255),
-    is_main BOOLEAN DEFAULT 0,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
-);
+
 CREATE TABLE IF NOT EXISTS product_specs (
     product_spec_id  INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,

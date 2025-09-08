@@ -1,14 +1,12 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
-
-// Database connection
 $host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "pczone";
+$username = "root";
+$password = "";
+$dbname = "pczone";
 
-$conn = mysqli_connect($host, $user, $pass, $db);
+
+$conn = mysqli_connect($host, $username, $password, $dbname);
 
 if (!$conn) {
-  die("Connection failed: " . mysqli_connect_error());
+  die("Connection Failed : " . mysqli_connect_error());
 }

@@ -5,10 +5,13 @@ USE pczone;
 -- 2. USERS TABLE (admin + normal users)
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    full_name VARCHAR(150),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    username VARCHAR(150),
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    date_of_birth DATE DEFAULT NULL,
+    gender ENUM('Male','Female','Other') DEFAULT NULL,
     phone VARCHAR(20),
     email_verified BOOLEAN DEFAULT FALSE,
     role ENUM('admin','user') NOT NULL DEFAULT 'user',
@@ -17,16 +20,18 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
 -- Default admin (password = 'admin123', hashed)
-INSERT INTO users (username, email, password, role, status)
-VALUES (
-  'admin',
-  'admin@pczone.com',
-  '$2y$10$a0UCxwvfzbhYFWtq7C4MIuGqwPNSoeCQ6A4ZcWLEjrqaHR2dPwXPG',
-  'admin',
-  'active'
-), ('John Doe','jdoe@example.com','$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e','user','active');
+INSERT INTO users (first_name, last_name, email, password, date_of_birth, gender, phone, email_verified, role) VALUES
+  ('Admin', 'User', 'admin@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Male', '1234567890', 1, 'admin'),
+  ('John', 'Doe', 'jdoe@example.com', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Male', '1234567890', 1, 'user'),
+  ('Jane', 'Smith', 'jane@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Female', '1234567890', 1, 'user'),
+  ('Maya', 'Singh', 'maya@singh', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Female', '1234567890', 1, 'user');
+
+-- INSERT INTO users (first_name, last_name, email, password, role) VALUES
+--   ('Admin', 'User', 'admin@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', 'admin'),
+--   ('John', 'Doe', 'jdoe@example.com', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', 'user'),
+--   ('Jane', 'Smith', 'jane@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', 'user');
+
 
 -- 3. CATEGORIES (top-level + subcategories via parent_id)
 CREATE TABLE IF NOT EXISTS categories (
@@ -56,9 +61,7 @@ INSERT INTO categories (category_name, parent_id, icon_image, level, slug) VALUE
   ('Keyboard',       NULL, 'keyboard-icon.webp', 0, 'keyboard'),         
   ('Mouse',          NULL, 'mouse-icon.webp', 0, 'mouse'),            
   ('Mousepad',       NULL, 'mousepad-icon.webp', 0, 'mousepad');
-  -- ('Gamepad',        NULL, 0, 'gamepad');       
 
--- 2. Grab IDs into variables
 SET @proc_id      = (SELECT category_id FROM categories WHERE category_name = 'Processor');
 SET @storage_id   = (SELECT category_id FROM categories WHERE category_name = 'Storage');
 SET @cooling_id   = (SELECT category_id FROM categories WHERE category_name = 'Cooling System');
@@ -170,42 +173,43 @@ INSERT INTO brands (brand_name, category_id, slug) VALUES
 ('Corsair',       (SELECT category_id FROM categories WHERE category_name='Mousepad'),       'corsair-mousepad'),
 ('Razer',         (SELECT category_id FROM categories WHERE category_name='Mousepad'),       'razer-mousepad');
 
--- 5. (The rest of the improved tables—products, images, specs, reviews, customers, addresses,
---     orders, order_items, cart_items—should be created exactly as in the previously shared schema.)
-
--- ... [Paste the CREATE TABLE statements for products, product_images, product_specs,
---      product_reviews, customers, addresses, orders, order_items, cart_items here] ...
-
 -- PRODUCTS TABLE
 CREATE TABLE IF NOT EXISTS products (
-    product_id  INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(250) NOT NULL,
-    sku VARCHAR(50) UNIQUE,
-    slug VARCHAR(250) UNIQUE,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    discount DECIMAL(6,2) DEFAULT 0,
-    stock INT DEFAULT 0,
-    weight DECIMAL(6,2),
-    rating FLOAT DEFAULT 0,
-    brand_id INT,
-    category_id INT,
-    platform ENUM('intel','amd','both','none') NOT NULL DEFAULT 'none',
-    is_featured BOOLEAN DEFAULT 0,
-    is_active BOOLEAN DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE,
-    FOREIGN KEY (brand_id)     REFERENCES brands(brand_id)     ON DELETE CASCADE
+   product_id  INT AUTO_INCREMENT PRIMARY KEY,
+   product_name VARCHAR(250) NOT NULL,
+   sku VARCHAR(50) UNIQUE,
+   slug VARCHAR(250) UNIQUE,
+   description TEXT,
+   price DECIMAL(10, 2) NOT NULL,
+   discount DECIMAL(6,2) DEFAULT 0,
+   stock INT DEFAULT 0,
+   weight DECIMAL(6,2),
+   rating FLOAT DEFAULT 0,
+   brand_id INT,
+   category_id INT,
+   main_image varchar(255) NOT NULL,
+   image_1 varchar(255),
+   image_2 varchar(255),
+   image_3 varchar(255),
+   platform ENUM('intel','amd','both','none') NOT NULL DEFAULT 'none',
+   is_featured BOOLEAN DEFAULT 0,
+   is_active BOOLEAN DEFAULT 1,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE,
+   FOREIGN KEY (brand_id)     REFERENCES brands(brand_id)     ON DELETE CASCADE
 );
 
 -- 4. PRODUCTS
-INSERT INTO products (product_name, sku, slug, description, price, discount, stock, weight, rating, brand_id, category_id, platform, is_featured, is_active) VALUES
+INSERT INTO products (product_name, sku, slug, description, price, discount, stock, weight, rating, brand_id, category_id, main_image, image_1, image_2, platform, is_featured, is_active) VALUES
   ('Intel Core i9-12900K', 'CPU-INT-12900K', 'intel-core-i9-12900k',
      '12th Gen desktop processor, hybrid architecture, high single-thread performance.',
      499.99, 0.00, 20, 0.65, 4.7,
      (SELECT brand_id FROM brands WHERE slug='intel'),
      (SELECT category_id FROM categories WHERE slug='processor'),
+      '61UVtHz+IlL._SX522_.jpg',
+      '51mhFDz4r3L._SL1080_.jpg',
+      '61kZ8MUKn0L._SL1280_.jpg',
      'intel',TRUE, TRUE),
 
   ('Intel Core i7-12700K', 'CPU-INT-12700K', 'intel-core-i7-12700k',
@@ -213,18 +217,27 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      349.99, 0.00, 15, 0.65, 4.6,
      (SELECT brand_id FROM brands WHERE slug='intel'),
      (SELECT category_id FROM categories WHERE slug='processor'),
+     '51NlTpm+7KL._SX522_.jpg',
+     '51+Ax9Jna4L._SX522_.jpg',
+     '515aMcQXdiL._SX522_.jpg',
      'intel',TRUE, TRUE),
    ('Intel Core i7-13700K', 'CPU-INT-i7-13700K', 'intel-core-i7-13700k',
      'High performance 12th Gen processor for gaming and content creation.',
      349.99, 0.00, 15, 0.65, 4.6,
      (SELECT brand_id FROM brands WHERE slug='intel'),
      (SELECT category_id FROM categories WHERE slug='processor'),
+     '61m0zH-NiTL._SX679_.jpg',
+     '612rDWKp8-L._SX679_.jpg',
+     null,
      'intel',TRUE, TRUE),
    ('Intel Core i5-12400F', 'CPU-INT-i5-12400F', 'intel-core-i5-12400f',
      'High performance 12th Gen processor for gaming and content creation.',
      299.99, 0.00, 15, 0.65, 4.6,
      (SELECT brand_id FROM brands WHERE slug='intel'),
      (SELECT category_id FROM categories WHERE slug='processor'),
+     '51EwtPjHkIL._SX679_.jpg',
+     '518PbvkOn4L._SX679_.jpg',
+     '51A6E9HPocL._SX679_.jpg',
      'intel',TRUE, TRUE),
 
   ('AMD Ryzen 7 5800X', 'CPU-AMD-5800X', 'amd-ryzen-7-5800x',
@@ -232,12 +245,18 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      299.99, 0.00, 30, 0.65, 4.6,
      (SELECT brand_id FROM brands WHERE slug='amd'),
      (SELECT category_id FROM categories WHERE slug='processor'),
+     '61IIbwz-+ML._SX679_.jpg',
+     '41s2lwvRsrL.jpg',
+     '51HqC0rU9HL._SX679_.jpg',
      'amd',TRUE, TRUE),
    ('AMD Ryzen 7 7800X3D', 'CPU-AMD-7800X3D', 'amd-ryzen-7-7800x3d',
      '8-core Zen4 CPU. Excellent single-thread and multi-thread performance.',
      299.99, 0.00, 30, 0.65, 4.6,
      (SELECT brand_id FROM brands WHERE slug='amd'),
      (SELECT category_id FROM categories WHERE slug='processor'),
+     '51dOdTAF2gL._SX679_.jpg',
+     '51mUlXh-JWL._SX679_.jpg',
+     null,
      'amd',TRUE, TRUE),
 
   ('Corsair Vengeance LPX 16GB', 'RAM-COR-16GB', 'corsair-vengeance-lpx-16gb',
@@ -245,6 +264,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      79.99, 5.00, 50, 0.12, 4.3,
      (SELECT brand_id FROM brands WHERE slug='corsair-ram'),
      (SELECT category_id FROM categories WHERE slug='ram'),
+     '51Gs2sm696L._SX679_.jpg',
+     '51-xIDDKW2L._SX679_.jpg',
+     '512BfBMLaVL._SX679_.jpg',
      'both',FALSE, TRUE),
 
   ('Samsung 970 EVO Plus 1TB NVMe', 'SSD-SAM-970EVO-1TB', 'samsung-970-evo-plus-1tb',
@@ -252,6 +274,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      129.99, 10.00, 40, 0.05, 4.8,
      (SELECT brand_id FROM brands WHERE slug='samsung-storage'),
      (SELECT category_id FROM categories WHERE slug='nvme'),
+     '81zE8qvJbdL._SX679_.jpg',
+     '71OYNmVRFhL._SX679_.jpg',
+     null,
      'both',TRUE, TRUE),
 
   ('Seagate BarraCuda 2TB HDD', 'HDD-ST-2TB', 'seagate-barracuda-2tb',
@@ -259,6 +284,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      59.99, 0.00, 100, 0.45, 4.1,
      (SELECT brand_id FROM brands WHERE slug='seagate'),
      (SELECT category_id FROM categories WHERE slug='hdd'),
+     '71NyznvXLOL._SX679_.jpg',
+     '81WueVKTzuL._SX679_.jpg',
+     '7108Bo7fN0L._SX679_.jpg',
      'both',FALSE, TRUE),
 
   ('Gigabyte RTX 3060 Windforce OC 12GB', 'GV-N3060WF2OC-12GD', 'gigabyte-rtx-3060-windforce-oc-12gb',
@@ -266,19 +294,28 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      599.99, 0.00, 20, 1.20, 4.8,
      (SELECT brand_id FROM brands WHERE slug='gigabyte-gpu'),
      (SELECT category_id FROM categories WHERE slug='graphics-card'),
+     '71OFKtclW4L._SX679_.jpg',
+     '71YF6p0RPqL._SX679_.jpg',
+     '71arsLWFVDL._SX679_.jpg',
      'both',TRUE, TRUE),
    ('NVIDIA GeForce RTX 4080 16GB GDDR6X Graphics Card', '900-1G136-2560-000', 'nvidia-geforce-rtx-4080',
      'Top-tier GPU for 4K gaming and heavy compute.',
      1999.99, 0.00, 5, 2.0, 4.9,
      (SELECT brand_id FROM brands WHERE slug='nvidia'),
      (SELECT category_id FROM categories WHERE slug='graphics-card'),
+     '71OMxfZoyML._SX679_.jpg',
+     '71Kjyrdle3L._SX679_.jpg',
+     '61oHZyzFq4L._SX679_.jpg',
      'both',TRUE, TRUE),
 
-  ('NVIDIA GeForce RTX 4090', 'GPU-NVIDIA-RTX-4090', 'nvidia-geforce-rtx-4090',
+  ('PNY NVIDIA GeForce RTX 4090 24GB Verto Triple Fan Graphics Card DLSS 3 (384-bit PCIe 4.0, GDDR6X, Supports 4k, Anti-Sag Bracket, HDMI/DisplayPort) - VCG409024TFXPB1', 'GPU-NVIDIA-RTX-4090', 'nvidia-geforce-rtx-4090',
      'Top-tier GPU for 4K gaming and heavy compute.',
      1999.99, 0.00, 5, 2.0, 4.9,
      (SELECT brand_id FROM brands WHERE slug='nvidia'),
      (SELECT category_id FROM categories WHERE slug='graphics-card'),
+     '619QTa9dXXL._SX522_.jpg',
+     '51TOFDWee3L._SX522_.jpg',
+     '51BNol+lU3L._SX522_.jpg',
      'both',TRUE, TRUE),
 
    ('AMD Radeon RX 7900 XT', 'GPU-AMD-RX-7900XT', 'amd-radeon-rx-7900xt',
@@ -286,6 +323,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      1999.99, 0.00, 5, 2.0, 4.9,
      (SELECT brand_id FROM brands WHERE slug='amd'),
      (SELECT category_id FROM categories WHERE slug='graphics-card'),
+     null,
+     null,
+     null,
      'both',TRUE, TRUE),
 
   ('ASUS ROG STRIX B660-F Motherboard', 'MB-ASUS-B660F', 'asus-rog-strix-b660-f',
@@ -293,6 +333,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      189.99, 0.00, 30, 1.0, 4.5,
      (SELECT brand_id FROM brands WHERE slug='ASUS-MB'),
      (SELECT category_id FROM categories WHERE slug='motherboard'),
+     null,
+     null,
+     null,
      'intel',FALSE, TRUE),
 
    ('Corsair Vengeance LPX 16GB 2x8GB 32000MHz', 'CMK8GX4M1E3200C16', 'corsair-vengeance-lpx-32gb',
@@ -300,6 +343,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      79.99, 5.00, 50, 0.12, 4.3,
      (SELECT brand_id FROM brands WHERE slug='corsair-ram'),
      (SELECT category_id FROM categories WHERE slug='ram'),
+     null,
+     null,
+     null,
      'both',TRUE, TRUE),
 
   
@@ -308,6 +354,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      79.99, 5.00, 50, 0.12, 4.3,
      (SELECT brand_id FROM brands WHERE slug='g-skill-ram'),
      (SELECT category_id FROM categories WHERE slug='ram'),
+     null,
+     null,
+     null,
      'both',TRUE, TRUE),
 
   ('Corsair RM750x 750W PSU', 'PSU-COR-750W', 'corsair-rm750x-750w',
@@ -315,6 +364,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      119.99, 0.00, 25, 2.2, 4.6,
      (SELECT brand_id FROM brands WHERE slug='Corsair-PSU'),
      (SELECT category_id FROM categories WHERE slug='power-supply'),
+     null,
+     null,
+     null,
      'both',FALSE, TRUE),
 
   ('NZXT H510 Compact Case', 'CASE-NZXT-H510', 'nzxt-h510-compact-case',
@@ -322,6 +374,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      79.99, 0.00, 35, 6.00, 4.2,
      (SELECT brand_id FROM brands WHERE slug='nzxt-case'),
      (SELECT category_id FROM categories WHERE slug='cabinet'),
+     null,
+     null,
+     null,
      'both',FALSE, TRUE),
 
   ('Cooler Master Hyper 212', 'COOLER-CM-212', 'cooler-master-hyper-212',
@@ -329,6 +384,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      34.99, 0.00, 60, 0.8, 4.1,
      (SELECT brand_id FROM brands WHERE slug='Cooler Master'),
      (SELECT category_id FROM categories WHERE slug='air-cooler'),
+     null,
+     null,
+     null,
      'both',FALSE, TRUE),
 
   ('Dell 27" 1440p 165Hz', 'MON-DLL-27-1440P', 'dell-27-1440p-165hz',
@@ -336,6 +394,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      349.99, 0.00, 10, 5.5, 4.4,
      (SELECT brand_id FROM brands WHERE slug='dell-monitor'),
      (SELECT category_id FROM categories WHERE slug='monitor'),
+     null,
+     null,
+     null,
      'both',TRUE, TRUE),
 
   ('Logitech G413 Mechanical Keyboard', 'KB-LOG-G413', 'logitech-g413-mechanical',
@@ -343,6 +404,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      69.99, 0.00, 45, 1.0, 4.3,
      (SELECT brand_id FROM brands WHERE slug='logitech-keyboard'),
      (SELECT category_id FROM categories WHERE slug='keyboard'),
+     null,
+     null,
+     null,
      'both',FALSE, TRUE),
 
   ('Razer DeathAdder V2', 'M-RZR-DA-V2', 'razer-deathadder-v2',
@@ -350,6 +414,9 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      49.99, 0.00, 60, 0.12, 4.5,
      (SELECT brand_id FROM brands WHERE slug='razer-mouse'),
      (SELECT category_id FROM categories WHERE slug='mouse'),
+     null,
+     null,
+     null,
      'both',FALSE, TRUE),
 
   ('SteelSeries QcK Large Mousepad', 'MP-SS-QCK-L', 'steelseries-qck-large',
@@ -357,38 +424,16 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      14.99, 0.00, 120, 0.2, 4.2,
      (SELECT brand_id FROM brands WHERE slug='steelseries-mousepad'),
      (SELECT category_id FROM categories WHERE slug='mousepad'),
+     null,
+     null,
+     null,
      'both',FALSE, TRUE);
   
--- CUSTOMERS
-CREATE TABLE IF NOT EXISTS customers (
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    phone VARCHAR(20),
-    password VARCHAR(255) NOT NULL,
-    date_of_birth DATE DEFAULT NULL,
-    gender ENUM('Male','Female','Other') DEFAULT NULL,
-    profile_image VARCHAR(255) DEFAULT NULL,
-    newsletter_subscribed BOOLEAN DEFAULT FALSE,
-    status ENUM('active','inactive','banned') DEFAULT 'active',
-    last_login DATETIME DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
 
--- 7. CUSTOMERS
-INSERT INTO customers (first_name, last_name, email, phone, password, date_of_birth, gender, profile_image, newsletter_subscribed) VALUES
-  ('Alice', 'Johnson', 'alice@johnson.com', '777-777-7777', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Female', 'https://example.com/alice.jpg', TRUE),
-  ('John',  'Doe',     'jdoe@example.com',  '888-888-8888', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1985-05-15', 'Male',   'https://example.com/john.jpg', FALSE),
-  ('Bob',   'Smith',   'bob@smith.com',    '555-555-5555', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1988-07-20', 'Male',   'https://example.com/bob.jpg', FALSE),
-  ('Maya',  'Singh',   'maya@singh.com',   '666-666-6666', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1995-03-11', 'Female','https://example.com/maya.jpg', TRUE);
-
-
--- ADDRESSES
-CREATE TABLE IF NOT EXISTS addresses (
+-- user_address
+CREATE TABLE IF NOT EXISTS user_address (
     address_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT,
+    user_id INT,
     full_name VARCHAR(150),
     phone VARCHAR(20),
     address_line1 TEXT,
@@ -398,21 +443,21 @@ CREATE TABLE IF NOT EXISTS addresses (
     zip VARCHAR(20),
     country VARCHAR(100),
     is_default BOOLEAN DEFAULT 0,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- 8. ADDRESSES
-INSERT INTO addresses (customer_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default) VALUES
-  ((SELECT customer_id FROM customers WHERE email='alice@johnson.com'),
+-- 8. user_address
+INSERT INTO user_address (user_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default) VALUES
+  ((SELECT user_id FROM users WHERE email='alice@johnson.com'),
    'Alice Johnson', '777-777-7777', '123 Main St', 'Apt 4B', 'New York', 'NY', '10001', 'United States', 1),
 
-  ((SELECT customer_id FROM customers WHERE email='jdoe@example.com'),
+  ((SELECT user_id FROM users WHERE email='jdoe@example.com'),
    'John Doe', '888-888-8888', '456 Oak St', NULL, 'Los Angeles', 'CA', '90001', 'United States', 1),
 
-  ((SELECT customer_id FROM customers WHERE email='bob@smith.com'),
+  ((SELECT user_id FROM users WHERE email='bob@smith.com'),
    'Bob Smith', '555-555-5555', '456 Elm St', 'Suite 5', 'San Francisco', 'CA', '94101', 'United States', 1),
 
-  ((SELECT customer_id FROM customers WHERE email='maya@singh.com'),
+  ((SELECT user_id FROM users WHERE email='maya@singh.com'),
    'Maya Singh', '666-666-6666', '12 MG Road', '3rd Floor', 'Mumbai', 'MH', '400001', 'India', 1);
 
 
@@ -420,7 +465,7 @@ INSERT INTO addresses (customer_id, full_name, phone, address_line1, address_lin
 -- ORDERS
 CREATE TABLE IF NOT EXISTS orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
+    user_id INT NOT NULL,
     billing_address_id INT NOT NULL,
     shipping_address_id INT NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
@@ -438,30 +483,31 @@ CREATE TABLE IF NOT EXISTS orders (
     order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
-    FOREIGN KEY (billing_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE,
-    FOREIGN KEY (shipping_address_id) REFERENCES addresses(address_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (billing_address_id) REFERENCES user_address(address_id) ON DELETE CASCADE,
+    FOREIGN KEY (shipping_address_id) REFERENCES user_address(address_id) ON DELETE CASCADE
 );
-INSERT INTO orders (customer_id, billing_address_id, shipping_address_id, total_amount, order_status, shipping_method, tracking_number, paid_at) VALUES
-  ((SELECT customer_id FROM customers WHERE email='alice@johnson.com'),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com') LIMIT 1),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com') LIMIT 1),
-   999.98, 'Delivered', 'UPS', 'UPS123456789', NOW()),
 
-  ((SELECT customer_id FROM customers WHERE email='jdoe@example.com'),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='jdoe@example.com') LIMIT 1),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='jdoe@example.com') LIMIT 1),
-   599.99, 'Shipped', 'FedEx', 'FDX987654321', NOW()),
+INSERT INTO orders (user_id, billing_address_id, shipping_address_id, total_amount, order_status) VALUES
+  ((SELECT user_id FROM users WHERE email='alice@johnson.com'),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='alice@johnson.com') AND is_default=1),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='alice@johnson.com') AND is_default=1),
+   99.99, 'Pending'),
 
-  ((SELECT customer_id FROM customers WHERE email='bob@smith.com'),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com') LIMIT 1),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com') LIMIT 1),
-   3079.98, 'Processing', 'Delhivery', NULL, NULL),
+  ((SELECT user_id FROM users WHERE email='jdoe@example.com'),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='jdoe@example.com') AND is_default=1),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='jdoe@example.com') AND is_default=1),
+   49.99, 'Pending'),
 
-  ((SELECT customer_id FROM customers WHERE email='maya@singh.com'),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='maya@singh.com') LIMIT 1),
-   (SELECT address_id FROM addresses WHERE customer_id=(SELECT customer_id FROM customers WHERE email='maya@singh.com') LIMIT 1),
-   499.99, 'Pending', 'IndiaPost', NULL, NULL);
+  ((SELECT user_id FROM users WHERE email='bob@smith.com'),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='bob@smith.com') AND is_default=1),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='bob@smith.com') AND is_default=1),
+   79.99, 'Pending'),
+
+  ((SELECT user_id FROM users WHERE email='maya@singh.com'),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='maya@singh.com') AND is_default=1),
+   (SELECT address_id FROM user_address WHERE user_id=(SELECT user_id FROM users WHERE email='maya@singh.com') AND is_default=1),
+   59.99, 'Pending');
 
 -- ORDER ITEMS
 CREATE TABLE IF NOT EXISTS order_items (
@@ -475,31 +521,22 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (order_id)   REFERENCES orders(order_id)   ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
-
 INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price) VALUES
-  -- Alice: 2 × Intel Core i9-12900K @ 499.99 => 999.98
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com') LIMIT 1),
-   (SELECT product_id FROM products WHERE sku='CPU-INT-12900K' LIMIT 1),
-   2, 499.99, 0, 999.98),
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='alice@johnson.com')),
+   (SELECT product_id FROM products WHERE product_name='Laptop'),
+   1, 99.99, 0, 99.99),
 
-  -- John: 1 × NVIDIA RTX 3060 @ 599.99 => 599.99
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='jdoe@example.com') LIMIT 1),
-   (SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060' LIMIT 1),
-   1, 599.99, 0, 599.99),
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='jdoe@example.com')),
+   (SELECT product_id FROM products WHERE product_name='Smartphone'),
+   1, 49.99, 0, 49.99),  
 
-  -- Bob: 1 × Corsair RAM @ 79.99 + 1 × NVIDIA RTX 4090 @ 1999.99 => 2079.98 (part of Bob's larger order)
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com') LIMIT 1),
-   (SELECT product_id FROM products WHERE sku='RAM-COR-16GB' LIMIT 1),
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='bob@smith.com')),
+   (SELECT product_id FROM products WHERE product_name='Tablet'),
    1, 79.99, 0, 79.99),
 
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com') LIMIT 1),
-   (SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-4090' LIMIT 1),
-   1, 1999.99, 0, 1999.99),
-
-  -- Maya: 1 × Dell 27" monitor @ 499.99 (use existing monitor price but create a special price here to match total)
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='maya@singh.com') LIMIT 1),
-   (SELECT product_id FROM products WHERE sku='MON-DLL-27-1440P' LIMIT 1),
-   1, 499.99, 0, 499.99);
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='maya@singh.com')),
+   (SELECT product_id FROM products WHERE product_name='Headphones'),
+   1, 59.99, 0, 59.99);
 
 
 CREATE TABLE IF NOT EXISTS payments (
@@ -514,24 +551,18 @@ CREATE TABLE IF NOT EXISTS payments (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
-
 INSERT INTO payments (order_id, payment_method, transaction_id, amount, currency, payment_status, paid_at) VALUES
-  -- Alice paid COD but marked Paid (example)
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com') LIMIT 1), 'cash_on_delivery', NULL, 999.98, 'INR', 'Paid', NOW()),
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='alice@johnson.com')),
+   'cash_on_delivery', NULL, 99.99, 'INR', 'Paid', NOW()),
 
-  -- John paid by credit card
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='jdoe@example.com') LIMIT 1), 'credit_card', 'TXN_CARD_1001', 599.99, 'INR', 'Paid', NOW()),
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='jdoe@example.com')),
+   'cash_on_delivery', NULL, 49.99, 'INR', 'Paid', NOW()),
 
-  -- Bob paid partially by UPI (simulate one paid, one pending)
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com') LIMIT 1), 'upi', 'UPI_TXN_2001', 2079.98, 'INR', 'Paid', NOW()),
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='bob@smith.com')),
+   'cash_on_delivery', NULL, 79.99, 'INR', 'Paid', NOW()),
 
-  -- Maya created order but not paid yet
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='maya@singh.com') LIMIT 1), 'net_banking', 'NBK_3001', 499.99, 'INR', 'Pending', NULL),
-
-  -- Add a refunded example (create a fake small order and payment then refund)
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='maya@singh.com') LIMIT 1), 'wallet', 'WALLET_4001', 10.00, 'INR', 'Refunded', NOW());
-
-
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='maya@singh.com')),
+   'cash_on_delivery', NULL, 59.99, 'INR', 'Paid', NOW());
 
 CREATE TABLE IF NOT EXISTS shipments (
     shipment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -544,33 +575,18 @@ CREATE TABLE IF NOT EXISTS shipments (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
-
 INSERT INTO shipments (order_id, tracking_number, shipping_method, shipped_date, delivered_date, status) VALUES
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='alice@johnson.com') LIMIT 1), 'UPS123456789', 'UPS', NOW(), NOW(), 'Delivered'),
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='jdoe@example.com') LIMIT 1), 'FDX987654321', 'FedEx', NOW(), NULL, 'Shipped'),
-  ((SELECT order_id FROM orders WHERE customer_id=(SELECT customer_id FROM customers WHERE email='bob@smith.com') LIMIT 1), 'DLV456789123', 'Delhivery', NULL, NULL, 'Pending');
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='alice@johnson.com')),
+   'ABC123', 'UPS', NULL, NULL, 'Pending'),
 
--- PRODUCT IMAGES
-CREATE TABLE IF NOT EXISTS product_images (
-    product_image_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT,
-    image_path VARCHAR(255),
-    is_main BOOLEAN DEFAULT 0,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
-);
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='jdoe@example.com')),
+   'DEF456', 'FedEx', NULL, NULL, 'Pending'),
 
--- 5. PRODUCT IMAGES
-INSERT INTO product_images (product_id, image_path, is_main) VALUES
- ((SELECT product_id FROM products WHERE sku='CPU-INT-12900K'), 'intel13900k-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='CPU-INT-12700K'), 'intel12700k-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='CPU-AMD-5800X'), 'ryzen5600x-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 'Corsair_Vengeance_LPX_16GB_DDR4_3200MHZ_2.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='SSD-SAM-970EVO-1TB'), 'samsung-970-evo-plus-1tb.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 'rtx3060-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-4090'), 'rtx4090-main.jpg', TRUE),
-  ((SELECT product_id FROM products WHERE sku='MON-DLL-27-1440P'), 'dell-27-1440p.jpg', TRUE);
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='bob@smith.com')),
+   'GHI789', 'UPS', NULL, NULL, 'Pending'),
 
-
+  ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='maya@singh.com')),
+   'JKL012', 'FedEx', NULL, NULL, 'Pending');
 
 -- PRODUCT SPECS (key-value pairs)
 CREATE TABLE IF NOT EXISTS product_specs (
@@ -582,7 +598,6 @@ CREATE TABLE IF NOT EXISTS product_specs (
     display_order INT DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
-
 -- 6. PRODUCT SPECS
 -- CPU 1: Intel Core i7-13700K
 -- Key Specs
@@ -728,36 +743,32 @@ INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, displa
 CREATE TABLE IF NOT EXISTS product_reviews (
     product_review_id  INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,
-    customer_id INT,
+    user_id INT,
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id)  REFERENCES products(product_id)   ON DELETE CASCADE,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)  ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id)  ON DELETE CASCADE
 );
-
--- 11. PRODUCT REVIEWS
-INSERT INTO product_reviews (product_id, customer_id, rating, comment) VALUES
-  ((SELECT product_id FROM products WHERE sku='CPU-INT-12700K'), (SELECT customer_id FROM customers WHERE email='alice@johnson.com'), 5, 'Excellent performance for mixed workloads.'),
-  ((SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), (SELECT customer_id FROM customers WHERE email='bob@smith.com'), 4, 'Good value and stable.'),
-  ((SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), (SELECT customer_id FROM customers WHERE email='jdoe@example.com'), 5, 'Great 1080p performance.');
-
+INSERT INTO product_reviews (product_id, user_id, rating, comment) VALUES
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 1, 5, 'Great processor!'),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 2, 4, 'Good processor'),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 3, 3, 'Average processor'),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 4, 2, 'Bad processor'),
+((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 5, 1, 'Terrible processor');
 
 -- CART ITEMS
 CREATE TABLE IF NOT EXISTS cart_items (
     cart_item_id  INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT,
+    user_id INT,
     product_id INT,
     quantity INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id)  REFERENCES products(product_id)  ON DELETE CASCADE
 );
-
--- 12. CART ITEMS
-INSERT INTO cart_items (customer_id, product_id, quantity) VALUES
-  ((SELECT customer_id FROM customers WHERE email='alice@johnson.com'), (SELECT product_id FROM products WHERE sku='CPU-INT-12700K'), 1),
-  ((SELECT customer_id FROM customers WHERE email='jdoe@example.com'), (SELECT product_id FROM products WHERE sku='GPU-NVIDIA-RTX-3060'), 1),
-  ((SELECT customer_id FROM customers WHERE email='bob@smith.com'), (SELECT product_id FROM products WHERE sku='RAM-COR-16GB'), 3),
-  ((SELECT customer_id FROM customers WHERE email='maya@singh.com'), (SELECT product_id FROM products WHERE sku='MON-DLL-27-1440P'), 1);
-
+INSERT INTO cart_items (user_id, product_id, quantity) VALUES
+((SELECT user_id FROM users WHERE email='alice@johnson.com'), (SELECT product_id FROM products WHERE product_name='Laptop'), 1),
+((SELECT user_id FROM users WHERE email='jdoe@example.com'), (SELECT product_id FROM products WHERE product_name='Smartphone'), 1),
+((SELECT user_id FROM users WHERE email='bob@smith.com'), (SELECT product_id FROM products WHERE product_name='Tablet'), 1),
+((SELECT user_id FROM users WHERE email='maya@singh.com'), (SELECT product_id FROM products WHERE product_name='Headphones'), 1);

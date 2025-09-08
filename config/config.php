@@ -1,4 +1,5 @@
 <?php
+define("SITE_NAME", "PC-Zone");
 // Base directory (absolute path on server)
 define("BASE_PATH", dirname(__DIR__) . "/");
 

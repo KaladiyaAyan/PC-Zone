@@ -1,350 +1,201 @@
 <?php
-// header.php
-// $conn (mysqli)
-require_once CONFIG_PATH . "config.php";   // only once at the entry point
-require_once INCLUDES_PATH . "functions.php";
-require_once INCLUDES_PATH . "navbar.php";
 
-// fetch categories
-$categories = [];
-$sql = "SELECT category_id, category_name, parent_id, slug, icon_image
-        FROM categories
-        WHERE status = 'active'
-        ORDER BY COALESCE(sort_order,9999), category_name";
-if ($res = mysqli_query($conn, $sql)) {
-  while ($r = mysqli_fetch_assoc($res)) {
-    if (empty($r['slug'])) $r['slug'] = strtolower(preg_replace('/[^a-z0-9\-]+/i', '-', trim($r['category_name'])));
-    $categories[] = $r;
+// fetch categories via functions.php
+$rows = getAllCategories(); // flat array ordered by level,category_name
+$parents = getRootCategories();
+$children_flat = getAllSubCategories();
+
+// ensure slug and build children map: parent_id => [children]
+$children = [];
+foreach ($rows as $r) {
+  if (empty($r['slug'])) {
+    $r['slug'] = strtolower(preg_replace('/[^a-z0-9\-]+/i', '-', trim($r['category_name'])));
   }
-  mysqli_free_result($res);
+}
+foreach ($children_flat as $c) {
+  $pid = (int)($c['parent_id'] ?? 0);
+  if (!isset($children[$pid])) $children[$pid] = [];
+  $children[$pid][] = $c;
 }
 
-// build maps
-$parents = [];
-$children = [];
-foreach ($categories as $c) {
-  $pid = $c['parent_id'] === null ? null : (int)$c['parent_id'];
-  if ($pid === null) $parents[] = $c;
-  else $children[$pid][] = $c;
+// logged-in checks
+$isLogged = isset($_SESSION['user_id']) || isset($_SESSION['customer_id']) || !empty($_SESSION['user']);
+
+// cart info
+$cartCount = 0;
+$cartTotal = 0.0;
+$customerId = $_SESSION['customer_id'] ?? $_SESSION['user_id'] ?? null;
+if ($customerId) {
+  $cartItems = getCartItems($customerId);
+  $cartCount = is_array($cartItems) ? count($cartItems) : 0;
+  $cartTotal = getCartTotal($customerId);
 }
 ?>
-<header class="sticky-top bg-white shadow-sm" style="z-index:1100;">
-  <div class="container px-3 px-lg-4">
+<style>
 
-    <!-- Top bar -->
+</style>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex gap-3">
+        <a href="#"><i class="fa-solid fa-phone me-1"></i> +1 234 567 8900</a>
+        <a href="#"><i class="fa-solid fa-envelope me-1"></i> support@pczone.com</a>
+      </div>
+      <div class="d-flex gap-3 align-items-center">
+        <a href="#">Track Order</a>
+        <a href="#">Wishlist</a>
+
+        <?php if ($isLogged): ?>
+          <form action="/logout.php" method="post" style="display:inline;">
+            <button type="submit" class="top-red-btn"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+          </form>
+        <?php else: ?>
+          <a href="./login.php" class="top-red-btn"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
+          <a href="./signup.php" class="top-red-btn" style="background:#28a745;"><i class="fa-solid fa-user-plus me-1"></i> Signup</a>
+        <?php endif; ?>
+
+        <a href="#" class="top-red-btn"><i class="fa-solid fa-tag me-1"></i> Special Offers</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Navbar -->
+<header style="z-index:1100;">
+  <div class="container px-3 px-lg-4">
     <div class="d-flex align-items-center py-3 gap-3">
-      <a class="d-flex align-items-center text-decoration-none" href="/">
-        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px">
-          <i class="fa-solid fa-computer text-white fs-5"></i>
-        </div>
-        <span class="fs-5 fw-bold text-primary ms-2 d-none d-sm-inline">PC Builder Pro</span>
+      <a class="d-flex align-items-center text-decoration-none" href="./index.php">
+        <span class="fs-5 fw-bold text-danger ms-2 d-none d-sm-inline">PC Zone</span>
       </a>
 
-      <!-- Search -->
       <form class="search-form flex-fill mx-sm-3" role="search" action="/search.php" method="get">
         <div class="input-group">
-          <input class="form-control border-primary-subtle" name="q" type="search" placeholder="Search product…" aria-label="Search">
-          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <input class="form-control border-danger" name="q" type="search" placeholder="Search products..." aria-label="Search">
+          <button class="btn btn-danger" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
       </form>
 
-      <!-- Icons -->
       <div class="d-flex align-items-center gap-2">
-        <a href="/account.php" class="btn btn-primary rounded-circle" style="width:40px;height:40px"><i class="fa-solid fa-user text-white"></i></a>
-        <a href="/cart.php" class="btn btn-primary rounded-circle" style="width:40px;height:40px"><i class="fa-solid fa-cart-shopping text-white"></i></a>
-        <span class="fw-semibold d-none d-md-inline">₹10,000</span>
+        <?php if ($isLogged): ?>
+          <a href="/account.php" class="btn btn-outline-danger d-flex align-items-center justify-content-center" style="height:40px;padding:0 12px;">
+            <i class="fa-solid fa-user me-2"></i> Account
+          </a>
+        <?php else: ?>
+          <a href="/login.php" class="btn btn-outline-danger d-flex align-items-center justify-content-center" style="height:40px;padding:0 12px;">
+            <i class="fa-solid fa-right-to-bracket me-2"></i> Login
+          </a>
+        <?php endif; ?>
+
+        <a href="/cart.php" class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center position-relative" style="width:40px;height:40px">
+          <i class="fa-solid fa-cart-shopping text-white"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark"><?php echo (int)$cartCount; ?></span>
+        </a>
+        <span class="fw-semibold d-none d-md-inline"><?php echo formatPrice($cartTotal); ?></span>
       </div>
     </div>
-
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-light border-top p-0">
-      <div class="container-fluid px-0">
-        <!-- toggler opens offcanvas on small screens -->
-        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#navDrawer" aria-controls="navDrawer" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse">
-          <ul class="navbar-nav align-items-center gap-1">
-
-            <!-- Vertical categories dropdown -->
-            <li class="nav-item dropdown dropdown-cats-vertical">
-              <a class="nav-link dropdown-toggle fw-semibold text-primary d-flex align-items-center" href="#" id="catsToggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-bars me-1"></i> All Categories
-              </a>
-
-              <div class="dropdown-menu dropdown-cats-menu shadow border-0 p-0" aria-labelledby="catsToggle">
-                <div class="d-flex">
-                  <!-- parent column -->
-                  <div class="parent-column">
-                    <?php if (!empty($parents)): ?>
-                      <?php foreach ($parents as $cat):
-                        $catId = (int)$cat['category_id'];
-                        $name  = htmlspecialchars($cat['category_name'], ENT_QUOTES, 'UTF-8');
-                        $slug  = rawurlencode($cat['slug']);
-                        $icon  = !empty($cat['icon_image']) ? htmlspecialchars($cat['icon_image'], ENT_QUOTES, 'UTF-8') : 'placeholder-category.png';
-
-                        // Use BASE_URL instead of relative path
-                        $img   = ASSETS_URL . "images/category_icons/{$icon}";
-                        $hasSub = !empty($children[$catId]);
-                      ?>
-
-                        <div class="parent-item d-flex align-items-center" data-cat="<?php echo $catId; ?>">
-                          <a class="parent-link d-flex align-items-center w-100 text-decoration-none" href="/category.php?slug=<?php echo $slug; ?>">
-                            <img src="<?php echo $img; ?>" alt="<?php echo $name; ?>" class="parent-icon">
-                            <span class="parent-title"><?php echo $name; ?></span>
-                          </a>
-                          <?php if ($hasSub): ?>
-                            <span class="chev">›</span>
-                            <div class="submenu">
-                              <?php foreach ($children[$catId] as $s):
-                                $sName = htmlspecialchars($s['category_name'], ENT_QUOTES, 'UTF-8');
-                                $sSlug = rawurlencode($s['slug']);
-                              ?>
-                                <a class="submenu-link d-block" href="/category.php?slug=<?php echo $sSlug; ?>"><?php echo $sName; ?></a>
-                              <?php endforeach; ?>
-                            </div>
-                          <?php endif; ?>
-                        </div>
-                      <?php endforeach; ?>
-                    <?php else: ?>
-                      <div class="parent-item"><a class="parent-link" href="/category.php?slug=processor">Processor</a></div>
-                    <?php endif; ?>
-                  </div>
-                </div>
-              </div>
-            </li>
-
-            <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/custom-pc.php'; ?>">Custom PC</a></li>
-            <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/prebuilt-pc.php'; ?>">Pre-built PC</a></li>
-            <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/contact.php'; ?>">Contact Us</a></li>
-            <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/about.php'; ?>">About Us</a></li>
-          </ul>
-        </div>
-
-        <!-- Offcanvas (mobile) -->
-        <div class="offcanvas offcanvas-start" tabindex="-1" id="navDrawer" aria-labelledby="navDrawerLabel">
-          <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="navDrawerLabel">Menu</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-          </div>
-          <div class="offcanvas-body">
-            <ul class="nav flex-column">
-              <li class="nav-item mb-2">
-                <a class="nav-link fw-semibold" data-bs-toggle="collapse" href="#catCollapse" role="button"><i class="fa-solid fa-bars me-1"></i> All Categories</a>
-                <div class="collapse mt-2" id="catCollapse">
-                  <ul class="list-unstyled ps-3">
-                    <?php if (!empty($parents)): foreach ($parents as $cat): $sub = $children[(int)$cat['category_id']] ?? []; ?>
-                        <li class="mb-1">
-                          <a href="/category.php?slug=<?php echo rawurlencode($cat['slug']); ?>" class="fw-semibold d-block py-1"><?php echo htmlspecialchars($cat['category_name'], ENT_QUOTES, 'UTF-8'); ?></a>
-                          <?php if (!empty($sub)): ?>
-                            <ul class="list-unstyled ps-3">
-                              <?php foreach ($sub as $s): ?>
-                                <li><a class="d-block py-1" href="/category.php?slug=<?php echo rawurlencode($s['slug']); ?>"><?php echo htmlspecialchars($s['category_name'], ENT_QUOTES, 'UTF-8'); ?></a></li>
-                              <?php endforeach; ?>
-                            </ul>
-                          <?php endif; ?>
-                        </li>
-                      <?php endforeach;
-                    else: ?>
-                      <li><a href="/category.php?slug=processor">Processor</a></li>
-                    <?php endif; ?>
-                  </ul>
-                </div>
-              </li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/custom-pc.php'; ?>">Custom PC</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/prebuilt-pc.php'; ?>">Pre-built PC</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/contact.php'; ?>">Contact Us</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="<?php echo BASE_URL . 'pages/about.php'; ?>">About Us</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
   </div>
-
-  <!-- REPLACE dropdown styles -->
-  <style>
-    .dropdown-cats-menu {
-      min-width: 300px;
-      max-width: calc(100vw - 40px);
-      /* never exceed viewport width */
-      border-radius: 8px;
-      overflow: visible;
-    }
-
-    .parent-column {
-      width: min(340px, 36vw);
-      max-height: calc(100vh - 140px);
-      overflow-y: auto;
-      overflow-x: hidden;
-      /* prevent inner horizontal scroll */
-      background: #fff;
-    }
-
-    .parent-item {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    }
-
-    .parent-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #222;
-      text-decoration: none;
-      width: 100%;
-    }
-
-    .parent-icon {
-      width: 36px;
-      height: 36px;
-      object-fit: contain;
-    }
-
-    .parent-title {
-      font-size: 14px;
-    }
-
-    .chev {
-      margin-left: 6px;
-      color: #9aa;
-      font-size: 14px;
-    }
-
-    /* submenu flyout */
-    .submenu {
-      display: none;
-      position: absolute;
-      left: 100%;
-      top: 50%;
-      transform: translateY(-50%);
-      min-width: 220px;
-      max-width: calc(100vw - 380px);
-      /* keep submenu fitting viewport */
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-      padding: 8px 0;
-      z-index: 1320;
-      max-height: calc(100vh - 140px);
-      overflow: auto;
-      white-space: nowrap;
-    }
-
-    .submenu-link {
-      display: block;
-      padding: 10px 14px;
-      color: #333;
-      text-decoration: none;
-    }
-
-    .submenu-link:hover {
-      background: rgba(0, 0, 0, 0.03);
-    }
-
-    /* flipped submenu (opens to the left) */
-    .parent-item.flip .submenu {
-      left: auto;
-      right: 100%;
-      transform: translateY(-50%);
-    }
-
-    @media (min-width:992px) {
-      .parent-item:hover .submenu {
-        display: block;
-      }
-    }
-
-    @media (max-width:991.98px) {
-      .submenu {
-        position: static;
-        transform: none;
-        box-shadow: none;
-        border-radius: 0;
-        padding-left: 12px;
-        display: block;
-      }
-    }
-
-    /* small niceties */
-    .parent-column::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    .parent-column::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.12);
-      border-radius: 6px;
-    }
-  </style>
-
-  <!-- REPLACE hover script with flip logic -->
-  <script>
-    (function() {
-      const mq = () => window.matchMedia('(min-width:992px)').matches;
-      const dropdown = document.querySelector('.dropdown-cats-vertical');
-      if (!dropdown) return;
-
-      // show/close dropdown on hover (existing)
-      function open() {
-        dropdown.querySelector('.dropdown-toggle').classList.add('show');
-        dropdown.querySelector('.dropdown-menu').classList.add('show');
-      }
-
-      function close() {
-        dropdown.querySelector('.dropdown-toggle').classList.remove('show');
-        dropdown.querySelector('.dropdown-menu').classList.remove('show');
-      }
-
-      function bindDropdown() {
-        dropdown.removeEventListener('mouseenter', open);
-        dropdown.removeEventListener('mouseleave', close);
-        if (!mq()) {
-          close();
-          return;
-        }
-        dropdown.addEventListener('mouseenter', open);
-        dropdown.addEventListener('mouseleave', close);
-      }
-
-      // flip submenu if it would overflow viewport
-      function updateFlip(el) {
-        const submenu = el.querySelector('.submenu');
-        if (!submenu) return el.classList.remove('flip');
-        submenu.style.display = 'block'; // temporarily show to measure
-        const rect = submenu.getBoundingClientRect();
-        const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        submenu.style.display = ''; // restore
-        if (rect.right > vw - 8) {
-          el.classList.add('flip');
-        } else {
-          el.classList.remove('flip');
-        }
-      }
-
-      // attach listeners to all parent-items
-      function attachParentHandlers() {
-        const parentItems = dropdown.querySelectorAll('.parent-item');
-        parentItems.forEach(pi => {
-          // update on mouseenter and on focus for accessibility
-          pi.addEventListener('mouseenter', () => updateFlip(pi));
-          pi.addEventListener('focusin', () => updateFlip(pi));
-          // handle window resize
-          window.addEventListener('resize', () => updateFlip(pi));
-        });
-      }
-
-      // init
-      document.addEventListener('DOMContentLoaded', () => {
-        bindDropdown();
-        attachParentHandlers();
-      });
-      window.addEventListener('resize', bindDropdown);
-    })();
-  </script>
-
 </header>
+
+<nav class="navbar navbar-expand-lg navbar-light p-0 site-nav">
+  <div class="container px-3 px-lg-4">
+    <div class="container-fluid px-0">
+      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav align-items-center gap-3">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle fw-semibold text-danger d-flex align-items-center" href="#" id="catsToggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-bars me-1"></i> All Categories
+            </a>
+
+            <ul class="dropdown-menu categories-dropdown" aria-labelledby="catsToggle">
+              <?php if (!empty($parents)): foreach ($parents as $cat):
+                  $catId = (int)$cat['category_id'];
+                  $name  = htmlspecialchars($cat['category_name'], ENT_QUOTES, 'UTF-8');
+                  $slug  = rawurlencode($cat['slug']);
+                  $subs  = $children[$catId] ?? [];
+              ?>
+                  <?php if (empty($subs)): ?>
+                    <li><a class="dropdown-item" href="/product-category.php?slug=<?php echo $slug; ?>"><?php echo $name; ?></a></li>
+                  <?php else: ?>
+                    <li class="dropdown-submenu">
+                      <a class="dropdown-item dropdown-toggle" href="/product-category.php?slug=<?php echo $slug; ?>"><?php echo $name; ?></a>
+                      <ul class="dropdown-menu">
+                        <?php foreach ($subs as $s): ?>
+                          <li><a class="dropdown-item" href="/product-category.php?slug=<?php echo rawurlencode($s['slug']); ?>"><?php echo htmlspecialchars($s['category_name'], ENT_QUOTES, 'UTF-8'); ?></a></li>
+                        <?php endforeach; ?>
+                      </ul>
+                    </li>
+                  <?php endif; ?>
+                <?php endforeach;
+              else: ?>
+                <li><a class="dropdown-item" href="/product-category.php?slug=processor">Processor</a></li>
+              <?php endif; ?>
+            </ul>
+          </li>
+
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/pages/custom-pc.php">Custom PC</a></li>
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/pages/prebuilt-pc.php">Pre-built PC</a></li>
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/pages/contact.php">Contact Us</a></li>
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/pages/about.php">About Us</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+<script>
+  (function() {
+    const isDesktop = () => window.matchMedia('(min-width:992px)').matches;
+    const catsToggle = document.getElementById('catsToggle');
+    const catsMenu = document.querySelector('.dropdown-menu.categories-dropdown[aria-labelledby="catsToggle"]');
+    if (catsToggle && catsMenu) {
+      const show = () => {
+        catsMenu.classList.add('show');
+        catsToggle.setAttribute('aria-expanded', 'true');
+      };
+      const hide = () => {
+        catsMenu.classList.remove('show');
+        catsToggle.setAttribute('aria-expanded', 'false');
+      };
+      catsToggle.addEventListener('mouseenter', () => {
+        if (isDesktop()) show();
+      });
+      catsMenu.addEventListener('mouseenter', () => {
+        if (isDesktop()) show();
+      });
+      catsToggle.addEventListener('mouseleave', () => {
+        if (isDesktop()) hide();
+      });
+      catsMenu.addEventListener('mouseleave', () => {
+        if (isDesktop()) hide();
+      });
+    }
+
+    // submenus
+    document.querySelectorAll('.dropdown-submenu').forEach(item => {
+      const submenu = item.querySelector('> .dropdown-menu');
+      if (!submenu) return;
+      item.addEventListener('mouseenter', () => {
+        if (isDesktop()) submenu.classList.add('show');
+      });
+      item.addEventListener('mouseleave', () => {
+        if (isDesktop()) submenu.classList.remove('show');
+      });
+    });
+
+    // cleanup when switching between mobile/desktop
+    let prev = isDesktop();
+    window.addEventListener('resize', () => {
+      const now = isDesktop();
+      if (now !== prev) {
+        document.querySelectorAll('.dropdown-menu.show').forEach(el => el.classList.remove('show'));
+        if (catsToggle) catsToggle.setAttribute('aria-expanded', 'false');
+        prev = now;
+      }
+    });
+  })();
+</script>
