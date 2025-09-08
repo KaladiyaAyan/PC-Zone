@@ -1,9 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
-  header('Location: ../login.php');
-  exit;
-}
+// if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
+//   header('Location: ../login.php');
+//   exit;
+// }
 require_once '../includes/db_connect.php'; // provides $conn (mysqli)
 
 function h($s)
@@ -77,11 +77,11 @@ $payments_summary = mysqli_fetch_all($res, MYSQLI_ASSOC);
 mysqli_stmt_close($stmt);
 
 // 6) Top customers
-$stmt = mysqli_prepare($conn, "SELECT c.customer_id, CONCAT(c.first_name,' ',c.last_name) AS name, c.email, COUNT(o.order_id) AS orders_count, COALESCE(SUM(o.total_amount),0) AS total_spent
+$stmt = mysqli_prepare($conn, "SELECT u.user_id, CONCAT(u.first_name,' ',u.last_name) AS name, u.email, COUNT(o.order_id) AS orders_count, COALESCE(SUM(o.total_amount),0) AS total_spent
   FROM orders o
-  JOIN customers c ON c.customer_id = o.customer_id
+  JOIN users u ON u.user_id = o.user_id
   WHERE o.order_date BETWEEN ? AND ?
-  GROUP BY c.customer_id
+  GROUP BY u.user_id
   ORDER BY total_spent DESC
   LIMIT 10");
 mysqli_stmt_bind_param($stmt, 'ss', $from_dt, $to_dt);
@@ -105,9 +105,9 @@ mysqli_stmt_close($stmt);
   <meta charset="utf-8">
   <title>Reports • PCZone Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+
+  <?php include './includes/header-link.php'; ?>
+
   <style>
     .report-card {
       border-radius: 6px;
@@ -126,8 +126,8 @@ mysqli_stmt_close($stmt);
 <body>
   <?php
   $current_page = 'reports';
-  include '../includes/header.php';
-  include '../includes/sidebar.php'; ?>
+  include './includes/header.php';
+  include './includes/sidebar.php'; ?>
   <main class="main-content pt-5 mt-4">
     <div class="container mt-2">
 
@@ -309,7 +309,7 @@ mysqli_stmt_close($stmt);
 
     </div>
   </main>
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

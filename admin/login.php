@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('./includes/db_connect.php');
+include('../includes/db_connect.php');
 
 // if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'admin') {
 //   header("Location: pages/dashboard.php");
@@ -27,15 +27,14 @@ include('./includes/db_connect.php');
       <h2>Admin Panel Login</h2>
 
       <form action="../verify.php" method="POST">
-        <form method="POST" action="">
-          <label>Username:</label>
-          <input type="text" name="username" autocomplete="off" required autofocus>
+        <label>Email:</label>
+        <input type="text" name="email" autocomplete="off" required autofocus>
 
-          <label>Password:</label>
-          <input type="password" name="password" autocomplete="off" required>
+        <label>Password:</label>
+        <input type="password" name="password" autocomplete="off" required>
 
-          <button type="submit">Login</button>
-        </form>
+
+        <button type="submit" name="login">Login</button>
         <!-- <div class="text-center text-white">
           <a href="./login.php">I forgot my password</a>
         </div> -->

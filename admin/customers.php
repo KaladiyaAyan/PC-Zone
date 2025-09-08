@@ -1,9 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
-  header('Location: ../login.php');
-  exit;
-}
+// if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
+//   header('Location: ../login.php');
+//   exit;
+// }
 require_once '../includes/db_connect.php'; // provides $conn (mysqli)
 
 /* helper */
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action']) && ctype_d
     $allowed = ['active', 'inactive', 'banned'];
     $new = $_POST['status'];
     if (!in_array($new, $allowed, true)) $new = 'inactive';
-    $stmt = mysqli_prepare($conn, "UPDATE customers SET status = ? WHERE customer_id = ?");
+    $stmt = mysqli_prepare($conn, "UPDATE users SET status = ? WHERE user_id = ?");
     mysqli_stmt_bind_param($stmt, 'si', $new, $id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
@@ -36,11 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action']) && ctype_d
 /* Count total matching customers */
 if ($search !== '') {
   $like = '%' . $search . '%';
-  $cnt_sql = "SELECT COUNT(*) FROM customers WHERE (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)";
+  $cnt_sql = "SELECT COUNT(*) FROM users WHERE (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)";
   $stmt = mysqli_prepare($conn, $cnt_sql);
   mysqli_stmt_bind_param($stmt, 'ssss', $like, $like, $like, $like);
 } else {
-  $cnt_sql = "SELECT COUNT(*) FROM customers";
+  $cnt_sql = "SELECT COUNT(*) FROM users";
   $stmt = mysqli_prepare($conn, $cnt_sql);
 }
 mysqli_stmt_execute($stmt);
@@ -55,21 +55,21 @@ if ($search !== '') {
   $like = '%' . $search . '%';
   $sql = "
     SELECT
-      c.customer_id,
-      c.first_name,
-      c.last_name,
-      c.email,
-      c.phone,
-      c.status,
-      c.created_at,
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      u.email,
+      u.phone,
+      u.status,
+      u.created_at,
       MAX(o.created_at) AS last_order,
       COUNT(o.order_id) AS orders_count,
       COALESCE(SUM(o.total_amount), 0) AS total_purchases
-    FROM customers c
-    LEFT JOIN orders o ON o.customer_id = c.customer_id
-    WHERE (c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)
-    GROUP BY c.customer_id
-    ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, c.created_at DESC
+    FROM users u
+    LEFT JOIN orders o ON o.user_id = u.user_id
+    WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)
+    GROUP BY u.user_id
+    ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, u.created_at DESC
     LIMIT ?, ?
   ";
   $stmt = mysqli_prepare($conn, $sql);
@@ -77,20 +77,20 @@ if ($search !== '') {
 } else {
   $sql = "
     SELECT
-      c.customer_id,
-      c.first_name,
-      c.last_name,
-      c.email,
-      c.phone,
-      c.status,
-      c.created_at,
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      u.email,
+      u.phone,
+      u.status,
+      u.created_at,
       MAX(o.created_at) AS last_order,
       COUNT(o.order_id) AS orders_count,
       COALESCE(SUM(o.total_amount), 0) AS total_purchases
-    FROM customers c
-    LEFT JOIN orders o ON o.customer_id = c.customer_id
-    GROUP BY c.customer_id
-    ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, c.created_at DESC
+    FROM users u
+    LEFT JOIN orders o ON o.user_id = u.user_id
+    GROUP BY u.user_id
+    ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, u.created_at DESC
     LIMIT ?, ?
   ";
   $stmt = mysqli_prepare($conn, $sql);
@@ -107,16 +107,16 @@ $res = mysqli_stmt_get_result($stmt);
   <meta charset="utf-8">
   <title>Customers - PCZone Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+
+  <?php include './includes/header-link.php'; ?>
+
 </head>
 
 <body>
   <?php
   $current_page = 'customers';
-  include '../includes/header.php';
-  include '../includes/sidebar.php';
+  include './includes/header.php';
+  include './includes/sidebar.php';
   ?>
   <div class="main-content pt-5 mt-4">
     <div class="container mt-2">
@@ -163,7 +163,7 @@ $res = mysqli_stmt_get_result($stmt);
                 <td>₹ <?= number_format((float)$r['total_purchases'], 2) ?></td>
                 <td>
                   <form method="post" style="display:inline-block">
-                    <input type="hidden" name="id" value="<?= (int)$r['customer_id'] ?>">
+                    <input type="hidden" name="id" value="<?= (int)$r['user_id'] ?>">
                     <input type="hidden" name="action" value="update_status">
                     <select name="status" class="form-select form-select-sm status-select" onchange="this.form.submit()">
 
@@ -177,7 +177,7 @@ $res = mysqli_stmt_get_result($stmt);
                   </form>
                 </td>
                 <td class="text-end">
-                  <a href="customer_view.php?id=<?= (int)$r['customer_id'] ?>" class="btn btn-edit btn-sm">View</a>
+                  <a href="customer_view.php?id=<?= (int)$r['user_id'] ?>" class="btn btn-edit btn-sm">View</a>
                 </td>
               </tr>
             <?php endwhile;
@@ -206,7 +206,7 @@ $res = mysqli_stmt_get_result($stmt);
     </div>
   </div>
 
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

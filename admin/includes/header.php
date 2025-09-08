@@ -22,7 +22,7 @@ $avatarSrc = '';
 
     <div class="dropdown">
       <button class="user-btn d-flex align-items-center gap-2" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        <img src="../assets/images/admin.jpg" alt="avatar" class="admin-avatar">
+        <img src="./assets/images/admin.jpg" alt="avatar" class="admin-avatar">
         <span class="d-none d-sm-inline"><?= htmlspecialchars($userName) ?></span>
         <i class="fas fa-caret-down ms-1"></i>
       </button>

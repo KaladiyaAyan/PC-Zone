@@ -1,13 +1,13 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-  header("Location: index.php");
-  exit;
-}
+// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+//   header("Location: index.php");
+//   exit;
+// }
 
 include '../includes/db_connect.php';
-include '../includes/functions.php';
+include './includes/functions.php';
 
 ?>
 <!DOCTYPE html>
@@ -18,20 +18,15 @@ include '../includes/functions.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PC-Zone Admin - Brands</title>
 
-  <!-- Bootstrap 5 -->
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <!-- Custom styles -->
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <?php include './includes/header-link.php'; ?>
   <!-- Bootstrap JS -->
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </head>
 
 <body>
-  <?php include '../includes/header.php'; ?>
+  <?php include './includes/header.php'; ?>
   <?php $current_page = 'brands';
-  include '../includes/sidebar.php'; ?>
+  include './includes/sidebar.php'; ?>
 
   <main class="main-content pt-5 mt-2">
     <div class="container my-4">
@@ -45,7 +40,7 @@ include '../includes/functions.php';
       <!-- Brands Table -->
       <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
-          <thead class="table-light">
+          <thead class="text-white">
             <tr>
               <th>#</th>
               <th>Brand Name</th>
@@ -66,7 +61,7 @@ include '../includes/functions.php';
 
             while ($row = mysqli_fetch_assoc($result)) {
             ?>
-              <tr>
+              <tr class="text-white">
                 <td><?= $row['brand_id'] ?></td>
                 <td><?= $row['brand_name'] ? htmlspecialchars($row['brand_name']) : 'N/A' ?></td>
                 <td><?= htmlspecialchars($row['category_name'] ?? 'N/A') ?></td>

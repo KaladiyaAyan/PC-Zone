@@ -2,10 +2,10 @@
 session_start();
 
 // Admin check
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-  header("Location: ../login.php");
-  exit;
-}
+// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+//   header("Location: ../login.php");
+//   exit;
+// }
 
 require_once '../includes/db_connect.php';
 
@@ -32,11 +32,11 @@ $sqlOrder = "
     o.shipped_date,
     o.delivered_date,
 
-    c.customer_id,
-    c.first_name,
-    c.last_name,
-    c.email,
-    c.phone,
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.email,
+    u.phone,
 
     sa.full_name  AS ship_full_name,
     sa.phone      AS ship_phone,
@@ -56,9 +56,9 @@ $sqlOrder = "
     ba.zip        AS bill_zip,
     ba.country    AS bill_country
   FROM orders o
-  JOIN customers c        ON o.customer_id = c.customer_id
-  JOIN addresses sa       ON o.shipping_address_id = sa.address_id
-  LEFT JOIN addresses ba  ON o.billing_address_id = ba.address_id
+  JOIN users u        ON o.user_id = u.user_id
+  JOIN user_address sa       ON o.shipping_address_id = sa.address_id
+  LEFT JOIN user_address ba  ON o.billing_address_id = ba.address_id
   WHERE o.order_id = ?
   LIMIT 1
 ";
@@ -154,15 +154,15 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
   <meta charset="UTF-8" />
   <title>Order #<?= (int)$order['order_id']; ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+
+  <?php include './includes/header-link.php'; ?>
+
 </head>
 
 <body>
-  <?php include '../includes/header.php'; ?>
+  <?php include './includes/header.php'; ?>
   <?php $current_page = 'orders';
-  include '../includes/sidebar.php'; ?>
+  include './includes/sidebar.php'; ?>
 
   <main class="main-content pt-5 mt-4">
     <div class="container mt-2">
@@ -365,7 +365,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
     </div>
   </main>
 
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

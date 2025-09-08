@@ -1,9 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
-  header('Location: ../login.php');
-  exit;
-}
+// if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
+//   header('Location: ../login.php');
+//   exit;
+// }
 require_once '../includes/db_connect.php'; // $conn (mysqli)
 
 function h($s)
@@ -21,9 +21,9 @@ if ($customer_id <= 0) {
 
 // customer
 $stmt = mysqli_prepare($conn, "
-  SELECT customer_id, first_name, last_name, email, phone, date_of_birth, gender, profile_image,
-         newsletter_subscribed, status, created_at, updated_at
-  FROM customers WHERE customer_id = ?
+  SELECT user_id, first_name, last_name, email, phone, date_of_birth, gender, 
+         status, created_at, updated_at
+  FROM users WHERE user_id = ?
 ");
 mysqli_stmt_bind_param($stmt, 'i', $customer_id);
 mysqli_stmt_execute($stmt);
@@ -37,7 +37,7 @@ if (!$customer) {
 }
 
 // totals / counts
-$stmt = mysqli_prepare($conn, "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_amount),0) AS total_purchases FROM orders WHERE customer_id = ?");
+$stmt = mysqli_prepare($conn, "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_amount),0) AS total_purchases FROM orders WHERE user_id = ?");
 mysqli_stmt_bind_param($stmt, 'i', $customer_id);
 mysqli_stmt_execute($stmt);
 $r = mysqli_stmt_get_result($stmt);
@@ -47,7 +47,7 @@ $orders_count = (int)($totals['orders_count'] ?? 0);
 $total_purchases = (float)($totals['total_purchases'] ?? 0.0);
 
 // addresses list
-$stmt = mysqli_prepare($conn, "SELECT address_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default FROM addresses WHERE customer_id = ? ORDER BY is_default DESC, address_id ASC");
+$stmt = mysqli_prepare($conn, "SELECT address_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default FROM user_address WHERE user_id = ? ORDER BY is_default DESC, address_id ASC");
 mysqli_stmt_bind_param($stmt, 'i', $customer_id);
 mysqli_stmt_execute($stmt);
 $addresses_res = mysqli_stmt_get_result($stmt);
@@ -64,9 +64,9 @@ $stmt = mysqli_prepare($conn, "
          s.full_name AS ship_name, s.address_line1 AS ship_line1, s.city AS ship_city, s.state AS ship_state, s.zip AS ship_zip, s.country AS ship_country
   FROM orders o
   LEFT JOIN (SELECT order_id, MAX(payment_status) AS payment_status FROM payments GROUP BY order_id) p ON p.order_id = o.order_id
-  LEFT JOIN addresses b ON b.address_id = o.billing_address_id
-  LEFT JOIN addresses s ON s.address_id = o.shipping_address_id
-  WHERE o.customer_id = ?
+  LEFT JOIN user_address b ON b.address_id = o.billing_address_id
+  LEFT JOIN user_address s ON s.address_id = o.shipping_address_id
+  WHERE o.user_id = ?
   ORDER BY o.order_date DESC
 ");
 mysqli_stmt_bind_param($stmt, 'i', $customer_id);
@@ -88,9 +88,9 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
   <meta charset="utf-8">
   <title>Customer Profile • PCZone Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+
+  <?php include './includes/header-link.php'; ?>
+
   <style>
     /* small page-specific tweaks but still use theme tokens */
     .avatar-lg {
@@ -132,8 +132,8 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
 <body>
   <?php
   $current_page = 'customers';
-  include '../includes/header.php';
-  include '../includes/sidebar.php';
+  include './includes/header.php';
+  include './includes/sidebar.php';
   ?>
   <main class="main-content pt-5 mt-4">
     <div class="container mt-2 customer-profile">
@@ -145,7 +145,7 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
         </div>
         <div class="text-end">
           <a href="customers.php" class="btn btn-sm btn-secondary">Back to list</a>
-          <a href="edit_customer.php?id=<?= (int)$customer['customer_id'] ?>" class="btn btn-add ms-1">Edit</a>
+          <a href="edit_customer.php?id=<?= (int)$customer['user_id'] ?>" class="btn btn-add ms-1">Edit</a>
         </div>
       </div>
 
@@ -167,7 +167,6 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
 
               <div class="d-flex justify-content-center gap-2 mt-2">
                 <span class="stock-badge <?= ($customer['status'] === 'active') ? 'in-stock' : ($customer['status'] === 'inactive' ? 'low-stock' : 'out-of-stock') ?>"><?= h(ucfirst($customer['status'])) ?></span>
-                <span class="badge bg-<?= $customer['newsletter_subscribed'] ? 'success' : 'secondary' ?>"><?= $customer['newsletter_subscribed'] ? 'Newsletter' : 'No Newsletter' ?></span>
               </div>
             </div>
 

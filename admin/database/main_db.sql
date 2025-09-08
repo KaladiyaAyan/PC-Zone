@@ -22,16 +22,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 -- Default admin (password = 'admin123', hashed)
 INSERT INTO users (first_name, last_name, email, password, date_of_birth, gender, phone, email_verified, role) VALUES
-  ('Admin', 'User', 'admin@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Male', '1234567890', 1, 'admin'),
-  ('John', 'Doe', 'jdoe@example.com', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Male', '1234567890', 1, 'user'),
-  ('Jane', 'Smith', 'jane@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Female', '1234567890', 1, 'user'),
-  ('Maya', 'Singh', 'maya@singh', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', '1990-01-01', 'Female', '1234567890', 1, 'user');
-
--- INSERT INTO users (first_name, last_name, email, password, role) VALUES
---   ('Admin', 'User', 'admin@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', 'admin'),
---   ('John', 'Doe', 'jdoe@example.com', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', 'user'),
---   ('Jane', 'Smith', 'jane@pczone', '$2y$10$e0NRPqRWPvYdXQFSEaZdmaeE2VJ7/GRiIixJKM6pXfv2e6zxrio4e', 'user');
-
+  ('Admin', 'User', 'admin@gmail.com', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Male', '1234567890', 1, 'admin'),
+  ('John', 'Doe', 'jdoe@example.com', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Male', '1234567890', 1, 'user'),
+  ('Jane', 'Smith', 'jane@pczone', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Female', '1234567890', 1, 'user'),
+  ('Maya', 'Singh', 'maya@singh', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Female', '1234567890', 1, 'user');
 
 -- 3. CATEGORIES (top-level + subcategories via parent_id)
 CREATE TABLE IF NOT EXISTS categories (

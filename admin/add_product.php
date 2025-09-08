@@ -1,13 +1,8 @@
 <?php
 session_start();
 
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-  header("Location: index.php");
-  exit;
-}
-
-include('../includes/db_connect.php');
+require_once '../includes/functions.php';
+$conn = getConnection();
 
 $errors = [];
 $success = false;
@@ -26,13 +21,14 @@ function createSlug($name, $conn)
   $counter = 1;
 
   while (true) {
-    $checkQuery = "SELECT COUNT(*) as count FROM products WHERE slug = '$slug'";
-    $result = mysqli_query($conn, $checkQuery);
-    $data = mysqli_fetch_assoc($result);
+    $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as count FROM products WHERE slug = ?");
+    mysqli_stmt_bind_param($stmt, "s", $slug);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $data = mysqli_fetch_assoc($res);
+    mysqli_stmt_close($stmt);
 
-    if ($data['count'] == 0) {
-      break;
-    }
+    if (($data['count'] ?? 0) == 0) break;
 
     $slug = $originalSlug . '-' . $counter;
     $counter++;
@@ -44,15 +40,15 @@ function createSlug($name, $conn)
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Get form data
-  $name = trim($_POST['name']);
-  $sku = trim($_POST['sku']);
-  $description = trim($_POST['description']);
-  $price = floatval($_POST['price']);
+  $name = trim($_POST['name'] ?? '');
+  $sku = trim($_POST['sku'] ?? '');
+  $description = trim($_POST['description'] ?? '');
+  $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
   $discount = isset($_POST['discount']) ? floatval($_POST['discount']) : 0.0;
-  $stock = intval($_POST['stock']);
+  $stock = isset($_POST['stock']) ? intval($_POST['stock']) : 0;
   $weight = isset($_POST['weight']) ? floatval($_POST['weight']) : 0;
-  $category_id = intval($_POST['category']);
-  $brand_id = intval($_POST['brand']);
+  $category_id = isset($_POST['category']) ? intval($_POST['category']) : 0;
+  $brand_id = isset($_POST['brand']) ? intval($_POST['brand']) : 0;
   $is_featured = isset($_POST['is_featured']) ? 1 : 0;
   $is_active = isset($_POST['is_active']) ? 1 : 0;
 
@@ -61,133 +57,148 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors[] = "Please fill all required fields with valid values.";
   }
 
-  // Check SKU uniqueness
+  // Check SKU uniqueness (prepared)
   if (!empty($sku)) {
-    $checkQuery = "SELECT COUNT(*) as count FROM products WHERE sku = '$sku'";
-    $result = mysqli_query($conn, $checkQuery);
-    $data = mysqli_fetch_assoc($result);
+    $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as count FROM products WHERE sku = ?");
+    mysqli_stmt_bind_param($stmt, "s", $sku);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $data = mysqli_fetch_assoc($res);
+    mysqli_stmt_close($stmt);
 
-    if ($data['count'] > 0) {
+    if (($data['count'] ?? 0) > 0) {
       $errors[] = "SKU already exists. Please use a unique SKU.";
     }
   }
 
-  // Generate slug if no errors
+  // Process uploaded images first (so we can include filenames in products insert)
+  $uploadDir = __DIR__ . '/../uploads/';
+  if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+  $allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+  // We'll map uploaded file fields to product columns
+  $imageCols = ['main_image' => '', 'image_1' => '', 'image_2' => '', 'image_3' => ''];
+
+  // image1 is main image and required in the form
+  for ($i = 1; $i <= 4; $i++) {
+    $field = 'image' . $i;
+    if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+      $file = $_FILES[$field];
+      $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+      if (in_array($extension, $allowedExt)) {
+        $filename = uniqid('img_', true) . '.' . $extension;
+        $targetPath = $uploadDir . $filename;
+        if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+          if ($i === 1) $imageCols['main_image'] = $filename;
+          elseif ($i === 2) $imageCols['image_1'] = $filename;
+          elseif ($i === 3) $imageCols['image_2'] = $filename;
+          elseif ($i === 4) $imageCols['image_3'] = $filename;
+        } else {
+          $errors[] = "Failed to move uploaded file for $field.";
+        }
+      } else {
+        // ignore unsupported type but if main image missing then error below
+      }
+    }
+  }
+
+  // Ensure main image provided (form had required). If not present from files, error.
+  if (empty($imageCols['main_image'])) {
+    $errors[] = "Main image is required.";
+  }
+
+  // Generate slug if no errors so far
   if (empty($errors)) {
     $slug = createSlug($name, $conn);
   }
 
-  // Process if no errors
+  // Insert product if still no errors
   if (empty($errors)) {
-    // Escape strings for SQL
-    $name = mysqli_real_escape_string($conn, $name);
-    $sku = mysqli_real_escape_string($conn, $sku);
-    $slug = mysqli_real_escape_string($conn, $slug);
-    $description = mysqli_real_escape_string($conn, $description);
+    // Use prepared statement to insert product including image columns
+    $sql = "INSERT INTO products (product_name, sku, slug, description, price, discount, stock, weight, brand_id, category_id, main_image, image_1, image_2, image_3, is_featured, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    // Insert product
-    $insertQuery = "INSERT INTO products (product_name, sku, slug, description, price, discount, stock, weight, brand_id, category_id, is_featured, is_active) 
-                       VALUES ('$name', '$sku', '$slug', '$description', $price, $discount, $stock, $weight, $brand_id, $category_id, $is_featured, $is_active)";
+    $stmt = mysqli_prepare($conn, $sql);
+    if ($stmt === false) {
+      $errors[] = "DB prepare failed: " . mysqli_error($conn);
+    } else {
+      mysqli_stmt_bind_param(
+        $stmt,
+        "ssssddiiiissssii",
+        $name,
+        $sku,
+        $slug,
+        $description,
+        $price,
+        $discount,
+        $stock,
+        $weight,
+        $brand_id,
+        $category_id,
+        $imageCols['main_image'],
+        $imageCols['image_1'],
+        $imageCols['image_2'],
+        $imageCols['image_3'],
+        $is_featured,
+        $is_active
+      );
 
-    // ------------------- REPLACE START -------------------
-    if (mysqli_query($conn, $insertQuery)) {
-      // get inserted product id
-      $product_id = (int) mysqli_insert_id($conn);
-
-      // === Image upload (uses prepared statement) ===
-      $uploadedImages = 0;
-      $uploadDir = '../uploads/';
-      if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-
-      $imgStmt = mysqli_prepare($conn, "INSERT INTO product_images (product_id, image_path, is_main) VALUES (?, ?, ?)");
-      if ($imgStmt === false) {
-        $errors[] = "Failed to prepare image insert statement: " . mysqli_error($conn);
+      $exec = mysqli_stmt_execute($stmt);
+      if (!$exec) {
+        $errors[] = "Failed to add product: " . mysqli_stmt_error($stmt);
       } else {
-        for ($i = 1; $i <= 4; $i++) {
-          $field = 'image' . $i;
-          if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
-            $file = $_FILES[$field];
-            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
-            if (in_array($extension, $allowedTypes)) {
-              $filename = uniqid('img_', true) . '.' . $extension;
-              $targetPath = $uploadDir . $filename;
-              if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-                $isMain = ($uploadedImages === 0) ? 1 : 0;
-                // bind and execute
-                mysqli_stmt_bind_param($imgStmt, 'isi', $product_id, $filename, $isMain);
-                mysqli_stmt_execute($imgStmt);
-                if (mysqli_stmt_errno($imgStmt)) {
-                  $errors[] = "Image insert failed: " . mysqli_stmt_error($imgStmt);
-                } else {
-                  $uploadedImages++;
-                }
-              } else {
-                $errors[] = "Failed to move uploaded file for $field.";
+        $product_id = (int) mysqli_insert_id($conn);
+
+        // Save product specs (delete existing then insert)
+        if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
+          $delStmt = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
+          mysqli_stmt_bind_param($delStmt, 'i', $product_id);
+          mysqli_stmt_execute($delStmt);
+          mysqli_stmt_close($delStmt);
+
+          $insStmt = mysqli_prepare(
+            $conn,
+            "INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES (?, ?, ?, ?, ?)"
+          );
+
+          foreach ($_POST['spec_group_name'] as $gIdx => $groupRaw) {
+            $groupName = trim($groupRaw) ?: 'General';
+            $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName);
+
+            $names  = $_POST['spec_name_' . $safeKey]  ?? [];
+            $values = $_POST['spec_value_' . $safeKey] ?? [];
+            $orders = $_POST['spec_order_' . $safeKey] ?? [];
+
+            $rows = max(count($names), count($values));
+            for ($j = 0; $j < $rows; $j++) {
+              $sname  = trim($names[$j]  ?? '');
+              $svalue = trim($values[$j] ?? '');
+              if ($sname === '' && $svalue === '') continue;
+              $sorder = isset($orders[$j]) ? intval($orders[$j]) : ($j * 10);
+              mysqli_stmt_bind_param($insStmt, 'isssi', $product_id, $sname, $svalue, $groupName, $sorder);
+              mysqli_stmt_execute($insStmt);
+              if (mysqli_stmt_errno($insStmt)) {
+                $errors[] = "Spec insert failed: " . mysqli_stmt_error($insStmt);
               }
-            } // else ignore unsupported type
-          }
-        }
-        mysqli_stmt_close($imgStmt);
-      }
-
-      // === Save product specs (delete existing then insert) ===
-      if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
-        $delStmt = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
-        mysqli_stmt_bind_param($delStmt, 'i', $product_id);
-        mysqli_stmt_execute($delStmt);
-        mysqli_stmt_close($delStmt);
-
-        $insStmt = mysqli_prepare(
-          $conn,
-          "INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES (?, ?, ?, ?, ?)"
-        );
-        foreach ($_POST['spec_group_name'] as $gIdx => $groupRaw) {
-          $groupName = trim($groupRaw) ?: 'General';
-          $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName);
-
-          $names  = $_POST['spec_name_' . $safeKey]  ?? [];
-          $values = $_POST['spec_value_' . $safeKey] ?? [];
-          $orders = $_POST['spec_order_' . $safeKey] ?? [];
-
-          $rows = max(count($names), count($values));
-          for ($j = 0; $j < $rows; $j++) {
-            $sname  = trim($names[$j]  ?? '');
-            $svalue = trim($values[$j] ?? '');
-            if ($sname === '' && $svalue === '') continue;
-            $sorder = isset($orders[$j]) ? intval($orders[$j]) : ($j * 10);
-            mysqli_stmt_bind_param($insStmt, 'isssi', $product_id, $sname, $svalue, $groupName, $sorder);
-            mysqli_stmt_execute($insStmt);
-            if (mysqli_stmt_errno($insStmt)) {
-              $errors[] = "Spec insert failed: " . mysqli_stmt_error($insStmt);
             }
           }
+          if ($insStmt) mysqli_stmt_close($insStmt);
         }
-        if ($insStmt) mysqli_stmt_close($insStmt);
-      }
 
-      // === Redirect / finish ===
-      if (empty($errors)) {
-        // success even if no images; preserve admin experience
-        header("Location: products.php?insert=success");
-        exit;
-      } else {
-        // show errors on the page (do not redirect)
-        // no exit here so errors bubble up to the alert block
+        // If no errors now, redirect to products page
+        if (empty($errors)) {
+          header("Location: products.php?insert=success");
+          exit;
+        }
       }
-    } else {
-      $errors[] = "Failed to add product: " . mysqli_error($conn);
+      mysqli_stmt_close($stmt);
     }
-    // ------------------- REPLACE END -------------------
-
-
   }
 }
 
 // Get categories and brands for dropdowns
-$categoriesQuery = "SELECT category_id, category_name FROM categories WHERE parent_id IS NULL ORDER BY category_name ASC";
-$categoriesResult = mysqli_query($conn, $categoriesQuery);
-
+$categories = getRootCategories();
 $brandsQuery = "SELECT brand_id, brand_name, category_id FROM brands ORDER BY brand_name ASC";
 $brandsResult = mysqli_query($conn, $brandsQuery);
 ?>
@@ -198,16 +209,15 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
 <head>
   <meta charset="UTF-8">
   <title>Add Product - PC ZONE Admin</title>
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+
+  <?php require './includes/header-link.php'; ?>
 
 </head>
 
 <body>
-  <?php include '../includes/header.php'; ?>
+  <?php include './includes/header.php'; ?>
   <?php $current_page = 'products';
-  include '../includes/sidebar.php'; ?>
+  include './includes/sidebar.php'; ?>
 
   <main class="main-content my-4">
     <div class="container-fluid">
@@ -279,12 +289,12 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   <label class="form-label">Category <span class="required">*</span></label>
                   <select name="category" class="form-select" id="categorySelect" required>
                     <option value="">-- Select Category --</option>
-                    <?php while ($category = mysqli_fetch_assoc($categoriesResult)): ?>
+                    <?php foreach ($categories as $category): ?>
                       <option value="<?= $category['category_id'] ?>"
-                        <?= (isset($_POST['category']) && $_POST['category'] == $category['id']) ? 'selected' : '' ?>>
+                        <?= (isset($_POST['category']) && $_POST['category'] == $category['category_id']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($category['category_name']) ?>
                       </option>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                   </select>
                 </div>
 
@@ -329,7 +339,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   </div>
                 </div>
 
-                <!-- Product Specifications (paste here, after Status Options and before Product Images) -->
+                <!-- Product Specifications -->
                 <div class="col-12">
                   <h5 class="mt-4 mb-3">Product Specifications</h5>
 
@@ -361,8 +371,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                     <small class="text-muted d-block mt-2">Create groups like "Processor", "Performance" and add related specs.</small>
                   </div>
                 </div>
-                <!-- End Product Specifications -->
-
 
                 <!-- Product Images -->
                 <div class="col-12">
@@ -423,7 +431,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       const cancelBtn = document.querySelector('a[href="products.php"]');
       const addBtn = form.querySelector('button[type="submit"]');
 
-      // helpers
       function safeKey(name) {
         return String(name || 'Group').replace(/[^a-zA-Z0-9]/g, '_');
       }
@@ -432,7 +439,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         return String(s || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
       }
 
-      // create spec row element
       function createRowEl(safe, name = '', value = '', order = 10) {
         const div = document.createElement('div');
         div.className = 'input-group mb-2 spec-row';
@@ -445,7 +451,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         return div;
       }
 
-      // build entire group node
       function buildGroupNode(groupObj) {
         const group = (groupObj && groupObj.group) ? groupObj.group : 'General';
         const safe = safeKey(group);
@@ -467,7 +472,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         }];
         rows.forEach(r => rowsContainer.appendChild(createRowEl(safe, r.name, r.value, r.order)));
 
-        // keep input names in sync when group name changes
         wrapper.querySelector('.spec-group-name').addEventListener('input', function() {
           const newSafe = safeKey(this.value || 'General');
           wrapper.querySelectorAll('.spec-row').forEach(row => {
@@ -484,14 +488,12 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         return wrapper;
       }
 
-      // collect form + specs into an object
       function getDraft() {
         const data = {
           fields: {},
           specs: []
         };
 
-        // simple fields to save (exclude file inputs)
         ['name', 'sku', 'description', 'price', 'discount', 'stock', 'category', 'brand', 'weight'].forEach(k => {
           const el = form.querySelector('[name="' + k + '"]');
           if (!el) return;
@@ -501,7 +503,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         data.fields.is_featured = !!form.querySelector('[name="is_featured"]')?.checked;
         data.fields.is_active = !!form.querySelector('[name="is_active"]')?.checked;
 
-        // specs
         specContainer.querySelectorAll('.spec-group').forEach(g => {
           const gname = g.querySelector('.spec-group-name')?.value || 'General';
           const rowsArr = [];
@@ -525,7 +526,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         return data;
       }
 
-      // save to localStorage
       function saveDraft() {
         try {
           localStorage.setItem(KEY, JSON.stringify(getDraft()));
@@ -534,7 +534,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         }
       }
 
-      // restore from localStorage
       function restoreDraft() {
         const raw = localStorage.getItem(KEY);
         if (!raw) return;
@@ -549,7 +548,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
             });
           }
           if (Array.isArray(data.specs) && data.specs.length) {
-            specContainer.innerHTML = ''; // remove default
+            specContainer.innerHTML = '';
             data.specs.forEach(g => specContainer.appendChild(buildGroupNode(g)));
           }
         } catch (e) {
@@ -561,7 +560,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         localStorage.removeItem(KEY);
       }
 
-      // delegated handlers for add/remove group/row
       specContainer.addEventListener('click', function(e) {
         if (e.target.matches('.remove-group-btn')) {
           const g = e.target.closest('.spec-group');
@@ -588,11 +586,9 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         }
       });
 
-      // save when form inputs change (simple)
       form.addEventListener('input', saveDraft);
       form.addEventListener('change', saveDraft);
 
-      // add new group
       addGroupBtn?.addEventListener('click', function() {
         specContainer.appendChild(buildGroupNode({
           group: 'New Group',
@@ -601,16 +597,12 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
         saveDraft();
       });
 
-      // clear storage on submit or cancel
       addBtn?.addEventListener('click', clearDraft);
       cancelBtn?.addEventListener('click', clearDraft);
 
-      // initial restore
       restoreDraft();
     });
   </script>
-
-
 
   <script>
     // Image preview function
@@ -635,10 +627,8 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       const brandSelect = document.getElementById('brandSelect');
       const brandOptions = brandSelect.options;
 
-      // Reset brand selection
       brandSelect.value = '';
 
-      // Show/hide brand options based on category
       for (let i = 0; i < brandOptions.length; i++) {
         const option = brandOptions[i];
 
@@ -656,15 +646,10 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       }
     }
 
-    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-      // Set up category change listener
       document.getElementById('categorySelect').addEventListener('change', filterBrands);
-
-      // Initial filter
       filterBrands();
 
-      // Sidebar functionality
       const hamburger = document.getElementById("hamburger");
       const sidebar = document.getElementById("sidebar");
 
@@ -682,7 +667,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
     });
   </script>
 
-  <script src="../assets/vendor/jquery/jquery-3.7.1.min.js"></script>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 

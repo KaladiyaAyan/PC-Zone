@@ -53,7 +53,8 @@ if (isset($_POST['signup'])) {
     $db_password = $row['password'];
     $password_chack = password_verify($password, $db_password);
     if ($password_chack == 1) {
-      if ($row['status'] == 1) {
+      if ($row['role'] == 'admin') {
+        $_SESSION['user_role'] = 'admin';
         $_SESSION['admin'] = [
           "id" => $row['user_id'],
           "username" => $row['username'],
@@ -76,7 +77,7 @@ if (isset($_POST['signup'])) {
     }
   } else {
     message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect Email Address');
-    header('Location: login.php');
+    header('Location: login1.php');
   }
 } else if (isset($_POST['user-account'])) {
 

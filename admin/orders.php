@@ -2,10 +2,10 @@
 session_start();
 
 // Admin check
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-  header("Location: ../login.php");
-  exit;
-}
+// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+//   header("Location: ../login.php");
+//   exit;
+// }
 
 include('../includes/db_connect.php');
 
@@ -16,13 +16,13 @@ $sql = "
         o.order_date,
         o.total_amount,
         o.order_status,
-        c.customer_id,
-        c.first_name,
-        c.last_name,
-        c.email,
-        c.phone
+        u.user_id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone
     FROM orders o
-    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN users u ON o.user_id = u.user_id
     ORDER BY o.order_date DESC
 ";
 
@@ -37,14 +37,9 @@ $result = mysqli_query($conn, $sql);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PC-Zone Admin - Brands</title>
 
-  <!-- Bootstrap 5 -->
-  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-  <!-- Custom styles -->
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <?php include './includes/header-link.php'; ?>
   <!-- Bootstrap JS -->
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <style>
     /* .container-fluid {
       padding: 20px;
@@ -80,9 +75,9 @@ $result = mysqli_query($conn, $sql);
 </head>
 
 <body>
-  <?php include '../includes/header.php'; ?>
+  <?php include './includes/header.php'; ?>
   <?php $current_page = 'orders';
-  include '../includes/sidebar.php'; ?>
+  include './includes/sidebar.php'; ?>
 
   <div class="main-content pt-5 mt-4">
 
