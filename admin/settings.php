@@ -1,19 +1,13 @@
 <?php
+include '../includes/db_connect.php';
+include './includes/functions.php';
+
 session_start();
-if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
-  header('Location: ../login.php');
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ./login1.php');
   exit;
 }
-require_once '../includes/db_connect.php'; // $conn (mysqli)
 
-// NOTE: run once to create settings table
-/*
-CREATE TABLE IF NOT EXISTS settings (
-  `meta_key` VARCHAR(191) PRIMARY KEY,
-  `meta_value` TEXT,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-*/
 
 function h($s)
 {

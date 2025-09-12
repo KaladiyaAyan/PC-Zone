@@ -1,3 +1,4 @@
+<!-- signup.php -->
 <?php
 session_start();
 ?>
@@ -5,9 +6,9 @@ session_start();
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PC ZONE — Signup</title>
 
   <!-- Remix Icon CDN -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
@@ -22,31 +23,36 @@ session_start();
   <div class="signup-container">
     <h2>Create Account</h2>
 
-    <form action="verify.php" method="POST">
+    <?php if (file_exists(__DIR__ . '/functions/message.php')) include_once __DIR__ . '/functions/message.php'; ?>
+
+    <form action="verify.php" method="POST" autocomplete="off" novalidate>
       <div class="input-group">
         <label for="username"><i class="ri-user-line"></i> Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter Your Username" required>
+        <input type="text" id="username" name="username" placeholder="Choose a username" required>
       </div>
 
       <div class="input-group">
         <label for="email"><i class="ri-mail-line"></i> Email</label>
-        <input type="email" id="email" name="email" placeholder="Enter Email Address" required>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
       </div>
 
       <div class="input-group">
         <label for="password"><i class="ri-lock-line"></i> Password</label>
         <div class="password-field">
-          <input type="password" id="password" name="password" placeholder="Enter Your Password" required>
+          <input type="password" id="password" name="password" placeholder="Enter password" required>
           <div class="show-hide-password"><i class="ri-eye-line"></i></div>
         </div>
       </div>
 
       <div class="input-group">
-        <label for="cpassword"><i class="ri-lock-line"></i> Confirm Password</label>
-        <input type="password" id="cpassword" name="cpassword" placeholder="Confirm Your Password" required>
+        <label for="cpassword"><i class="ri-lock-2-line"></i> Confirm Password</label>
+        <div class="password-field">
+          <input type="password" id="cpassword" name="cpassword" placeholder="Confirm password" required>
+          <div class="show-hide-cpassword"><i class="ri-eye-line"></i></div>
+        </div>
       </div>
 
-      <button type="submit" name="signup">Sign Up</button>
+      <button type="submit" name="signup">Signup</button>
     </form>
 
     <div class="have-account">
@@ -55,19 +61,39 @@ session_start();
   </div>
 
   <script>
-    const passwordInput = document.getElementById('password');
-    const showHidePassword = document.querySelector('.show-hide-password');
-
-    showHidePassword.addEventListener('click', () => {
-      const icon = showHidePassword.querySelector('i');
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
-      } else {
-        passwordInput.type = 'password';
-        icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
+    (function() {
+      // toggle main password
+      const pw = document.getElementById('password');
+      const togglePw = document.querySelector('.show-hide-password');
+      if (togglePw && pw) {
+        togglePw.addEventListener('click', () => {
+          const icon = togglePw.querySelector('i');
+          if (pw.type === 'password') {
+            pw.type = 'text';
+            icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
+          } else {
+            pw.type = 'password';
+            icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
+          }
+        });
       }
-    });
+
+      // toggle confirm password
+      const cpw = document.getElementById('cpassword');
+      const toggleCpw = document.querySelector('.show-hide-cpassword');
+      if (toggleCpw && cpw) {
+        toggleCpw.addEventListener('click', () => {
+          const icon = toggleCpw.querySelector('i');
+          if (cpw.type === 'password') {
+            cpw.type = 'text';
+            icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
+          } else {
+            cpw.type = 'password';
+            icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
+          }
+        });
+      }
+    })();
   </script>
 </body>
 

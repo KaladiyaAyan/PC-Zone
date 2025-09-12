@@ -29,7 +29,7 @@ function active($name)
       <span class="label">Dashboard</span>
     </a>
 
-    <a href="./products.php" class="<?= active('products') ?>">
+    <a href="./product.php" class="<?= active('product') ?>">
       <span class="icon"><i class="fas fa-boxes"></i></span>
       <span class="label">Products</span>
     </a>

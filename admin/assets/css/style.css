@@ -678,7 +678,7 @@ body {
   margin-bottom: 4px;
   font-size: 12px;
 }
-.login-container input[type="text"],
+.login-container input[type="email"],
 .login-container input[type="password"] {
   padding: 8px 12px;
   border: 1px solid var(--border-color);
@@ -688,7 +688,7 @@ body {
   color: var(--text-color);
   transition: border-color 0.18s;
 }
-.login-container input[type="text"]:focus,
+.login-container input[type="email"]:focus,
 .login-container input[type="password"]:focus {
   outline: none;
   border-color: var(--primary);
@@ -807,7 +807,7 @@ body {
 }
 .main-image-badge {
   position: absolute;
-  bottom: 6px;
+  /* bottom: 6px; */
   left: 6px;
   background: #28a745;
   color: #fff;

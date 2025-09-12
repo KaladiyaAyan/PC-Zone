@@ -4,56 +4,45 @@ session_start();
 require_once '../includes/functions.php';
 $conn = getConnection();
 
-$errors = [];
-$success = false;
-
-// Handle AJAX image delete (posts to same page)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_image') {
-  // expected: product_id, col (one of main_image,image_1,image_2,image_3)
-  $pid = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-  $col = $_POST['col'] ?? '';
-  $allowed = ['main_image', 'image_1', 'image_2', 'image_3'];
-  header('Content-Type: application/json');
-  if ($pid <= 0 || !in_array($col, $allowed)) {
-    echo json_encode(['success' => false, 'message' => 'Invalid request']);
-    exit;
-  }
-
-  // fetch current filename
-  $stmt = mysqli_prepare($conn, "SELECT $col FROM products WHERE product_id = ? LIMIT 1");
-  mysqli_stmt_bind_param($stmt, 'i', $pid);
-  mysqli_stmt_execute($stmt);
-  $res = mysqli_stmt_get_result($stmt);
-  $row = mysqli_fetch_assoc($res);
-  mysqli_stmt_close($stmt);
-
-  $filename = $row[$col] ?? '';
-  if ($filename) {
-    // try remove file from uploads and assets
-    $uploads = __DIR__ . '/../uploads/' . $filename;
-    $assets  = __DIR__ . '/../assets/images/' . $filename;
-    if (file_exists($uploads)) @unlink($uploads);
-    if (file_exists($assets)) @unlink($assets);
-  }
-
-  // update DB to empty string (schema main_image is NOT NULL, so use '')
-  $uStmt = mysqli_prepare($conn, "UPDATE products SET $col = ? WHERE product_id = ?");
-  $empty = '';
-  mysqli_stmt_bind_param($uStmt, 'si', $empty, $pid);
-  $ok = mysqli_stmt_execute($uStmt);
-  mysqli_stmt_close($uStmt);
-
-  if ($ok) echo json_encode(['success' => true]);
-  else echo json_encode(['success' => false, 'message' => mysqli_error($conn)]);
-  exit;
-}
-
 // Validate product_id in GET
 if (!isset($_GET['product_id']) || !is_numeric($_GET['product_id'])) {
-  header("Location: products.php");
+  header("Location: product.php");
   exit;
 }
 $product_id = intval($_GET['product_id']);
+
+// Handle image deletion
+if (isset($_GET['delete_image'])) {
+  $col = $_GET['delete_image'];
+  $allowed = ['main_image', 'image_1', 'image_2', 'image_3'];
+
+  if (in_array($col, $allowed)) {
+    // Fetch current filename
+    $stmt = mysqli_prepare($conn, "SELECT $col FROM products WHERE product_id = ? LIMIT 1");
+    mysqli_stmt_bind_param($stmt, 'i', $product_id);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($res);
+    mysqli_stmt_close($stmt);
+
+    $filename = $row[$col] ?? '';
+    if ($filename) {
+      // Remove file from uploads
+      $uploads = '../uploads/' . $filename;
+      if (file_exists($uploads)) @unlink($uploads);
+    }
+
+    // Update DB to empty string
+    $uStmt = mysqli_prepare($conn, "UPDATE products SET $col = '' WHERE product_id = ?");
+    mysqli_stmt_bind_param($uStmt, 'i', $product_id);
+    mysqli_stmt_execute($uStmt);
+    mysqli_stmt_close($uStmt);
+
+    // Redirect to refresh page
+    header("Location: edit_product.php?product_id=$product_id");
+    exit;
+  }
+}
 
 // Fetch product
 $stmt = mysqli_prepare($conn, "
@@ -68,13 +57,13 @@ mysqli_stmt_execute($stmt);
 $res = mysqli_stmt_get_result($stmt);
 if (!$res || mysqli_num_rows($res) === 0) {
   mysqli_stmt_close($stmt);
-  header("Location: products.php");
+  header("Location: product.php");
   exit;
 }
 $product = mysqli_fetch_assoc($res);
 mysqli_stmt_close($stmt);
 
-// Build existing images array from product columns (preserve ordering)
+// Build existing images array from product columns
 $existingImages = [];
 foreach (['main_image', 'image_1', 'image_2', 'image_3'] as $col) {
   if (!empty($product[$col])) {
@@ -102,190 +91,6 @@ while ($s = mysqli_fetch_assoc($sres)) {
 }
 mysqli_stmt_close($sStmt);
 
-// Handle main form submit (update)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
-  // Get form data
-  $name = trim($_POST['name'] ?? '');
-  $sku = trim($_POST['sku'] ?? '');
-  $description = trim($_POST['description'] ?? '');
-  $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
-  $discount = isset($_POST['discount']) ? floatval($_POST['discount']) : 0.0;
-  $stock = isset($_POST['stock']) ? intval($_POST['stock']) : 0;
-  $weight = isset($_POST['weight']) ? floatval($_POST['weight']) : 0;
-  $category_id = isset($_POST['category']) ? intval($_POST['category']) : 0;
-  $brand_id = isset($_POST['brand']) ? intval($_POST['brand']) : 0;
-  $is_featured = isset($_POST['is_featured']) ? 1 : 0;
-  $is_active = isset($_POST['is_active']) ? 1 : 0;
-
-  // Validation
-  if (empty($name) || empty($sku) || empty($description) || $price <= 0 || $stock < 0 || $category_id <= 0 || $brand_id <= 0) {
-    $errors[] = "Please fill all required fields with valid values.";
-  }
-
-  // SKU uniqueness excluding current
-  if (!empty($sku)) {
-    $sStmt = mysqli_prepare($conn, "SELECT COUNT(*) as count FROM products WHERE sku = ? AND product_id != ?");
-    mysqli_stmt_bind_param($sStmt, 'si', $sku, $product_id);
-    mysqli_stmt_execute($sStmt);
-    $sres = mysqli_stmt_get_result($sStmt);
-    $srow = mysqli_fetch_assoc($sres);
-    mysqli_stmt_close($sStmt);
-    if (($srow['count'] ?? 0) > 0) $errors[] = "SKU already exists. Please use a unique SKU.";
-  }
-
-  // Validate brand belongs to category
-  if ($category_id > 0 && $brand_id > 0) {
-    $bStmt = mysqli_prepare($conn, "SELECT COUNT(*) as count FROM brands WHERE brand_id = ? AND category_id = ?");
-    mysqli_stmt_bind_param($bStmt, 'ii', $brand_id, $category_id);
-    mysqli_stmt_execute($bStmt);
-    $bres = mysqli_stmt_get_result($bStmt);
-    $brow = mysqli_fetch_assoc($bres);
-    mysqli_stmt_close($bStmt);
-    if (($brow['count'] ?? 0) == 0) $errors[] = "Selected brand does not belong to the selected category.";
-  }
-
-  // Process images first (uploads)
-  $uploadDir = __DIR__ . '/../uploads/';
-  if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-  $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-
-  // Map input fields to product columns
-  $uploadCols = [
-    'image1' => 'main_image',
-    'image2' => 'image_1',
-    'image3' => 'image_2',
-    'image4' => 'image_3'
-  ];
-  $newFiles = []; // column => filename
-
-  foreach ($uploadCols as $field => $col) {
-    if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
-      $file = $_FILES[$field];
-      $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-      if (in_array($ext, $allowedTypes)) {
-        $filename = uniqid('img_', true) . '.' . $ext;
-        $target = $uploadDir . $filename;
-        if (move_uploaded_file($file['tmp_name'], $target)) {
-          $newFiles[$col] = $filename;
-        } else {
-          $errors[] = "Failed to move uploaded file for {$field}.";
-        }
-      } // unsupported types ignored
-    }
-  }
-
-  // If no errors, update DB
-  if (empty($errors)) {
-    // Escape text fields
-    $name_e = mysqli_real_escape_string($conn, $name);
-    $sku_e = mysqli_real_escape_string($conn, $sku);
-    $desc_e = mysqli_real_escape_string($conn, $description);
-
-    // Build update statement (include image columns if new files uploaded)
-    $setParts = [];
-    $params = [];
-    $types = '';
-
-    $setParts[] = "product_name = ?";
-    $types .= 's';
-    $params[] = &$name_e;
-    $setParts[] = "sku = ?";
-    $types .= 's';
-    $params[] = &$sku_e;
-    $setParts[] = "description = ?";
-    $types .= 's';
-    $params[] = &$desc_e;
-    $setParts[] = "price = ?";
-    $types .= 'd';
-    $params[] = &$price;
-    $setParts[] = "discount = ?";
-    $types .= 'd';
-    $params[] = &$discount;
-    $setParts[] = "stock = ?";
-    $types .= 'i';
-    $params[] = &$stock;
-    $setParts[] = "weight = ?";
-    $types .= 'd';
-    $params[] = &$weight;
-    $setParts[] = "brand_id = ?";
-    $types .= 'i';
-    $params[] = &$brand_id;
-    $setParts[] = "category_id = ?";
-    $types .= 'i';
-    $params[] = &$category_id;
-    $setParts[] = "is_featured = ?";
-    $types .= 'i';
-    $params[] = &$is_featured;
-    $setParts[] = "is_active = ?";
-    $types .= 'i';
-    $params[] = &$is_active;
-
-    // images
-    foreach ($newFiles as $col => $filename) {
-      $setParts[] = "$col = ?";
-      $types .= 's';
-      $params[] = &$filename;
-    }
-
-    $setParts[] = "updated_at = CURRENT_TIMESTAMP";
-
-    $sql = "UPDATE products SET " . implode(', ', $setParts) . " WHERE product_id = ?";
-    $types .= 'i';
-    $params[] = &$product_id;
-
-    $stmt = mysqli_prepare($conn, $sql);
-    if ($stmt === false) {
-      $errors[] = "DB prepare failed: " . mysqli_error($conn);
-    } else {
-      // bind dynamically
-      mysqli_stmt_bind_param($stmt, $types, ...$params);
-      $ok = mysqli_stmt_execute($stmt);
-      if (!$ok) {
-        $errors[] = "Failed to update product: " . mysqli_stmt_error($stmt);
-      } else {
-        // Update local $product to reflect filenames (useful if we fall through to display page)
-        foreach ($newFiles as $col => $filename) {
-          $product[$col] = $filename;
-        }
-
-        // Save product specs: delete existing then insert new
-        if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
-          $delStmt = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
-          mysqli_stmt_bind_param($delStmt, 'i', $product_id);
-          mysqli_stmt_execute($delStmt);
-          mysqli_stmt_close($delStmt);
-
-          $insStmt = mysqli_prepare($conn, "INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES (?, ?, ?, ?, ?)");
-          foreach ($_POST['spec_group_name'] as $gIdx => $groupRaw) {
-            $groupName = trim($groupRaw) ?: 'General';
-            $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName);
-
-            $names  = $_POST['spec_name_' . $safeKey]  ?? [];
-            $values = $_POST['spec_value_' . $safeKey] ?? [];
-            $orders = $_POST['spec_order_' . $safeKey] ?? [];
-
-            $rows = max(count($names), count($values));
-            for ($j = 0; $j < $rows; $j++) {
-              $sname  = trim($names[$j]  ?? '');
-              $svalue = trim($values[$j] ?? '');
-              if ($sname === '' && $svalue === '') continue;
-              $sorder = isset($orders[$j]) ? intval($orders[$j]) : ($j * 10);
-              mysqli_stmt_bind_param($insStmt, 'isssi', $product_id, $sname, $svalue, $groupName, $sorder);
-              mysqli_stmt_execute($insStmt);
-            }
-          }
-          if ($insStmt) mysqli_stmt_close($insStmt);
-        }
-
-        // Redirect on success
-        header("Location: products.php?update=success");
-        exit;
-      }
-      mysqli_stmt_close($stmt);
-    }
-  }
-}
-
 // categories & brands for dropdowns
 $categories = getRootCategories();
 $brandsQuery = "SELECT brand_id, brand_name, category_id FROM brands ORDER BY brand_name ASC";
@@ -305,7 +110,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
 
 <body>
   <?php include './includes/header.php'; ?>
-  <?php $current_page = 'products';
+  <?php $current_page = 'product';
   include './includes/sidebar.php'; ?>
 
   <main class="main-content my-4">
@@ -315,7 +120,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
           <div class="form-container">
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h1>Edit Product</h1>
-              <a href="products.php" class="btn btn-secondary">
+              <a href="product.php" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Products
               </a>
             </div>
@@ -329,15 +134,11 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
               </div>
             </div>
 
-            <?php if (!empty($errors)): ?>
-              <div class="alert alert-danger">
-                <ul class="mb-0"><?php foreach ($errors as $e) echo '<li>' . htmlspecialchars($e) . '</li>'; ?></ul>
-              </div>
-            <?php endif; ?>
+            <form action="edit.php" method="POST" enctype="multipart/form-data">
+              <input type="hidden" name="product_id" value="<?= $product_id ?>">
+              <input type="hidden" name="edit-product" value="1">
 
-            <form action="" method="POST" enctype="multipart/form-data">
               <div class="row g-3">
-                <!-- fields (unchanged markup) -->
                 <div class="col-md-6">
                   <label class="form-label">Product Name <span class="required">*</span></label>
                   <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($product['product_name']) ?>" required>
@@ -406,7 +207,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                   </div>
                 </div>
 
-                <!-- Specifications (unchanged markup, using $specGroups) -->
+                <!-- Specifications -->
                 <div class="col-12">
                   <h5 class="mt-4 mb-3">Product Specifications</h5>
                   <div id="specGroupsContainer">
@@ -464,7 +265,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                   </div>
                 </div>
 
-                <!-- Existing images (from product columns) -->
+                <!-- Existing images -->
                 <?php if (!empty($existingImages)): ?>
                   <div class="col-12">
                     <h5 class="mt-3 mb-2">Existing Images</h5>
@@ -476,7 +277,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                         <div class="image-container position-relative" style="width:140px;">
                           <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>" style="max-width:100%;border:1px solid #ddd;border-radius:6px;">
                           <?php if ($img['is_main']): ?><span class="main-image-badge badge bg-danger position-absolute top-0 start-0">Main</span><?php endif; ?>
-                          <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0" onclick="deleteImage('<?= $img['col'] ?>')" title="Delete Image">×</button>
+                          <a href="edit_product.php?product_id=<?= $product_id ?>&delete_image=<?= $img['col'] ?>" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0" title="Delete Image" onclick="return confirm('Are you sure you want to delete this image?')">×</a>
                         </div>
                       <?php endforeach; ?>
                     </div>
@@ -510,7 +311,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                 <div class="col-12 mt-4">
                   <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Update Product</button>
-                    <a href="products.php" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+                    <a href="product.php" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
                   </div>
                 </div>
 
@@ -523,33 +324,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
   </main>
 
   <script>
-    // Delete image (posts action to same page)
-    function deleteImage(col) {
-      if (!confirm('Are you sure you want to delete this image?')) return;
-      const data = new URLSearchParams();
-      data.append('action', 'delete_image');
-      data.append('product_id', <?= $product_id ?>);
-      data.append('col', col);
-
-      fetch('', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: data.toString()
-        })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) location.reload();
-          else alert('Failed to delete image: ' + (json.message || 'unknown'));
-        })
-        .catch(err => {
-          console.error(err);
-          alert('Error deleting image');
-        });
-    }
-
-    // Filter brands by category (same logic as add_product)
+    // Filter brands by category
     document.addEventListener('DOMContentLoaded', function() {
       const categorySelect = document.getElementById('categorySelect');
       const brandSelect = document.getElementById('brandSelect');
@@ -570,7 +345,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
       categorySelect.addEventListener('change', filterBrands);
       filterBrands();
 
-      // Spec groups manager (delegation)
+      // Spec groups manager
       (function() {
         function safeKey(name) {
           return String(name || 'Group').replace(/[^a-zA-Z0-9]/g, '_');
@@ -644,21 +419,8 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
           container.appendChild(buildGroupNode('New Group'));
         });
       })();
-
-      // Sidebar collapsed state
-      const hamburger = document.getElementById("hamburger");
-      const sidebar = document.getElementById("sidebar");
-      if (hamburger && sidebar) {
-        const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-        if (isCollapsed) sidebar.classList.add("collapsed");
-        hamburger.addEventListener("click", () => {
-          sidebar.classList.toggle("collapsed");
-          localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
-        });
-      }
     });
   </script>
-
   <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 

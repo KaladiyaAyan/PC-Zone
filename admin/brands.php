@@ -1,14 +1,25 @@
 <?php
-session_start();
-
-// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-//   header("Location: index.php");
-//   exit;
-// }
 
 include '../includes/db_connect.php';
 include './includes/functions.php';
 
+session_start();
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ./login1.php');
+  exit;
+}
+
+$sql = "SELECT b.brand_id, b.brand_name, b.slug, b.category_id,
+              c.category_name 
+              FROM brands AS b
+              LEFT JOIN categories AS c 
+              ON b.category_id = c.category_id
+              ORDER BY b.brand_id ASC";
+$res = mysqli_query($conn, $sql);
+$allBrands = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
+
+$categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
+$allCategories = mysqli_fetch_all($categories, MYSQLI_ASSOC) ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,8 +40,8 @@ include './includes/functions.php';
   include './includes/sidebar.php'; ?>
 
   <main class="main-content pt-5 mt-2">
-    <div class="container my-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="content-wrapper container my-4">
+      <div class="products-header">
         <h2 class="mb-0">Manage Brands</h2>
         <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addBrandModal">
           <i class="fas fa-plus"></i> Add Brand
@@ -38,9 +49,9 @@ include './includes/functions.php';
       </div>
 
       <!-- Brands Table -->
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-          <thead class="text-white">
+      <div class="table-box">
+        <table class="data-table table table-hover align-middle">
+          <thead>
             <tr>
               <th>#</th>
               <th>Brand Name</th>
@@ -50,37 +61,33 @@ include './includes/functions.php';
             </tr>
           </thead>
           <tbody>
-            <?php
-            $sql = "SELECT b.brand_id, b.brand_name, b.slug, b.category_id,
-               c.category_name 
-        FROM brands AS b
-        LEFT JOIN categories AS c 
-               ON b.category_id = c.category_id
-        ORDER BY b.brand_id ASC";
-            $result = mysqli_query($conn, $sql);
-
-            while ($row = mysqli_fetch_assoc($result)) {
-            ?>
-              <tr class="text-white">
-                <td><?= $row['brand_id'] ?></td>
-                <td><?= $row['brand_name'] ? htmlspecialchars($row['brand_name']) : 'N/A' ?></td>
-                <td><?= htmlspecialchars($row['category_name'] ?? 'N/A') ?></td>
-                <td><?= $row['slug'] ?? 'N/A' ?></td>
-                <td>
-                  <button class="btn-edit"
-                    data-bs-toggle="modal"
-                    data-bs-target="#editBrandModal"
-                    data-id="<?= $row['brand_id'] ?>"
-                    data-name="<?= htmlspecialchars($row['brand_name']) ?>"
-                    data-category="<?= $row['category_id'] ?>">
-                    <i class="fas fa-edit"></i> Edit
-                  </button>
-                  <button class="btn-delete" onclick="deleteBrand(<?= $row['brand_id'] ?>)">
-                    <i class="fas fa-trash-alt"></i> Delete
-                  </button>
-                </td>
+            <?php if (!empty($allBrands)): ?>
+              <?php foreach ($allBrands as $row): ?>
+                <tr>
+                  <td><?= $row['brand_id'] ?></td>
+                  <td><?= htmlspecialchars($row['brand_name']) ?? 'N/A' ?></td>
+                  <td><?= htmlspecialchars($row['category_name'] ?? 'N/A') ?></td>
+                  <td><?= htmlspecialchars($row['slug']) ?? 'N/A' ?></td>
+                  <td>
+                    <button class="btn-edit"
+                      data-bs-toggle="modal"
+                      data-bs-target="#editBrandModal"
+                      data-id="<?= $row['brand_id'] ?>"
+                      data-name="<?= htmlspecialchars($row['brand_name'], ENT_QUOTES) ?>"
+                      data-category="<?= $row['category_id'] ?>">
+                      <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn-delete" onclick="deleteBrand(<?= $row['brand_id'] ?>)">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="5" class="text-center">No brands found. <a href="#" data-bs-toggle="modal" data-bs-target="#editBrandModal">Add a brand</a></td>
               </tr>
-            <?php } ?>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>
@@ -89,33 +96,31 @@ include './includes/functions.php';
     <!-- Add Brand Modal -->
     <div class="modal fade" id="addBrandModal" tabindex="-1" aria-labelledby="addBrandModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form class="modal-content" method="POST" action="add_brand.php">
+        <form class="modal-content form-container" method="POST" action="create.php">
           <div class="modal-header">
-            <h5 class="modal-title">Add New Brand</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="addBrandModalLabel">Add New Brand</h5>
+            <button type="button" class="btn close-btn position-static p-0" data-bs-dismiss="modal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
           </div>
 
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Brand Name</label>
-              <input type="text" class="form-control" name="name" required>
+              <label for="brandName" class="form-label">Brand Name</label>
+              <input type="text" class="form-control" name="name" id="brandName" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Category</label>
-              <select class="form-select" name="category_id" required>
+              <label for="brandCategory" class="form-label">Category</label>
+              <select class="form-select" name="brand_category" id="brandCategory" required>
                 <option value="">Select Category</option>
-                <?php
-                $categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
-                while ($cat = mysqli_fetch_assoc($categories)) {
-                  echo '<option value="' . $cat['category_id'] . '">' . htmlspecialchars($cat['category_name']) . '</option>';
-                }
-                ?>
+                <?php foreach ($allCategories as $cat) : ?>
+                  <option value="<?= (int)$cat['category_id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>;
+                <?php endforeach; ?>
               </select>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button type="submit" class="btn btn-success">Add Brand</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" name="add-brand" class="btn btn-success"><i class="fas fa-plus me-1"></i>Add Brand</button>
           </div>
         </form>
       </div>
@@ -124,35 +129,34 @@ include './includes/functions.php';
     <!-- Edit Brand Modal -->
     <div class="modal fade" id="editBrandModal" tabindex="-1" aria-labelledby="editBrandModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form class="modal-content" method="POST" action="update_brand.php">
+        <form class="modal-content form-container" method="POST" action="update_brand.php">
           <input type="hidden" name="id" id="editBrandId">
 
           <div class="modal-header">
-            <h5 class="modal-title">Edit Brand</h5>
+            <h5 class="modal-title" id="editBrandModalLabel">Edit Brand</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Brand Name</label>
+              <label for="editBrandName" class="form-label">Brand Name</label>
               <input type="text" class="form-control" name="name" id="editBrandName" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Category</label>
+              <label for="editBrandCategory" class="form-label">Category</label>
               <select class="form-select" name="category_id" id="editBrandCategory" required>
                 <option value="">Select Category</option>
                 <?php
-                $categories = mysqli_query($conn, "SELECT * FROM categories WHERE parent_id IS NULL ORDER BY category_name");
-                while ($cat = mysqli_fetch_assoc($categories)) {
-                  echo '<option value="' . $cat['category_id'] . '">' . htmlspecialchars($cat['category_name']) . '</option>';
-                }
-                ?>
+                foreach ($allCategories as $cat) : ?>
+                  <option value="<?= (int)$cat['category_id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>;
+                <?php endforeach; ?>
               </select>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button type="submit" class="btn btn-success">Update Brand</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Update Brand</button>
           </div>
         </form>
       </div>
@@ -160,7 +164,9 @@ include './includes/functions.php';
 
     <!-- Toast Container -->
     <?php
-    show_toast_script('Brand');
+    if (function_exists('show_toast_script')) {
+      message('Brand');
+    }
     ?>
 
   </main>

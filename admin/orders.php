@@ -1,13 +1,13 @@
 <?php
+include '../includes/db_connect.php';
+include './includes/functions.php';
+
 session_start();
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ./login1.php');
+  exit;
+}
 
-// Admin check
-// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-//   header("Location: ../login.php");
-//   exit;
-// }
-
-include('../includes/db_connect.php');
 
 // Fetch orders with customer info
 $sql = "

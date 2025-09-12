@@ -1,3 +1,4 @@
+<!-- login.php -->
 <?php
 session_start();
 ?>
@@ -5,9 +6,9 @@ session_start();
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PC ZONE — Login</title>
 
   <!-- Remix Icon CDN -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
@@ -22,10 +23,13 @@ session_start();
   <div class="signup-container">
     <h2>Login</h2>
 
-    <form action="verify.php" method="POST">
+    <!-- show messages if you use functions/message.php -->
+    <?php if (file_exists(__DIR__ . '/functions/message.php')) include_once __DIR__ . '/functions/message.php'; ?>
+
+    <form action="verify.php" method="POST" autocomplete="off" novalidate>
       <div class="input-group">
-        <label for="username"><i class="ri-user-line"></i> Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter Your Username" required>
+        <label for="email"><i class="ri-mail-line"></i> Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter Your Email" required autofocus>
       </div>
 
       <div class="input-group">
@@ -45,19 +49,22 @@ session_start();
   </div>
 
   <script>
-    const passwordInput = document.getElementById('password');
-    const showHidePassword = document.querySelector('.show-hide-password');
-
-    showHidePassword.addEventListener('click', () => {
-      const icon = showHidePassword.querySelector('i');
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
-      } else {
-        passwordInput.type = 'password';
-        icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
+    (function() {
+      const passwordInput = document.getElementById('password');
+      const showHidePassword = document.querySelector('.show-hide-password');
+      if (showHidePassword && passwordInput) {
+        showHidePassword.addEventListener('click', () => {
+          const icon = showHidePassword.querySelector('i');
+          if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
+          } else {
+            passwordInput.type = 'password';
+            icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
+          }
+        });
       }
-    });
+    })();
   </script>
 </body>
 

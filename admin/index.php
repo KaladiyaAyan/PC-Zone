@@ -1,23 +1,27 @@
 <?php
-// session_start();
-require_once '../includes/functions.php'; // provides getConnection(), formatPrice()
+// admin/index.php - simplified and secure
+session_start();
+require_once __DIR__ . '/../includes/functions.php'; // provides getConnection(), formatPrice(), isLoggedIn()
+
+// Admin protection
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ./login.php');
+  exit;
+}
 
 $conn = getConnection();
 
-// Validate simple identifier (table names)
+// validate plain identifier (table names)
 function valid_identifier($s)
 {
-  return preg_match('/^[a-zA-Z0-9_]+$/', $s);
+  return (bool)preg_match('/^[a-zA-Z0-9_]+$/', $s);
 }
 
-/**
- * Get row count for a table with optional condition.
- * Note: $table must be a plain identifier (validated).
- */
+// safe count helper using validated table name and optional condition (simple use)
 function getCount($conn, $table, $condition = '')
 {
   if (!valid_identifier($table)) return 0;
-  $sql = "SELECT COUNT(*) AS total FROM $table" . ($condition ? " WHERE $condition" : "");
+  $sql = "SELECT COUNT(*) AS total FROM `$table`" . ($condition ? " WHERE $condition" : "");
   $res = mysqli_query($conn, $sql);
   if (!$res) return 0;
   $row = mysqli_fetch_assoc($res);
@@ -45,13 +49,9 @@ $totalRevenue   = getTotalRevenue($conn);
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PC ZONE Dashboard</title>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="./assets/vendor/fontawesome/css/all.min.css">
-  <!-- Bootstrap -->
   <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css">
-  <!-- Main admin styles -->
   <link rel="stylesheet" href="./assets/css/style.css">
-
   <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
     (function() {
@@ -72,36 +72,36 @@ $totalRevenue   = getTotalRevenue($conn);
     <div class="content-wrapper">
 
       <!-- Dashboard Cards -->
-      <div class="dashboard-cards mb-4">
+      <div class="dashboard-cards mb-4 d-grid" style="grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
         <div class="card d-flex align-items-center p-3">
-          <i class="fas fa-box"></i>
-          <div class="ms-2">
-            <h3>Total Products</h3>
-            <p class="mb-0"><?= (int)$totalProducts ?></p>
+          <i class="fas fa-box fa-2x"></i>
+          <div class="ms-3">
+            <h3 class="h6 mb-0">Total Products</h3>
+            <p class="mb-0 fs-5"><?= (int)$totalProducts ?></p>
           </div>
         </div>
 
         <div class="card d-flex align-items-center p-3">
-          <i class="fas fa-shopping-cart"></i>
-          <div class="ms-2">
-            <h3>Total Orders</h3>
-            <p class="mb-0"><?= (int)$totalOrders ?></p>
+          <i class="fas fa-shopping-cart fa-2x"></i>
+          <div class="ms-3">
+            <h3 class="h6 mb-0">Total Orders</h3>
+            <p class="mb-0 fs-5"><?= (int)$totalOrders ?></p>
           </div>
         </div>
 
         <div class="card d-flex align-items-center p-3">
-          <i class="fas fa-users"></i>
-          <div class="ms-2">
-            <h3>Total Customers</h3>
-            <p class="mb-0"><?= (int)$totalCustomers ?></p>
+          <i class="fas fa-users fa-2x"></i>
+          <div class="ms-3">
+            <h3 class="h6 mb-0">Total Customers</h3>
+            <p class="mb-0 fs-5"><?= (int)$totalCustomers ?></p>
           </div>
         </div>
 
         <div class="card d-flex align-items-center p-3">
-          <i class="fas fa-dollar-sign"></i>
-          <div class="ms-2">
-            <h3>Total Revenue</h3>
-            <p class="mb-0"><?= htmlspecialchars(formatPrice($totalRevenue), ENT_QUOTES) ?></p>
+          <i class="fas fa-dollar-sign fa-2x"></i>
+          <div class="ms-3">
+            <h3 class="h6 mb-0">Total Revenue</h3>
+            <p class="mb-0 fs-5"><?= htmlspecialchars(formatPrice($totalRevenue), ENT_QUOTES) ?></p>
           </div>
         </div>
       </div>
@@ -122,35 +122,31 @@ $totalRevenue   = getTotalRevenue($conn);
             </thead>
             <tbody>
               <?php
-              $sql = "SELECT o.order_id, CONCAT(u.first_name, ' ', u.last_name) AS customer_name, o.total_amount, o.order_date, o.order_status
+              $sql = "SELECT o.order_id, COALESCE(CONCAT(u.first_name, ' ', u.last_name), 'Guest') AS customer_name, o.total_amount, o.order_date, o.order_status
                       FROM orders o
-                      JOIN users u ON o.user_id = u.user_id
+                      LEFT JOIN users u ON o.user_id = u.user_id
                       ORDER BY o.order_date DESC
                       LIMIT 5";
-              $stmt = mysqli_prepare($conn, $sql);
-              if ($stmt) {
-                mysqli_stmt_execute($stmt);
-                $res = mysqli_stmt_get_result($stmt);
-                if ($res && mysqli_num_rows($res) > 0) {
+              if ($res = mysqli_query($conn, $sql)) {
+                if (mysqli_num_rows($res) > 0) {
                   while ($order = mysqli_fetch_assoc($res)) {
-                    $statusClass = 'status-' . strtolower($order['order_status']);
-                    $statusLabel = ucfirst($order['order_status']);
+                    $statusClass = 'status-' . strtolower(preg_replace('/\s+/', '-', $order['order_status']));
+                    $statusLabel = htmlspecialchars(ucfirst(strtolower($order['order_status'])), ENT_QUOTES);
                     $custName = htmlspecialchars($order['customer_name'] ?? 'Guest', ENT_QUOTES);
                     $orderId  = (int)$order['order_id'];
                     $totalFmt = htmlspecialchars(formatPrice((float)$order['total_amount']), ENT_QUOTES);
-                    $dateFmt  = date('M d, Y', strtotime($order['order_date']));
+                    $dateFmt  = $order['order_date'] ? date('M d, Y', strtotime($order['order_date'])) : '-';
                     echo "<tr>
                             <td>{$orderId}</td>
                             <td>{$custName}</td>
                             <td>{$totalFmt}</td>
                             <td>{$dateFmt}</td>
-                            <td><span class='{$statusClass}'>" . htmlspecialchars($statusLabel, ENT_QUOTES) . "</span></td>
+                            <td><span class='{$statusClass}'>{$statusLabel}</span></td>
                           </tr>";
                   }
                 } else {
                   echo "<tr><td colspan='5'>No recent orders found.</td></tr>";
                 }
-                mysqli_stmt_close($stmt);
               } else {
                 echo "<tr><td colspan='5'>Unable to fetch recent orders.</td></tr>";
               }
@@ -176,11 +172,8 @@ $totalRevenue   = getTotalRevenue($conn);
             <tbody>
               <?php
               $sql2 = "SELECT product_id, product_name, stock FROM products WHERE stock < 10 ORDER BY stock ASC LIMIT 5";
-              $stmt2 = mysqli_prepare($conn, $sql2);
-              if ($stmt2) {
-                mysqli_stmt_execute($stmt2);
-                $res2 = mysqli_stmt_get_result($stmt2);
-                if ($res2 && mysqli_num_rows($res2) > 0) {
+              if ($res2 = mysqli_query($conn, $sql2)) {
+                if (mysqli_num_rows($res2) > 0) {
                   while ($product = mysqli_fetch_assoc($res2)) {
                     $pid = (int)$product['product_id'];
                     $pname = htmlspecialchars($product['product_name'], ENT_QUOTES);
@@ -197,7 +190,6 @@ $totalRevenue   = getTotalRevenue($conn);
                 } else {
                   echo "<tr><td colspan='4'>All products sufficiently stocked.</td></tr>";
                 }
-                mysqli_stmt_close($stmt2);
               } else {
                 echo "<tr><td colspan='4'>Unable to fetch stock data.</td></tr>";
               }
@@ -209,10 +201,6 @@ $totalRevenue   = getTotalRevenue($conn);
 
     </div> <!-- /.content-wrapper -->
   </main>
-
-  <script>
-    // Sidebar toggle functionality (kept commented intentionally)
-  </script>
 
   <script src="./assets/vendor/jquery/jquery-3.7.1.min.js"></script>
 </body>

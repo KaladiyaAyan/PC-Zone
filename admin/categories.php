@@ -1,16 +1,26 @@
 <?php
-session_start();
-
-// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-//   header("Location: index.php");
-//   exit;
-// }
 
 require_once '../includes/db_connect.php';
 require_once '../includes/functions.php';
 
+session_start();
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ./login1.php');
+  exit;
+}
+
 // Fetch categories using helper functions (keeps UI & behavior unchanged)
-$allCategories = getAllCategories();    // returns array of all categories
+// $allCategories = getAllCategories();    // returns array of all categories
+// fetch categories with parent name
+$sql = "
+  SELECT c.*, p.category_name AS parent_name
+  FROM categories c
+  LEFT JOIN categories p ON c.parent_id = p.category_id
+  ORDER BY c.level ASC, c.category_name ASC
+";
+$res = mysqli_query($conn, $sql);
+$allCategories = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
+
 $rootCategories = getRootCategories();  // returns top-level categories
 ?>
 <!DOCTYPE html>
@@ -90,7 +100,7 @@ $rootCategories = getRootCategories();  // returns top-level categories
     <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <!-- apply form-container so modal form uses admin form styles -->
-        <form class="modal-content form-container" method="POST" action="add_category.php">
+        <form class="modal-content form-container" method="POST" action="create.php">
           <div class="modal-header">
             <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
             <button type="button" class="btn close-btn position-static p-0" data-bs-dismiss="modal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
@@ -112,7 +122,7 @@ $rootCategories = getRootCategories();  // returns top-level categories
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" name="add-category" class="btn btn-success">
               <i class="fas fa-plus me-1"></i> Add Category
             </button>
           </div>
@@ -169,7 +179,7 @@ $rootCategories = getRootCategories();  // returns top-level categories
     <!-- Toast script (keeps previous behavior) -->
     <?php
     if (function_exists('show_toast_script')) {
-      show_toast_script('Category');
+      message('Category');
     }
     ?>
   </main>

@@ -1,13 +1,13 @@
 <?php
+include '../includes/db_connect.php';
+include './includes/functions.php';
+
 session_start();
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ./login1.php');
+  exit;
+}
 
-// Check if user is logged in and is admin
-// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-//   header("Location: index.php");
-//   exit;
-// }
-
-include('../includes/db_connect.php');
 
 // Use products.main_image directly. There is no product_images table in your provided schema.
 $query = "
@@ -42,7 +42,7 @@ $result = mysqli_query($conn, $query);
 
 <body>
   <?php include './includes/header.php'; ?>
-  <?php $current_page = 'products';
+  <?php $current_page = 'product';
   include './includes/sidebar.php'; ?>
 
   <main class="main-content">
@@ -105,7 +105,7 @@ $result = mysqli_query($conn, $query);
                 "stock" => $product["stock"],
                 "brand" => $product["brand_name"],
                 "category" => $product["category_name"],
-                "image" => $imgValue !== '' ? $imgValue : ''
+                "image" => $imgValue ? $imgValue : '',
               ];
             ?>
               <tr class="product-row" data-product='<?= htmlspecialchars(json_encode($pdata, JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?>'>
@@ -115,8 +115,8 @@ $result = mysqli_query($conn, $query);
                   // If main_image exists and file present in uploads or assets, show it.
                   $imagePath = '';
                   if (!empty($product['main_image'])) {
-                    $candidate1 = __DIR__ . '/../uploads/' . $product['main_image'];
-                    $candidate2 = __DIR__ . '/../assets/images/products/' . $product['main_image'];
+                    $candidate1 = '../uploads/' . $product['main_image'];
+                    $candidate2 = '../assets/images/products/' . $product['main_image'];
 
                     if (file_exists($candidate1)) {
                       $imagePath = '../uploads/' . rawurlencode($product['main_image']);
