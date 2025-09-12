@@ -133,7 +133,7 @@ $rootCategories = getRootCategories();  // returns top-level categories
     <!-- Edit Category Modal -->
     <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form class="modal-content form-container" method="POST" action="update_category.php">
+        <form class="modal-content form-container" method="POST" action="edit.php" enctype="multipart/form-data">
           <input type="hidden" name="id" id="editCategoryId">
 
           <div class="modal-header">
@@ -168,7 +168,7 @@ $rootCategories = getRootCategories();  // returns top-level categories
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-success">
+            <button name="edit-category" type="submit" class="btn btn-success">
               <i class="fas fa-save me-1"></i> Update Category
             </button>
           </div>

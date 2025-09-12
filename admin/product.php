@@ -8,7 +8,6 @@ if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true
   exit;
 }
 
-
 // Use products.main_image directly. There is no product_images table in your provided schema.
 $query = "
     SELECT p.product_id,
@@ -149,7 +148,7 @@ $result = mysqli_query($conn, $query);
                   <a href="edit_product.php?product_id=<?= (int)$product['product_id'] ?>" class="btn-edit">
                     <i class="fas fa-edit"></i> Edit
                   </a>
-                  <a href="delete_product.php?product_id=<?= (int)$product['product_id'] ?>"
+                  <a href="delete.php?product=<?= (int)$product['product_id'] ?>"
                     class="btn-delete d-flex gap-1 align-items-center"
                     onclick="return confirm('Are you sure you want to delete this product?')">
                     <i class="fas fa-trash"></i> Delete

@@ -5,38 +5,79 @@ include('../includes/db_connect.php');
 include('../functions/message.php');
 
 if (isset($_POST['edit-category'])) {
-  $cate_id = $_POST['category_id'];
 
-  $select_cate = "SELECT * FROM `category` WHERE id='$cate_id'";
-  $select_cate_run = mysqli_query($conn, $select_cate);
-  $category = mysqli_fetch_array($select_cate_run);
+  $category_id = $_POST['id'];
+  $category_name = trim($_POST['name']);
+  $parent_id = $_POST['parent_id'] !== '' ? intval($_POST['parent_id']) : NULL;
 
-  $new_cate_name = $_POST['category_name'];
-  $new_cate_slug = $_POST['category_slug'];
-  $new_cate_image = $_FILES['category_image']['name'];
-  $new_cate_status = isset($_POST['category_status']) ? 1 : 0;
+  if ($category_id && $category_name) {
+    // Generate slug
+    // $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
+    // $slug = slugify($category_name);
+    $result = mysqli_query($conn, "SELECT slug FROM categories WHERE category_id = $category_id");
+    $row = mysqli_fetch_assoc($result);
+    $slug = $row['slug'];
 
+    $check = mysqli_query($conn, "SELECT category_id FROM categories WHERE slug = '$slug' AND category_id != $category_id");
+    // $query = "UPDATE categories SET name=?, parent_id=?, slug=? WHERE id=?"; 
+    if (mysqli_num_rows($check) > 0) {
+      header("Location: categories.php?error=duplicate");
+      exit;
+    }
 
-  if ($new_cate_image == '') {
-    $update_cate = "UPDATE `category` SET `name`='$new_cate_name', `slug`='$new_cate_slug', `status`='$new_cate_status' WHERE `id`='$cate_id'";
+    if ($parent_id !== NULL) {
+      $stmt = mysqli_prepare($conn, "UPDATE categories SET category_name=?, parent_id=?, level=1, slug=? WHERE category_id=?");
+      mysqli_stmt_bind_param($stmt, "sisi", $category_name, $parent_id, $slug, $category_id);
+    } else {
+      $stmt = mysqli_prepare($conn, "UPDATE categories SET category_name=?,parent_id=NULL, level=0, slug=? WHERE category_id=?");
+      mysqli_stmt_bind_param($stmt, "ssi", $category_name, $slug, $category_id);
+    }
+
+    // $stmt = mysqli_prepare($conn, "UPDATE categories SET name=?, parent_id=?, slug=? WHERE id=?");
+    // mysqli_stmt_bind_param($stmt, "sssi", $name, $parent_id, $slug, $id);
+
+    if (mysqli_stmt_execute($stmt)) {
+      header("Location: categories.php?success=updated");
+      exit;
+    } else {
+      header("Location:categories.php?error=update_failed");
+      exit;
+    }
   } else {
-    $image_ext = pathinfo($new_cate_image, PATHINFO_EXTENSION);
-    $new_cate_image = time() . "." . $image_ext;
-    move_uploaded_file($_FILES['category_image']['tmp_name'], '../uploads/' . $new_cate_image);
-
-    $path = "../uploads/";
-    unlink($path . $category['image']);
-
-    $update_cate = "UPDATE `category` SET `name`='$new_cate_name', `slug`='$new_cate_slug', `image`='$new_cate_image', `status`='$new_cate_status' WHERE `id`='$cate_id'";
+    header("Location: categories.php?error=missing_fields");
+    exit;
   }
+} else if (isset($_POST['edit-brand'])) {
+  $brand_id = $_POST['id'];
+  $brand_name = trim($_POST['name']);
+  $category_id = $_POST['category_id'];
 
-  $update_cate_run = mysqli_query($conn, $update_cate);
-  if ($update_cate_run) {
-    message('popup-success', '<i class="ri-check-line"></i>', 'Category updated successfully');
-    header('location: category.php');
+  if ($brand_id && $brand_name && $category_id) {
+    // $slug = slugify($brand_name);
+    $result = mysqli_query($conn, "SELECT slug FROM brands WHERE brand_id = $brand_id");
+    $row = mysqli_fetch_assoc($result);
+    $slug = $row['slug'];
+
+    // Check for slug conflict with other brands
+    $check = mysqli_query($conn, "SELECT brand_id FROM brands WHERE slug = '$slug' AND brand_id != $brand_id");
+    if (mysqli_num_rows($check) > 0) {
+      header("Location: brands.php?error=duplicate");
+      exit;
+    }
+
+    $stmt = mysqli_prepare($conn, "UPDATE brands SET brand_name=?, category_id=?, slug=? WHERE brand_id=?");
+    mysqli_stmt_bind_param($stmt, "sisi", $brand_name, $category_id, $slug, $brand_id);
+
+    if (mysqli_stmt_execute($stmt)) {
+      header("Location: brands.php?success=updated");
+      exit;
+    } else {
+      header("Location: brands.php?error=update_failed");
+      exit;
+    }
   } else {
-    message('popup-error', '<i class="ri-close-line"></i>', 'Failed to update category');
-    header('location: edit-category.php?id=' . $cate_id);
+    header("Location: brands.php?error=missing_fields");
+    exit;
   }
 }
 
@@ -189,3 +230,6 @@ if (isset($_POST['edit-product'])) {
     header('location: orders.php');
   }
 }
+// If no action, redirect to admin dashboard
+header('Location: index.php');
+exit;

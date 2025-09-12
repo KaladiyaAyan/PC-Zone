@@ -54,7 +54,7 @@ function active($name)
       <span class="label">Customers</span>
     </a>
 
-    <a href="./payments.php" class="<?= active('payments') ?>">
+    <a href="./payment.php" class="<?= active('payments') ?>">
       <span class="icon"><i class="fas fa-credit-card"></i></span>
       <span class="label">Payments</span>
     </a>

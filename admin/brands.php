@@ -129,7 +129,7 @@ $allCategories = mysqli_fetch_all($categories, MYSQLI_ASSOC) ?? [];
     <!-- Edit Brand Modal -->
     <div class="modal fade" id="editBrandModal" tabindex="-1" aria-labelledby="editBrandModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <form class="modal-content form-container" method="POST" action="update_brand.php">
+        <form class="modal-content form-container" method="POST" action="edit.php">
           <input type="hidden" name="id" id="editBrandId">
 
           <div class="modal-header">
@@ -156,7 +156,7 @@ $allCategories = mysqli_fetch_all($categories, MYSQLI_ASSOC) ?? [];
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Update Brand</button>
+            <button name="edit-brand" type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Update Brand</button>
           </div>
         </form>
       </div>
