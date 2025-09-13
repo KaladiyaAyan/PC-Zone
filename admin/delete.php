@@ -1,8 +1,12 @@
 <?php
 session_start();
-include('../includes/db_connect.php');
-// include('includes/alert.php');
-include('./includes/functions.php');
+require_once __DIR__ . '/../includes/db_connect.php';
+
+// admin auth
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header('Location: ./login.php');
+    exit;
+}
 
 if (isset($_GET['product'])) {
     if (!isset($_GET['product']) || !is_numeric($_GET['product'])) {
@@ -12,7 +16,7 @@ if (isset($_GET['product'])) {
 
     $product_id = (int) $_GET['product'];
 
-    // Fetch product image filenames from products table
+    /* Fetch filenames (if product exists) */
     $stmt = mysqli_prepare($conn, "SELECT main_image, image_1, image_2, image_3 FROM products WHERE product_id = ? LIMIT 1");
     mysqli_stmt_bind_param($stmt, 'i', $product_id);
     mysqli_stmt_execute($stmt);
@@ -21,63 +25,72 @@ if (isset($_GET['product'])) {
     mysqli_stmt_close($stmt);
 
     if (!$row) {
-        // product not found
         header("Location: product.php?delete=invalid");
         exit;
     }
 
-    $imagesToDelete = [];
-    foreach (['main_image', 'image_1', 'image_2', 'image_3'] as $col) {
-        if (!empty($row[$col])) $imagesToDelete[] = $row[$col];
+    /* Collect non-empty filenames */
+    $files = [];
+    foreach (['main_image', 'image_1', 'image_2', 'image_3'] as $c) {
+        if (!empty($row[$c])) $files[] = $row[$c];
     }
 
-    // Start transaction
-    mysqli_begin_transaction($conn);
+    /* Delete product specs (optional cleanup) */
+    $ds = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
+    mysqli_stmt_bind_param($ds, 'i', $product_id);
+    mysqli_stmt_execute($ds);
+    mysqli_stmt_close($ds);
 
-    try {
-        // Delete product_specs (explicit cleanup)
-        $delSpecs = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
-        mysqli_stmt_bind_param($delSpecs, 'i', $product_id);
-        if (!mysqli_stmt_execute($delSpecs)) {
-            throw new Exception("Failed to delete product specs: " . mysqli_stmt_error($delSpecs));
+    /* Delete product row */
+    $dp = mysqli_prepare($conn, "DELETE FROM products WHERE product_id = ?");
+    mysqli_stmt_bind_param($dp, 'i', $product_id);
+    mysqli_stmt_execute($dp);
+    $affected = mysqli_stmt_affected_rows($dp);
+    mysqli_stmt_close($dp);
+
+    if ($affected > 0) {
+        // remove files (uploads preferred, then assets)
+        foreach ($files as $fname) {
+            $p1 = __DIR__ . '/../uploads/' . $fname;
+            $p2 = __DIR__ . '/../assets/images/products/' . $fname;
+            if (file_exists($p1)) @unlink($p1);
+            elseif (file_exists($p2)) @unlink($p2);
         }
-        mysqli_stmt_close($delSpecs);
-
-        // Delete product row
-        $delProd = mysqli_prepare($conn, "DELETE FROM products WHERE product_id = ?");
-        mysqli_stmt_bind_param($delProd, 'i', $product_id);
-        if (!mysqli_stmt_execute($delProd)) {
-            throw new Exception("Failed to delete product: " . mysqli_stmt_error($delProd));
-        }
-
-        // Ensure a row was deleted
-        if (mysqli_stmt_affected_rows($delProd) === 0) {
-            mysqli_stmt_close($delProd);
-            throw new Exception("Product not found or already deleted");
-        }
-        mysqli_stmt_close($delProd);
-
-        // Commit DB transaction
-        mysqli_commit($conn);
-
-        // Remove image files from filesystem (uploads first, then fallback assets)
-        foreach ($imagesToDelete as $fname) {
-            $uploadsPath = __DIR__ . '/../uploads/' . $fname;
-            $assetsPath  = __DIR__ . '/../assets/images/' . $fname;
-            if (file_exists($uploadsPath)) @unlink($uploadsPath);
-            elseif (file_exists($assetsPath)) @unlink($assetsPath);
-        }
-
         header("Location: product.php?delete=success");
         exit;
-    } catch (Exception $e) {
-        // Rollback on error
-        mysqli_rollback($conn);
-        // (optional) error_log($e->getMessage());
+    } else {
         header("Location: product.php?delete=failed");
         exit;
     }
+} else if (isset($_GET['slug'])) {
+    $slug = mysqli_real_escape_string($conn, $_GET['slug']);
+
+    // First get the category ID from the slug
+    $stmt = mysqli_prepare($conn, "SELECT category_id FROM categories WHERE slug = ?");
+    mysqli_stmt_bind_param($stmt, 's', $slug);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $category = mysqli_fetch_assoc($result);
+
+    if (!$category) {
+        header("Location: categories.php?delete=not_found");
+        exit;
+    }
+
+    $category_id = (int) $category['category_id'];
+
+    // Deactivate products in this specific category
+    $updSql = "UPDATE products SET is_active = 0 WHERE category_id = $category_id";
+    mysqli_query($conn, $updSql);
+
+    // Delete the category
+    $delSql = "DELETE FROM categories WHERE category_id = $category_id";
+    mysqli_query($conn, $delSql);
+
+    header("Location: categories.php?success=Successfully deleted category and deactivated products");
+    exit;
 }
+
 
 // If no action, redirect to admin dashboard
 header('Location: index.php');

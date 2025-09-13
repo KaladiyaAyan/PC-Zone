@@ -80,7 +80,7 @@ $rootCategories = getRootCategories();  // returns top-level categories
                       data-parent="<?= $row['parent_id'] ?? '' ?>">
                       <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button class="btn-delete" onclick="deleteCategory(<?= (int)$row['category_id'] ?>)">
+                    <button class="btn-delete" onclick="deleteCategory('<?= $row['slug'] ?>')">
                       <i class="fas fa-trash-alt"></i> Delete
                     </button>
                   </td>
@@ -201,9 +201,9 @@ $rootCategories = getRootCategories();  // returns top-level categories
     }
 
     // Delete category confirmation
-    function deleteCategory(category_id) {
+    function deleteCategory(slug) {
       if (confirm("Are you sure you want to delete this category? All subcategories will also be deleted.")) {
-        window.location.href = "delete_category.php?id=" + category_id;
+        window.location.href = "delete.php?slug=" + slug;
       }
     }
   </script>

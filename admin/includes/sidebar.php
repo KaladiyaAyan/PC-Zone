@@ -24,7 +24,7 @@ function active($name)
 
   <nav class="nav-links px-2">
     <div class="nav-title">Main</div>
-    <a href="dashboard.php" class="<?= active('dashboard') ?>">
+    <a href="index.php" class="<?= active('dashboard') ?>">
       <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
       <span class="label">Dashboard</span>
     </a>
