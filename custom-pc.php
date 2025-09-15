@@ -25,9 +25,9 @@ function resolveImageUrl($filename)
 {
   $filename = trim((string)$filename);
   if ($filename !== '') {
-    $uploads = __DIR__ . '/uploads/' . $filename;
+    $uploads = '/uploads/' . $filename;
     if (file_exists($uploads)) return './uploads/' . rawurlencode($filename);
-    $assets = __DIR__ . '/assets/images/products/' . $filename;
+    $assets = '/assets/images/products/' . $filename;
     if (file_exists($assets)) return './assets/images/products/' . rawurlencode($filename);
   }
   return './assets/images/no-image.png';
@@ -117,7 +117,7 @@ foreach ($parts as $slug => $label) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title><?= e($platform) ?> Custom PC Build</title>
 
-  <?php include('./includes/header.php') ?>
+  <?php include('./includes/header-links.php') ?>
 
   <style>
     <?php include('./assets/css/navbar.css');

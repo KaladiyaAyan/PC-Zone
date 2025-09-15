@@ -174,8 +174,8 @@ $allCategories = mysqli_fetch_all($categories, MYSQLI_ASSOC) ?? [];
 
   <script>
     function deleteBrand(id) {
-      if (confirm("Are you sure you want to delete this brand?")) {
-        window.location.href = "delete_brand.php?id=" + id;
+      if (confirm("Are you sure you want to delete this brand? All products using this brand will also be deactivated.")) {
+        window.location.href = "delete.php?brand=" + id;
       }
     }
 

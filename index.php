@@ -13,7 +13,7 @@ require('./includes/functions.php');
   <title>PC Zone</title>
 
   <!-- include css links page  -->
-  <?php include('./includes/header.php') ?>
+  <?php include('./includes/header-links.php') ?>
 
   <style>
     <?php include('./assets/css/navbar.css'); ?>
@@ -109,18 +109,18 @@ require('./includes/functions.php');
           // NEW: preferred product URL by slug, fallback to id
           $slug = trim($product['slug'] ?? '');
           $productUrl = $slug !== ''
-            ? 'product.php?slug=' . urlencode($slug)
-            : 'product.php?id=' . $pid; // fallback if slug missing
+            ? 'product-detail.php?slug=' . urlencode($slug)
+            : 'product-detail.php?id=' . $pid; // fallback if slug missing
         ?>
           <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="card h-100 shadow-sm border-0 product-card">
-              <a href="product.php?slug=<?= $slug ?>">
+              <a href="product-detail.php?slug=<?= $slug ?>">
                 <img src="assets/images/products/<?= e($img) ?>" class="card-img-top p-3" alt="<?= e($name) ?>">
               </a>
 
               <div class="card-body d-flex flex-column">
                 <h5 class="card-title mb-1">
-                  <a href="product.php?slug=<?= $slug ?>" class="product-link"><?= e($name) ?></a>
+                  <a href="product-detail.php?slug=<?= $slug ?>" class="product-link"><?= e($name) ?></a>
                 </h5>
 
                 <div class="mb-1">

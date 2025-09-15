@@ -48,12 +48,12 @@ if ($customerId) {
         <a href="#">Wishlist</a>
 
         <?php if ($isLogged): ?>
-          <form action="/logout.php" method="post" style="display:inline;">
+          <form action="logout.php" method="post" style="display:inline;">
             <button type="submit" class="top-red-btn"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
           </form>
         <?php else: ?>
-          <a href="./login.php" class="top-red-btn"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
-          <a href="./signup.php" class="top-red-btn" style="background:#28a745;"><i class="fa-solid fa-user-plus me-1"></i> Signup</a>
+          <a href="login.php" class="top-red-btn"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
+          <a href="signup.php" class="top-red-btn" style="background:#28a745;"><i class="fa-solid fa-user-plus me-1"></i> Signup</a>
         <?php endif; ?>
 
         <a href="#" class="top-red-btn"><i class="fa-solid fa-tag me-1"></i> Special Offers</a>
@@ -120,20 +120,20 @@ if ($customerId) {
                   $subs  = $children[$catId] ?? [];
               ?>
                   <?php if (empty($subs)): ?>
-                    <li><a class="dropdown-item" href="/product-category.php?slug=<?php echo $slug; ?>"><?php echo $name; ?></a></li>
+                    <li><a class="dropdown-item" href="product.php?slug=<?php echo $slug; ?>"><?php echo $name; ?></a></li>
                   <?php else: ?>
                     <li class="dropdown-submenu">
-                      <a class="dropdown-item dropdown-toggle" href="/product-category.php?slug=<?php echo $slug; ?>"><?php echo $name; ?></a>
+                      <a class="dropdown-item dropdown-toggle" href="product.php?slug=<?php echo $slug; ?>"><?php echo $name; ?></a>
                       <ul class="dropdown-menu">
                         <?php foreach ($subs as $s): ?>
-                          <li><a class="dropdown-item" href="/product-category.php?slug=<?php echo rawurlencode($s['slug']); ?>"><?php echo htmlspecialchars($s['category_name'], ENT_QUOTES, 'UTF-8'); ?></a></li>
+                          <li><a class="dropdown-item" href="product.php?slug=<?php echo rawurlencode($s['slug']); ?>"><?php echo htmlspecialchars($s['category_name'], ENT_QUOTES, 'UTF-8'); ?></a></li>
                         <?php endforeach; ?>
                       </ul>
                     </li>
                   <?php endif; ?>
                 <?php endforeach;
               else: ?>
-                <li><a class="dropdown-item" href="/product-category.php?slug=processor">Processor</a></li>
+                <li><a class="dropdown-item" href="/product.php?slug=processor">Processor</a></li>
               <?php endif; ?>
             </ul>
           </li>

@@ -62,34 +62,48 @@ if (isset($_GET['product'])) {
         header("Location: product.php?delete=failed");
         exit;
     }
-} else if (isset($_GET['slug'])) {
-    $slug = mysqli_real_escape_string($conn, $_GET['slug']);
+} else if (isset($_GET['category'])) {
+    $id = (int) $_GET['category'];
 
-    // First get the category ID from the slug
-    $stmt = mysqli_prepare($conn, "SELECT category_id FROM categories WHERE slug = ?");
-    mysqli_stmt_bind_param($stmt, 's', $slug);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $category = mysqli_fetch_assoc($result);
-
-    if (!$category) {
+    if (!$id) {
         header("Location: categories.php?delete=not_found");
         exit;
     }
 
-    $category_id = (int) $category['category_id'];
+    $product_check = mysqli_query($conn, "SELECT product_id FROM products WHERE category_id = $id LIMIT 1");
 
-    // Deactivate products in this specific category
-    $updSql = "UPDATE products SET is_active = 0 WHERE category_id = $category_id";
-    mysqli_query($conn, $updSql);
+    if (mysqli_num_rows($product_check) > 0) {
+        $updSql = "UPDATE products SET is_active = 0 WHERE category_id = $id";
+        mysqli_query($conn, $updSql);
+    }
 
-    // Delete the category
-    $delSql = "DELETE FROM categories WHERE category_id = $category_id";
+    $delSql = "DELETE FROM categories WHERE category_id = $id";
     mysqli_query($conn, $delSql);
 
     header("Location: categories.php?success=Successfully deleted category and deactivated products");
     exit;
+} else if (isset($_GET['brand'])) {
+
+    $id = intval($_GET['brand']);
+
+    // Check if any products use this brand before deleting
+    $product_check = mysqli_query($conn, "SELECT product_id FROM products WHERE brand_id = $id LIMIT 1");
+    if (mysqli_num_rows($product_check) > 0) {
+        // Deactivate products in this specific category
+        $updSql = "UPDATE products SET is_active = 0 WHERE brand_id = $id";
+        mysqli_query($conn, $updSql);
+    }
+
+    $delete = mysqli_query($conn, "DELETE FROM brands WHERE brand_id = $id");
+    if ($delete) {
+        header("Location: brands.php?success=deleted");
+        exit;
+    } else {
+        header("Location: brands.php?error=delete_failed");
+        exit;
+    }
 }
+
 
 
 // If no action, redirect to admin dashboard
