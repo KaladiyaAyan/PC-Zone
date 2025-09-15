@@ -91,7 +91,7 @@ $totalReviews = (int)($ratingRow['review_count'] ?? 0);
   <meta charset="utf-8">
   <title><?= e($product['product_name']); ?> - PCZone</title>
 
-  <?php include('./includes/header.php') ?>
+  <?php include('./includes/header-links.php') ?>
   <style>
     <?php include('./assets/css/navbar.css');
     include('./assets/css/product.css');

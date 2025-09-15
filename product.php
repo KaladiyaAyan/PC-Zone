@@ -32,7 +32,6 @@ if ($slug === '') {
   mysqli_stmt_close($stmt);
 }
 
-// render
 ?>
 <!doctype html>
 <html>
@@ -58,31 +57,62 @@ if ($slug === '') {
   ?>
 
   <div class="container py-4">
-    <div class="row mb-3">
-      <div class="col">
-        <h4><?php echo $slug ? htmlspecialchars(ucfirst($slug)) : 'All Products'; ?></h4>
-      </div>
-    </div>
+    <div class="row">
+      <?php if (empty($res)): ?>
+        <div class="col-12">
+          <p class="text-muted text-center">No products found.</p>
+        </div>
+      <?php else: ?>
+        <?php foreach (mysqli_fetch_all($res, MYSQLI_ASSOC) as $product):
+          $pid   = (int)($product['product_id'] ?? 0);
+          $name  = $product['product_name'] ?? '';
+          $desc  = $product['description'] ?? '';
+          $img   = $product['main_image'] ?? ($product['image_path'] ?? 'placeholder.jpg');
+          $avg   = round(floatval($product['avg_rating'] ?? 0) * 2) / 2;
+          $reviews = (int)($product['review_count'] ?? 0);
+          $price = $product['price'];
 
-    <div class="row g-3 product-grid">
-      <?php if ($res && mysqli_num_rows($res) > 0): ?>
-        <?php while ($p = mysqli_fetch_assoc($res)): ?>
-          <div class="col-6 col-md-4 col-lg-3">
-            <div class="card h-100">
-              <?php $img = $p['main_image'] ?: 'placeholder.png'; ?>
-              <img src="<?php echo htmlspecialchars('uploads/products/' . $img); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($p['product_name']); ?>">
-              <div class="card-body p-2">
-                <h6 class="card-title mb-1" style="font-size:0.95rem;"><?php echo htmlspecialchars($p['product_name']); ?></h6>
-                <p class="mb-1 small"><?php echo '₹' . number_format((float)$p['price'], 2); ?></p>
-                <a href="product-details.php?slug=<?php echo urlencode($p['slug']); ?>" class="stretched-link"></a>
+          // NEW: preferred product URL by slug, fallback to id
+          $slug = trim($product['slug'] ?? '');
+          $productUrl = $slug !== ''
+            ? 'product-detail.php?slug=' . urlencode($slug)
+            : 'product-detail.php?id=' . $pid; // fallback if slug missing
+        ?>
+          <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 product-card">
+              <a href="product-detail.php?slug=<?= $slug ?>">
+                <img src="assets/images/products/<?= e($img) ?>" class="card-img-top p-3" alt="<?= e($name) ?>">
+              </a>
+
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-1">
+                  <a href="product-detail.php?slug=<?= $slug ?>" class="product-link"><?= e($name) ?></a>
+                </h5>
+
+                <div class="mb-1">
+                  <span class="text-warning">
+                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                      <i class="fa fa-star<?= $i <= $avg ? '' : '-o' ?>"></i>
+                    <?php endfor; ?>
+                  </span>
+                  <!-- <span class="text-muted small ms-2">({{ $reviews }})</span> -->
+                </div>
+
+                <p class="card-text small text-muted mb-2"><?= e(mb_strimwidth($desc, 0, 80, '…')) ?></p>
+
+                <div class="mb-2">
+                  <span class="fw-bold text-danger"><?= formatPrice($price) ?></span>
+                  <?php if (!empty($product['discount']) && $product['discount'] > 0): ?>
+                    <span class="text-muted text-decoration-line-through ms-2"><?= formatPrice($product['price']) ?></span>
+                    <span class="badge bg-success ms-2"><?= intval($product['discount']) ?>% off</span>
+                  <?php endif; ?>
+                </div>
+
+                <a href="" class="btn btn-sm btn-warning mt-auto">Add to Cart</a>
               </div>
             </div>
           </div>
-        <?php endwhile; ?>
-      <?php else: ?>
-        <div class="col-12">
-          <div class="alert alert-warning mb-0">No products found.</div>
-        </div>
+        <?php endforeach; ?>
       <?php endif; ?>
     </div>
   </div>

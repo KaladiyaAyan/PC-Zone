@@ -13,6 +13,7 @@ require('./includes/functions.php');
   <title>PC Zone</title>
 
   <!-- include css links page  -->
+  <link rel="stylesheet" href="./assets/css/contact.css">
   <?php include('./includes/header-links.php') ?>
 
   <style>
@@ -78,7 +79,7 @@ require('./includes/functions.php');
         <div class="jumbotron bg-primary text-white p-5 rounded">
           <h1 class="display-4">Welcome to PC ZONE</h1>
           <p class="lead">Build your dream PC with premium components and expert guidance.</p>
-          <a class="btn btn-light btn-lg me-3" href="products.php" role="button">Shop Now</a>
+          <a class="btn btn-light btn-lg me-3" href="product.php" role="button">Shop Now</a>
           <a class="btn btn-outline-light btn-lg" href="custom-pc.php" role="button">Build Custom PC</a>
         </div>
       </div>
@@ -151,7 +152,7 @@ require('./includes/functions.php');
     </div>
 
     <!-- Custom PC Build Section -->
-    <div class="custom-build-section">
+    <div class="custom-build-section" id="custom">
       <div class="text-center mb-5">
         <h2 class="fw-bold">Custom PC Builds</h2>
         <p class="text-muted">Choose your preferred processor and let us build your perfect gaming rig</p>
@@ -233,6 +234,38 @@ require('./includes/functions.php');
         </div>
 
 
+      </div>
+    </div>
+
+    <!--  Contact US Section -->
+    <div class="contact-container" id="contact">
+      <div class="form-section">
+        <h2>Contact Us</h2>
+        <form action="#" method="POST">
+          <div class="mb-3">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" class="form-control" placeholder="Your full name..." required>
+          </div>
+
+          <div class="mb-3">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" placeholder="Your email..." required>
+          </div>
+
+          <div class="mb-3">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" name="subject" class="form-control" placeholder="Subject..." required>
+          </div>
+
+          <div class="mb-3">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" class="form-control" placeholder="Write your message here..." required></textarea>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="submit-btn">Send Message</button>
+          </div>
+        </form>
       </div>
     </div>
 
