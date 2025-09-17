@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+if (empty($_SESSION['user']) || empty($_SESSION['user_id'])) {
+  header('Location: ./login.php');
+  exit;
+}
+
 require('./includes/db_connect.php');
 require('./includes/functions.php');
 
@@ -14,7 +20,7 @@ require('./includes/functions.php');
 
   <!-- include css links page  -->
   <link rel="stylesheet" href="./assets/css/contact.css">
-  <?php include('./includes/header-links.php') ?>
+  <?php include('./includes/header-link.php') ?>
 
   <style>
     <?php include('./assets/css/navbar.css'); ?>
@@ -61,7 +67,9 @@ require('./includes/functions.php');
 
 <body>
 
+
   <?php
+  require('./includes/alert.php');
   require('./includes/navbar.php');
   ?>
 

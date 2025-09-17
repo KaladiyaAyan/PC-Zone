@@ -1,43 +1,53 @@
 <?php
 session_start();
-include('./functions/message.php');
-include('./includes/db_connect.php');
+include('includes/functions.php');
+include('includes/db_connect.php');
 
-
-// Signup branch (unchanged behavior)
 if (isset($_POST['signup'])) {
   $username = mysqli_real_escape_string($conn, $_POST['username']);
   $email = mysqli_real_escape_string($conn, $_POST['email']);
   $password = mysqli_real_escape_string($conn, $_POST['password']);
   $cpassword = mysqli_real_escape_string($conn, $_POST['cpassword']);
 
-  if ($cpassword == $password) {
-    $password = password_hash($password, PASSWORD_BCRYPT);
+  if (empty($username) || empty($email) || empty($password) || empty($cpassword)) {
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'All fields are required');
+    header('Location: signup.php');
+    exit;
+  }
 
-    $check_email = "SELECT * FROM users WHERE email = '$email'";
-    $check_email_run = mysqli_query($conn, $check_email);
+  if (!preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/", $email)) {
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Invalid email format');
+    header('Location: signup.php');
+    exit;
+  }
 
-    if (mysqli_num_rows($check_email_run) == 0) {
-      // enforce user role on signup
-      $insert = "INSERT INTO `users` (username, email, password, role) VALUES ('$username', '$email', '$password', 'user')";
-      $insert_run = mysqli_query($conn, $insert);
+  if ($cpassword != $password) {
+    message('popup-error', '<i class="ri-close-line"></i>', 'Password Not Matched');
+    header('Location: signup.php');
+    exit;
+  }
 
-      if ($insert_run) {
-        message('popup-success', '<i class="ri-check-line"></i>', 'Account created successfully');
-        header("Location: login.php");
-        exit;
-      } else {
-        message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Sign Up Unsuccessful.');
-        header('Location: signup.php');
-        exit;
-      }
+  $password = password_hash($password, PASSWORD_BCRYPT);
+
+  $check_email = "SELECT * FROM users WHERE email = '$email'";
+  $check_email_run = mysqli_query($conn, $check_email);
+
+  if (mysqli_num_rows($check_email_run) == 0) {
+    // enforce user role on signup
+    $insert = "INSERT INTO users (username, email, password, role) VALUES ('$username', '$email', '$password', 'user')";
+    $insert_run = mysqli_query($conn, $insert);
+
+    if ($insert_run) {
+      message('popup-success', '<i class="ri-check-line"></i>', 'Account created successfully');
+      header("Location: login.php");
+      exit;
     } else {
-      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Account already registered.');
-      header('Location: login.php');
+      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Sign Up Unsuccessful.');
+      header('Location: signup.php');
       exit;
     }
   } else {
-    message('popup-error', '<i class="ri-close-line"></i>', 'Password Not Matched');
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Account already registered.');
     header('Location: signup.php');
     exit;
   }
@@ -45,45 +55,51 @@ if (isset($_POST['signup'])) {
   $email = mysqli_real_escape_string($conn, $_POST['email']);
   $password = mysqli_real_escape_string($conn, $_POST['password']);
 
-  $check_email = "SELECT * FROM users WHERE email = '$email' AND status='active' LIMIT 1";
-  $check_email_run = mysqli_query($conn, $check_email);
-
-  if (mysqli_num_rows($check_email_run) == 1) {
-    $row = mysqli_fetch_assoc($check_email_run);
-    $db_password = $row['password'];
-    $password_check = password_verify($password, $db_password);
-
-    if ($password_check) {
-      // set site session fields used across site
-      $_SESSION['user_id']    = (int)$row['user_id'];
-      $_SESSION['user']       = [
-        "id" => $row['user_id'],
-        "username" => $row['username'] ?? '',
-        "email" => $row['email']
-      ];
-      $_SESSION['role'] = $row['role'];
-
-      message('popup-success', '<i class="ri-check-line"></i>', 'Login Successfully');
-
-      if ($row['role'] === 'admin') {
-        // Admin logged in via website. Show popup and render admin button in header.
-        // Do NOT automatically create admin-panel session here.
-        $_SESSION['show_admin_popup'] = 1;
-        header("Location: admin/index.php"); // back to website home where popup will appear
-        exit;
-      } else {
-        // normal user
-        header("Location: index.php");
-        exit;
-      }
-    } else {
-      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect Password');
-      header('Location: login2.php');
-      exit;
-    }
-  } else {
-    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect Email Address');
+  if (empty($email) || empty($password)) {
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'All fields are required');
     header('Location: login.php');
+    exit;
+  }
+
+  if (!preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/", $email)) {
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Invalid email format');
+    header('Location: login.php');
+    exit;
+  }
+
+  $check_email_run = mysqli_query($conn, "SELECT * FROM users WHERE email = '$email' AND status='active' LIMIT 1");
+
+  if (!$check_email_run) {
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect Email or Password');
+    header('Location: login.php');
+    exit;
+  }
+
+  $row = mysqli_fetch_assoc($check_email_run);
+  $db_password = $row['password'];
+  $password_check = password_verify($password, $db_password);
+
+  if (!$password_check) {
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect Email or Password');
+    header('Location: login.php');
+    exit;
+  }
+
+  $_SESSION['user_id'] = (int)$row['user_id'];
+  $_SESSION['user'] = [
+    "id" => $row['user_id'],
+    "username" => $row['username'] ?? '',
+    "email" => $row['email']
+  ];
+  $_SESSION['role'] = $row['role'];
+
+  if ($row['role'] === 'admin') {
+    message('popup-success', '<i class="ri-check-line"></i>', 'Please Login again to continue');
+    header("Location: admin/login.php");
+    exit;
+  } else {
+    message('popup-success', '<i class="ri-check-line"></i>', 'Welcome ' . $_SESSION['user']['username']);
+    header("Location: ./index.php");
     exit;
   }
 } else if (isset($_POST['user-account'])) {

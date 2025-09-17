@@ -1,5 +1,10 @@
 <?php
-require_once './includes/db_connect.php'; // provides $conn (mysqli)
+require('./includes/db_connect.php');
+
+if (empty($_SESSION['user']) || empty($_SESSION['user_id'])) {
+  header('Location: ./login.php');
+  exit;
+}
 
 // sanitize slug
 $slug = strtolower($_GET['slug'] ?? '');

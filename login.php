@@ -1,4 +1,3 @@
-<!-- login.php -->
 <?php
 session_start();
 ?>
@@ -10,8 +9,7 @@ session_start();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PC ZONE — Login</title>
 
-  <!-- Remix Icon CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+  <?php include('./includes/header-link.php'); ?>
 
   <style>
     <?php include('./assets/css/login_signup.css'); ?>
@@ -20,19 +18,18 @@ session_start();
 
 <body>
 
+  <?php include('./includes/alert.php') ?>
+
   <div class="signup-container">
     <h2>Login</h2>
 
-    <!-- show messages if you use functions/message.php -->
-    <?php if (file_exists(__DIR__ . '/functions/message.php')) include_once __DIR__ . '/functions/message.php'; ?>
-
     <form action="verify.php" method="POST" autocomplete="off" novalidate>
-      <div class="input-group">
+      <div class="inputGroup">
         <label for="email"><i class="ri-mail-line"></i> Email</label>
         <input type="email" id="email" name="email" placeholder="Enter Your Email" required autofocus>
       </div>
 
-      <div class="input-group">
+      <div class="inputGroup">
         <label for="password"><i class="ri-lock-line"></i> Password</label>
         <div class="password-field">
           <input type="password" id="password" name="password" placeholder="Enter Your Password" required>
@@ -66,6 +63,7 @@ session_start();
       }
     })();
   </script>
+  <script src="./includes/footer-link.php"></script>
 </body>
 
 </html>

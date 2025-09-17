@@ -1220,3 +1220,123 @@ body {
 .theme-card .text-muted {
   color: var(--text-muted) !important;
 }
+
+/* Popup message */
+
+.popup {
+  position: absolute;
+  background-color: white;
+  height: 80px;
+  min-width: 300px;
+  bottom: 100px;
+  right: 50px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  z-index: 15;
+  transform: translateX(100%);
+  animation: popup-come 0.5s linear forwards;
+}
+
+/* popup alert constructor left to right animation  */
+
+@keyframes popup-come {
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* popup alert icon  */
+
+.popup > .icon > i {
+  font-size: 2rem;
+  border-radius: 50%;
+  margin: 0 10px;
+  font-weight: 700;
+}
+
+/* popup alert progress anination */
+
+@keyframes popup-time {
+  100% {
+    width: 0;
+  }
+}
+
+/* popup alert for success */
+
+.popup-success {
+  background-color: #ddffdd;
+  color: green;
+}
+
+/* popup success alert icon border  */
+
+.popup-success > .icon > i {
+  background-color: #ddffdd;
+  color: green;
+  border: 3px solid green;
+  border-radius: 50%;
+}
+
+/* popup alert animation of success */
+
+.popup-success::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background-color: green;
+  animation: popup-time 2.5s 0.5s linear forwards;
+}
+
+/* popup alert for warning */
+
+.popup-warning {
+  background-color: #fff3cd;
+  color: orange;
+}
+
+/* popup alert for warning animation */
+
+.popup-warning::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background-color: orange;
+  animation: popup-time 2.5s 0.5s linear forwards;
+}
+
+/* popup alert for error  */
+
+.popup-error {
+  background-color: #f8d7da;
+  color: red;
+}
+
+/* popup alert animation of error  */
+
+.popup-error::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background-color: red;
+  animation: popup-time 2.5s 0.5s linear forwards;
+}
+
+/* popup alert text  */
+
+.popup > .title {
+  font-size: 1.2rem;
+  margin-right: 20px;
+}

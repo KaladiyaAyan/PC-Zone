@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+if (empty($_SESSION['user']) || empty($_SESSION['user_id'])) {
+  header('Location: ./login.php');
+  exit;
+}
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/../includes/db_connect.php';
 

@@ -25,11 +25,11 @@ h2 {
   font-size: 1.6rem;
 }
 
-.input-group {
+.inputGroup {
   margin-bottom: 1.2rem;
 }
 
-.input-group label {
+.inputGroup label {
   display: block;
   margin-bottom: 0.4rem;
   color: #495057;
@@ -37,13 +37,13 @@ h2 {
   font-size: 0.95rem;
 }
 
-.input-group i {
+.inputGroup i {
   margin-right: 8px;
   color: #0d6efd;
 }
 
-.input-group input {
-  width: 90%;
+.inputGroup input {
+  width: 100%;
   padding: 0.7rem 1rem;
   border: 1px solid #dee2e6;
   border-radius: 8px;
@@ -52,7 +52,7 @@ h2 {
   transition: all 0.2s ease;
 }
 
-.input-group input:focus {
+.inputGroup input:focus {
   border-color: #0d6efd;
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
 }

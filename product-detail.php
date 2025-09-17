@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+if (empty($_SESSION['user']) || empty($_SESSION['user_id'])) {
+  header('Location: ./login.php');
+  exit;
+}
+
 require('./includes/functions.php'); // provides getConnection(), formatPrice(), etc.
 
 // Get slug

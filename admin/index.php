@@ -1,9 +1,8 @@
 <?php
-// admin/index.php - simplified and secure
+// admin/index.php
 session_start();
-require_once __DIR__ . '/../includes/functions.php'; // provides getConnection(), formatPrice(), isLoggedIn()
+require('../includes/functions.php');
 
-// Admin protection
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ./login.php');
   exit;
@@ -49,9 +48,10 @@ $totalRevenue   = getTotalRevenue($conn);
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PC ZONE Dashboard</title>
-  <link rel="stylesheet" href="./assets/vendor/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="./assets/css/style.css">
+
+  <?php require('./includes/header-link.php'); ?>
+  <link rel="stylesheet" href="../fonts/remixicon.css">
+
   <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
     (function() {
@@ -64,6 +64,8 @@ $totalRevenue   = getTotalRevenue($conn);
 </head>
 
 <body>
+  <?php require('./includes/alert.php'); ?>
+
   <?php include './includes/header.php'; ?>
   <?php $current_page = 'dashboard';
   include './includes/sidebar.php'; ?>
@@ -199,10 +201,10 @@ $totalRevenue   = getTotalRevenue($conn);
         </div>
       </section>
 
-    </div> <!-- /.content-wrapper -->
+    </div>
   </main>
 
-  <script src="./assets/vendor/jquery/jquery-3.7.1.min.js"></script>
+  <?php require('./includes/footer-link.php') ?>
 </body>
 
 </html>
