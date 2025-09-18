@@ -1,15 +1,8 @@
 <?php
 session_start();
 
-if (empty($_SESSION['user']) || empty($_SESSION['user_id'])) {
-  header('Location: ./login.php');
-  exit;
-}
-
 require("./includes/db_connect.php");
 require("./includes/functions.php");
-
-
 
 $slug = trim($_GET['slug'] ?? '');
 
@@ -50,7 +43,7 @@ if ($slug === '') {
   <title>Products</title>
 
   <!-- include css links page  -->
-  <?php include('./includes/header-links.php') ?>
+  <?php include('./includes/header-link.php') ?>
 
   <style>
     <?php include('./assets/css/navbar.css'); ?>
@@ -124,6 +117,20 @@ if ($slug === '') {
       <?php endif; ?>
     </div>
   </div>
+
+  <script>
+    var title = document.querySelectorAll('.product-link');
+
+    title.forEach((title) => {
+      var text = title.textContent;
+      var maxLength = 50;
+      if (text.length > maxLength) {
+        var trimmedText = text.substr(0, maxLength);
+        trimmedText += '.....';
+        title.textContent = trimmedText;
+      }
+    });
+  </script>
 
 </body>
 

@@ -33,8 +33,7 @@ $sqlOrder = "
     o.delivered_date,
 
     u.user_id,
-    u.first_name,
-    u.last_name,
+    u.username,
     u.email,
     u.phone,
 
@@ -221,7 +220,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
           <div class="card mb-3 theme-card">
             <div class="card-header">Customer</div>
             <div class="card-body">
-              <div class="mb-1"><strong>Name:</strong> <?= h($order['first_name'] . ' ' . $order['last_name']); ?></div>
+              <div class="mb-1"><strong>Name:</strong> <?= h($order['username']) ?></div>
               <div class="mb-1"><strong>Email:</strong> <?= h($order['email']); ?></div>
               <div class="mb-1"><strong>Phone:</strong> <?= h($order['phone']); ?></div>
             </div>

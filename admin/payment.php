@@ -4,7 +4,7 @@ include './includes/functions.php';
 
 session_start();
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-  header('Location: ./login1.php');
+  header('Location: ./login.php');
   exit;
 }
 
@@ -31,13 +31,12 @@ $params = [];
 $types = '';
 
 if ($q !== '') {
-  $where[] = "(p.transaction_id LIKE ? OR CAST(p.order_id AS CHAR) LIKE ? OR u.email LIKE ? OR CONCAT(u.first_name,' ',u.last_name) LIKE ? )";
+  $where[] = "(p.transaction_id LIKE ? OR CAST(p.order_id AS CHAR) LIKE ? OR u.email LIKE ? OR u.username LIKE ? )";
   $like = '%' . $q . '%';
   $params[] = &$like;
   $params[] = &$like;
   $params[] = &$like;
-  $params[] = &$like;
-  $types .= 'ssss';
+  $types .= 'sss';
 }
 if ($status !== '') {
   $where[] = "p.payment_status = ?";
@@ -66,7 +65,7 @@ $total_count = (int)($meta['total'] ?? 0);
 $total_amount = (float)($meta['amount_sum'] ?? 0.0);
 
 // fetch page rows
-$sql = "SELECT p.payment_id, p.order_id, p.payment_method, p.transaction_id, p.amount, p.currency, p.payment_status, p.paid_at, p.created_at, u.first_name, u.last_name, u.email
+$sql = "SELECT p.payment_id, p.order_id, p.payment_method, p.transaction_id, p.amount, p.currency, p.payment_status, p.paid_at, p.created_at, u.username, u.email
         FROM payments p
         LEFT JOIN orders o ON o.order_id = p.order_id
         LEFT JOIN users u ON u.user_id = o.user_id
@@ -184,7 +183,7 @@ function page_url($p)
                   <tr class="product-row" role="button" data-payment-id="<?= (int)$p['payment_id'] ?>">
                     <td><?= (int)$p['payment_id'] ?></td>
                     <td><a href="order_view.php?id=<?= (int)$p['order_id'] ?>">#<?= (int)$p['order_id'] ?></a></td>
-                    <td><?= h($p['first_name'] . ' ' . $p['last_name']) ?><div class="muted-small"><?= h($p['email']) ?></div>
+                    <td><?= h($p['username']) ?><div class="muted-small"><?= h($p['email']) ?></div>
                     </td>
                     <td><?= h($p['payment_method']) ?></td>
                     <td><?= h($p['transaction_id'] ?: '—') ?></td>

@@ -21,7 +21,7 @@ if ($customer_id <= 0) {
 
 // customer
 $stmt = mysqli_prepare($conn, "
-  SELECT user_id, first_name, last_name, email, phone, date_of_birth, gender, 
+  SELECT user_id, username, email, phone, date_of_birth, gender, 
          status, created_at, updated_at
   FROM users WHERE user_id = ?
 ");
@@ -140,7 +140,7 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
 
       <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
-          <h3 class="mb-0"><?= h($customer['first_name'] . ' ' . $customer['last_name']) ?></h3>
+          <h3 class="mb-0"><?= h($customer['username']) ?></h3>
           <small class="text-muted">Customer since <?= h(date('d M Y', strtotime($customer['created_at']))) ?></small>
         </div>
         <div class="text-end">
@@ -158,10 +158,10 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
               <?php if (!empty($customer['profile_image']) && file_exists('../uploads/' . $customer['profile_image'])): ?>
                 <img src="../uploads/<?= h($customer['profile_image']) ?>" alt="profile" class="avatar-lg mb-2" style="object-fit:cover;">
               <?php else: ?>
-                <div class="avatar-lg mb-2"><?= strtoupper(substr($customer['first_name'], 0, 1) . substr($customer['last_name'], 0, 1)) ?></div>
+                <div class="avatar-lg mb-2"><?= strtoupper(substr($customer['username'], 0, 1)) ?></div>
               <?php endif; ?>
 
-              <h5 class="mt-1 mb-0"><?= h($customer['first_name'] . ' ' . $customer['last_name']) ?></h5>
+              <h5 class="mt-1 mb-0"><?= h($customer['username']) ?></h5>
               <div class="muted-small"><?= h($customer['email']) ?></div>
               <div class="muted-small mb-2"><?= h($customer['phone'] ?: '—') ?></div>
 

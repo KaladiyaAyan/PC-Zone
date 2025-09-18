@@ -17,8 +17,7 @@ $sql = "
         o.total_amount,
         o.order_status,
         u.user_id,
-        u.first_name,
-        u.last_name,
+        u.username,
         u.email,
         u.phone
     FROM orders o
@@ -103,7 +102,7 @@ $result = mysqli_query($conn, $sql);
               <?php while ($row = mysqli_fetch_assoc($result)): ?>
                 <tr>
                   <td>#<?php echo $row['order_id']; ?></td>
-                  <td><?php echo htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['last_name']); ?></td>
+                  <td><?php echo htmlspecialchars($row['username']) ?></td>
                   <td><?php echo htmlspecialchars($row['email']); ?></td>
                   <td><?php echo htmlspecialchars($row['phone']); ?></td>
                   <td><?php echo date("d M Y, h:i A", strtotime($row['order_date'])); ?></td>

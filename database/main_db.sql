@@ -5,8 +5,6 @@ USE pczone;
 -- 2. USERS TABLE (admin + normal users)
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
     username VARCHAR(150),
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -21,11 +19,11 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 -- Default admin (password = 'admin123', hashed)
-INSERT INTO users (first_name, last_name, email, password, date_of_birth, gender, phone, email_verified, role) VALUES
-  ('Admin', 'User', 'admin@gmail.com', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Male', '1234567890', 1, 'admin'),
-  ('John', 'Doe', 'jdoe@example.com', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Male', '1234567890', 1, 'user'),
-  ('Jane', 'Smith', 'jane@pczone', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Female', '1234567890', 1, 'user'),
-  ('Maya', 'Singh', 'maya@singh', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Female', '1234567890', 1, 'user');
+INSERT INTO users (username, email, password, date_of_birth, gender, phone, email_verified, role) VALUES
+  ('admin', 'admin@gmail.com', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Male', '1234567890', 1, 'admin'),
+  ('John', 'jdoe@example.com', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Male', '1234567890', 1, 'user'),
+  ('Jane', 'jane@pczone', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Female', '1234567890', 1, 'user'),
+  ('Maya', 'maya@singh', '$2y$10$O3ypmFHHIA50WUEFe6BWD.bH4jRaXvxh2j0ZQHOfyYY3k/ckWhYOu', '1990-01-01', 'Female', '1234567890', 1, 'user');
 
 -- 3. CATEGORIES (top-level + subcategories via parent_id)
 CREATE TABLE IF NOT EXISTS categories (
@@ -422,7 +420,6 @@ INSERT INTO products (product_name, sku, slug, description, price, discount, sto
      null,
      null,
      'both',FALSE, TRUE);
-  
 
 -- user_address
 CREATE TABLE IF NOT EXISTS user_address (

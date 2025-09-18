@@ -4,7 +4,7 @@ include './includes/functions.php';
 
 session_start();
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-  header('Location: ./login1.php');
+  header('Location: ./login.php');
   exit;
 }
 
@@ -79,7 +79,7 @@ $payments_summary = mysqli_fetch_all($res, MYSQLI_ASSOC);
 mysqli_stmt_close($stmt);
 
 // 6) Top customers
-$stmt = mysqli_prepare($conn, "SELECT u.user_id, CONCAT(u.first_name,' ',u.last_name) AS name, u.email, COUNT(o.order_id) AS orders_count, COALESCE(SUM(o.total_amount),0) AS total_spent
+$stmt = mysqli_prepare($conn, "SELECT u.user_id, u.username AS name, u.email, COUNT(o.order_id) AS orders_count, COALESCE(SUM(o.total_amount),0) AS total_spent
   FROM orders o
   JOIN users u ON u.user_id = o.user_id
   WHERE o.order_date BETWEEN ? AND ?

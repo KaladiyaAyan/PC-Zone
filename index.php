@@ -1,11 +1,6 @@
 <?php
 session_start();
 
-if (empty($_SESSION['user']) || empty($_SESSION['user_id'])) {
-  header('Location: ./login.php');
-  exit;
-}
-
 require('./includes/db_connect.php');
 require('./includes/functions.php');
 
@@ -66,18 +61,11 @@ require('./includes/functions.php');
 </head>
 
 <body>
-
-
   <?php
   require('./includes/alert.php');
   require('./includes/navbar.php');
-  ?>
-
-  <?php
-
   // Get featured products (limit 8)
   $featuredProducts = getFeaturedProducts(4, true);
-
   ?>
 
   <main class="container mt-4">
@@ -111,8 +99,8 @@ require('./includes/functions.php');
           $name  = $product['product_name'] ?? '';
           $desc  = $product['description'] ?? '';
           $img   = $product['main_image'] ?? ($product['image_path'] ?? 'placeholder.jpg');
-          $avg   = round(floatval($product['avg_rating'] ?? 0) * 2) / 2;
-          $reviews = (int)($product['review_count'] ?? 0);
+          // $avg   = round(floatval($product['avg_rating'] ?? 0) * 2) / 2;
+          // $reviews = (int)($product['review_count'] ?? 0);
           $price = $product['price'];
 
           // NEW: preferred product URL by slug, fallback to id
@@ -131,15 +119,6 @@ require('./includes/functions.php');
                 <h5 class="card-title mb-1">
                   <a href="product-detail.php?slug=<?= $slug ?>" class="product-link"><?= e($name) ?></a>
                 </h5>
-
-                <div class="mb-1">
-                  <span class="text-warning">
-                    <?php for ($i = 1; $i <= 5; $i++): ?>
-                      <i class="fa fa-star<?= $i <= $avg ? '' : '-o' ?>"></i>
-                    <?php endfor; ?>
-                  </span>
-                  <span class="text-muted small ms-2">({{ $reviews }})</span>
-                </div>
 
                 <p class="card-text small text-muted mb-2"><?= e(mb_strimwidth($desc, 0, 80, '…')) ?></p>
 
@@ -240,8 +219,6 @@ require('./includes/functions.php');
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
 
@@ -279,6 +256,21 @@ require('./includes/functions.php');
 
   </main>
 
+  <script>
+    var title = document.querySelectorAll('.product-link');
+
+    title.forEach((title) => {
+      var text = title.textContent;
+      var maxLength = 50;
+      if (text.length > maxLength) {
+        var trimmedText = text.substr(0, maxLength);
+        trimmedText += '.....';
+        title.textContent = trimmedText;
+      }
+    });
+  </script>
+
+  <!-- include js link component page -->
   <?php include './includes/footer-link.php'; ?>
 </body>
 

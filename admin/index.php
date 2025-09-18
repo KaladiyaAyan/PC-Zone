@@ -124,7 +124,7 @@ $totalRevenue   = getTotalRevenue($conn);
             </thead>
             <tbody>
               <?php
-              $sql = "SELECT o.order_id, COALESCE(CONCAT(u.first_name, ' ', u.last_name), 'Guest') AS customer_name, o.total_amount, o.order_date, o.order_status
+              $sql = "SELECT o.order_id, u.username AS customer_name, o.total_amount, o.order_date, o.order_status
                       FROM orders o
                       LEFT JOIN users u ON o.user_id = u.user_id
                       ORDER BY o.order_date DESC

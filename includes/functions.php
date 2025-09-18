@@ -13,14 +13,6 @@ function e($v)
   return htmlspecialchars($v ?? '');
 }
 
-// function clip($v, $len = 80)
-// {
-//   $s = (string)($v ?? '');
-//   return function_exists('mb_substr')
-//     ? (mb_strlen($s) > $len ? mb_substr($s, 0, $len) . '…' : $s)
-//     : (strlen($s) > $len ? substr($s, 0, $len) . '…' : $s);
-// }
-
 function getConnection()
 {
   $host = "localhost";

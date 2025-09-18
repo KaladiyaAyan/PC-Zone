@@ -4,7 +4,7 @@ include './includes/functions.php';
 
 session_start();
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-  header('Location: ./login1.php');
+  header('Location: ./login.php');
   exit;
 }
 
@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action']) && ctype_d
 /* Count total matching customers */
 if ($search !== '') {
   $like = '%' . $search . '%';
-  $cnt_sql = "SELECT COUNT(*) FROM users WHERE (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ?)";
+  $cnt_sql = "SELECT COUNT(*) FROM users WHERE (username LIKE ? OR email LIKE ? OR phone LIKE ?)";
   $stmt = mysqli_prepare($conn, $cnt_sql);
-  mysqli_stmt_bind_param($stmt, 'ssss', $like, $like, $like, $like);
+  mysqli_stmt_bind_param($stmt, 'sss', $like, $like, $like);
 } else {
   $cnt_sql = "SELECT COUNT(*) FROM users";
   $stmt = mysqli_prepare($conn, $cnt_sql);
@@ -58,8 +58,7 @@ if ($search !== '') {
   $sql = "
     SELECT
       u.user_id,
-      u.first_name,
-      u.last_name,
+      u.username,
       u.email,
       u.phone,
       u.status,
@@ -69,19 +68,18 @@ if ($search !== '') {
       COALESCE(SUM(o.total_amount), 0) AS total_purchases
     FROM users u
     LEFT JOIN orders o ON o.user_id = u.user_id
-    WHERE (u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)
+    WHERE (u.username LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)
     GROUP BY u.user_id
     ORDER BY (MAX(o.created_at) IS NULL) ASC, MAX(o.created_at) DESC, u.created_at DESC
     LIMIT ?, ?
   ";
   $stmt = mysqli_prepare($conn, $sql);
-  mysqli_stmt_bind_param($stmt, 'ssssii', $like, $like, $like, $like, $offset, $perPage);
+  mysqli_stmt_bind_param($stmt, 'sssii', $like, $like, $like, $offset, $perPage);
 } else {
   $sql = "
     SELECT
       u.user_id,
-      u.first_name,
-      u.last_name,
+      u.username,
       u.email,
       u.phone,
       u.status,
@@ -157,7 +155,7 @@ $res = mysqli_stmt_get_result($stmt);
             ?>
               <tr>
                 <td><?= $i++; ?></td>
-                <td><?= h($r['first_name'] . ' ' . $r['last_name']); ?></td>
+                <td><?= h($r['username']) ?></td>
                 <td><?= h($r['email']); ?></td>
                 <td><?= h($r['phone'] ?: '—'); ?></td>
                 <td><?= (int)$r['orders_count']; ?></td>

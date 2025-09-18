@@ -139,7 +139,6 @@ if ($customerId) {
           </li>
 
           <li class="nav-item"><a class="nav-link fw-semibold" href="index.php#custom">Custom PC</a></li>
-          <li class="nav-item"><a class="nav-link fw-semibold" href="/pages/prebuilt-pc.php">Pre-built PC</a></li>
           <li class="nav-item"><a class="nav-link fw-semibold" href="index.php#contact">Contact Us</a></li>
           <li class="nav-item"><a class="nav-link fw-semibold" href="/pages/about.php">About Us</a></li>
         </ul>
