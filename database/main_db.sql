@@ -749,16 +749,18 @@ INSERT INTO product_reviews (product_id, user_id, rating, comment) VALUES
 ((SELECT product_id FROM products WHERE sku='CPU-INT-i7-13700K'), 5, 1, 'Terrible processor');
 
 -- CART ITEMS
-CREATE TABLE IF NOT EXISTS cart_items (
+CREATE TABLE IF NOT EXISTS cart (
     cart_item_id  INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     product_id INT,
     quantity INT DEFAULT 1,
+    product_name varchar(255) NOT NULL,
+    price int(11) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id)  REFERENCES products(product_id)  ON DELETE CASCADE
 );
-INSERT INTO cart_items (user_id, product_id, quantity) VALUES
+INSERT INTO cart (user_id, product_id, quantity) VALUES
 ((SELECT user_id FROM users WHERE email='alice@johnson.com'), (SELECT product_id FROM products WHERE product_name='Laptop'), 1),
 ((SELECT user_id FROM users WHERE email='jdoe@example.com'), (SELECT product_id FROM products WHERE product_name='Smartphone'), 1),
 ((SELECT user_id FROM users WHERE email='bob@smith.com'), (SELECT product_id FROM products WHERE product_name='Tablet'), 1),

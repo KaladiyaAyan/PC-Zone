@@ -4,8 +4,8 @@ session_start();
 require("./includes/db_connect.php");
 require("./includes/functions.php"); // For the e() function
 
-// Determine platform from URL, defaulting to 'amd'
-$platform = in_array($_GET['platform'] ?? 'amd', ['amd', 'intel']) ? $_GET['platform'] : 'amd';
+// Determine platform from URL, defaulting to 'intel'
+$platform = isset($_GET['platform']) ? $_GET['platform'] : 'intel';
 
 // Define the parts for the PC builder
 $parts = [
@@ -95,10 +95,13 @@ mysqli_close($conn);
 </head>
 
 <body>
+
+
+  <?php include('./includes/alert.php'); ?>
   <?php include('./includes/navbar.php'); ?>
 
   <main class="container my-4">
-    <form id="buildForm" action="/add_to_cart.php" method="POST" class="custom-build-row">
+    <form id="buildForm" action="addtocart.php" method="POST" class="custom-build-row">
       <div class="left-col">
         <div class="left-hero" aria-hidden="true">
           <img src="./assets/images/<?= e($platform) ?>_custom_build.jpg" alt="<?= e($platform) ?> build image">
@@ -259,6 +262,7 @@ mysqli_close($conn);
       recalculateTotal(); // Calculate total on page load
     });
   </script>
+  <script src="./assets/js/script.js"></script>
 </body>
 
 </html>

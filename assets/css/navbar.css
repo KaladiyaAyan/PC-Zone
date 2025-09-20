@@ -1,91 +1,282 @@
-/* (keep your styles unchanged) */
-.top-bar {
-  background: linear-gradient(to right, #2c3e50, #4a6580);
-  color: #fff;
-  padding: 8px 0;
+/* header */
+.site-header {
+  background-color: #fff;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
+  /* A light, clean border */
+  position: sticky;
+  top: 0;
+  z-index: 1020;
 }
 
-.top-bar a {
-  color: #fff;
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Logo Styling */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #212529;
+  /* Dark text color */
   text-decoration: none;
-  font-size: 14px;
 }
 
-.top-bar a:hover {
-  color: #ff6b6b;
+.header-logo .ri-cpu-line {
+  color: #c7511f;
 }
 
-.top-red-btn {
-  background: #dc3545;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.top-red-btn:hover {
-  background: #bb2d3b;
-  color: #fff;
-}
-
-.navbar {
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.nav-link {
-  color: #2c3e50 !important;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: #dc3545 !important;
-}
-
-.categories-dropdown {
-  min-width: 240px;
-  max-width: 360px;
-}
-
-.dropdown-submenu {
+/* Search Bar Styling */
+.header-search {
+  flex-grow: 1;
+  /* Allows search bar to take available space */
   position: relative;
 }
 
-.dropdown-submenu > .dropdown-menu {
-  margin-left: 0.1rem;
-  top: 0;
+.header-search .search-input {
+  width: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 50px;
+  /* Pill-shaped search bar */
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  /* Padding for text and icon */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.header-search .search-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+  outline: none;
+}
+
+.header-search .search-icon {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+/* User Actions (Account, Cart) Styling */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.action-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #343a40;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.action-link:hover {
+  color: #111;
+  /* Blueish hover color */
+}
+
+.action-link i {
+  font-size: 1.6rem;
+}
+
+/* Cart-specific styles */
+.cart-link {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: #dc3545;
+  /* Red badge */
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- New Top Bar Styles --- */
+.top-header-bar {
+  background-color: #232f3e;
+  /* A dark, modern blue/slate color */
+  color: #ced4da;
+  /* Light gray text for contrast */
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+}
+
+.top-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Styles for the link groups */
+.top-bar-contact,
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* General link styling for the top bar */
+.top-header-bar a {
+  color: inherit;
+  /* Use the parent's light gray color */
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.2s ease;
+}
+
+.top-header-bar a:hover {
+  color: #fff;
+  /* Make links brighter on hover */
+}
+
+/* Logout button styled to look like a link */
+.logout-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.2s ease;
+}
+
+.logout-button:hover {
+  color: #fff;
+}
+
+/* --- New Main Navigation Styles --- */
+.site-navigation {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0;
+}
+
+.site-navigation .navbar-toggler {
+  background-color: transparent !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+
+/* Make the hamburger icon lines white */
+.site-navigation .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280, 0, 0, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+.main-nav-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.main-nav-item {
+  position: relative;
+  /* Required for dropdowns */
+}
+
+.main-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  color: #212529;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.main-nav-link:hover {
+  background-color: #2e3742ff;
+  color: #fff;
+}
+
+/* "All Categories" button standout style */
+.all-categories-link {
+  background-color: #2e3742ff;
+  /* Your original dark color */
+  color: #fff;
+}
+
+.all-categories-link:hover {
+  background-color: #34495e;
+  color: #fff;
+}
+
+/* --- Simple CSS Dropdown (No JS Needed) --- */
+.dropdown-menu {
+  display: none;
+  /* Hidden by default */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 240px;
+  list-style: none;
+  padding: 0.5rem 0;
+  z-index: 1000;
+}
+
+/* Show dropdown on parent hover */
+.main-nav-item:hover > .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #333;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Sub-menu styling */
+.submenu {
+  top: -0.5rem;
+  /* Align with parent item */
   left: 100%;
 }
 
-.site-nav {
-  position: sticky;
-  top: 0;
-  z-index: 1100;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-@media (max-width: 992px) {
-  .dropdown-submenu > .dropdown-menu {
-    left: 0;
-    position: relative;
-    margin-left: 0;
-  }
-}
-
-.dropdown-menu .fw-semibold {
-  font-weight: 600;
-}
-
-@media (min-width: 992px) {
-  .dropdown-submenu > .dropdown-menu {
-    display: none;
-  }
-
-  .dropdown-submenu:hover > .dropdown-menu {
-    display: block;
-  }
+/* Custom arrow for items with submenus */
+.dropdown-item.has-submenu::after {
+  content: "\25B8";
+  /* Right-pointing triangle character */
+  font-size: 0.8em;
+  color: #888;
+  margin-left: 1rem;
 }

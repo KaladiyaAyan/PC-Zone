@@ -15,73 +15,30 @@ require('./includes/functions.php');
 
   <!-- include css links page  -->
   <link rel="stylesheet" href="./assets/css/contact.css">
+  <link rel="stylesheet" href="./assets/css/navbar.css">
   <?php include('./includes/header-link.php') ?>
 
-  <style>
-    <?php include('./assets/css/navbar.css'); ?>
-
-    /* Custom PC build cards */
-    .build-card-modern {
-      border: 1px solid var(--bs-border-color);
-      border-radius: 1rem;
-      overflow: hidden;
-      transition: transform .18s ease, box-shadow .18s ease;
-      background: #fff;
-    }
-
-    .build-card-modern:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 1rem 2rem rgba(0, 0, 0, .08);
-    }
-
-    .build-card-modern .brand-badge {
-      position: absolute;
-      top: .75rem;
-      left: .75rem;
-      backdrop-filter: blur(6px);
-    }
-
-    .build-card-modern .price {
-      font-weight: 700;
-    }
-
-    .build-card-modern .specs li {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      margin: .25rem 0;
-      font-size: .95rem;
-    }
-
-    .build-card-modern .custom-build-img {
-      aspect-ratio: 16/9;
-      padding: 12px 40px;
-    }
-  </style>
 </head>
 
 <body>
   <?php
   require('./includes/alert.php');
   require('./includes/navbar.php');
-  // Get featured products (limit 8)
   $featuredProducts = getFeaturedProducts(4, true);
   ?>
 
   <main class="container mt-4">
-    <!-- Hero Section -->
-    <div class="row">
-      <div class="col-12">
-        <div class="jumbotron bg-primary text-white p-5 rounded">
-          <h1 class="display-4">Welcome to PC ZONE</h1>
-          <p class="lead">Build your dream PC with premium components and expert guidance.</p>
-          <a class="btn btn-light btn-lg me-3" href="product.php" role="button">Shop Now</a>
-          <a class="btn btn-outline-light btn-lg" href="custom-pc.php" role="button">Build Custom PC</a>
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1>Welcome to PC Zone</h1>
+        <p>Build your dream PC with premium components and expert guidance.</p>
+        <div class="hero-buttons">
+          <a class="btn btn-light" href="product.php" role="button">Shop Now</a>
+          <a class="btn btn-outline-light" href="custom-pc.php" role="button">Build Custom PC</a>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Featured Products -->
     <div class="row mt-5">
       <div class="col-12">
         <h2 class="fw-bold text-center mb-4">Featured Products</h2>
@@ -95,42 +52,52 @@ require('./includes/functions.php');
         </div>
       <?php else: ?>
         <?php foreach ($featuredProducts as $product):
-          $pid   = (int)($product['product_id'] ?? 0);
-          $name  = $product['product_name'] ?? '';
-          $desc  = $product['description'] ?? '';
-          $img   = $product['main_image'] ?? ($product['image_path'] ?? 'placeholder.jpg');
-          // $avg   = round(floatval($product['avg_rating'] ?? 0) * 2) / 2;
-          // $reviews = (int)($product['review_count'] ?? 0);
-          $price = $product['price'];
+          // Logic to get product details
+          $pid = (int)$product['product_id'];
+          $name = $product['product_name'];
+          $slug = $product['slug'];
+          $desc = $product['description'] ?? '';
+          $price = (float)$product['price'];
+          $discount = (float)$product['discount'];
+          $finalPrice = $price - ($price * $discount / 100);
 
-          // NEW: preferred product URL by slug, fallback to id
-          $slug = trim($product['slug'] ?? '');
-          $productUrl = $slug !== ''
-            ? 'product-detail.php?slug=' . urlencode($slug)
-            : 'product-detail.php?id=' . $pid; // fallback if slug missing
+          // Image fallback logic
+          $img_filename = $product['main_image'] ?? '';
+          $imgPath = 'assets/images/no-image.png';
+          if (!empty($img_filename)) {
+            if (file_exists('uploads/' . $img_filename)) {
+              $imgPath = 'uploads/' . $img_filename;
+            } elseif (file_exists('assets/images/products/' . $img_filename)) {
+              $imgPath = 'assets/images/products/' . $img_filename;
+            }
+          }
         ?>
           <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card h-100 shadow-sm border-0 product-card">
-              <a href="product-detail.php?slug=<?= $slug ?>">
-                <img src="assets/images/products/<?= e($img) ?>" class="card-img-top p-3" alt="<?= e($name) ?>">
+            <div class="card h-100 border-0 shadow-sm">
+              <a href="product-detail.php?slug=<?= e($slug) ?>" class="product-image-container">
+                <img src="<?= e($imgPath) ?>" alt="<?= e($name) ?>">
               </a>
-
               <div class="card-body d-flex flex-column">
-                <h5 class="card-title mb-1">
-                  <a href="product-detail.php?slug=<?= $slug ?>" class="product-link"><?= e($name) ?></a>
+                <h5 class="card-title">
+                  <a href="product-detail.php?slug=<?= e($slug) ?>" class="product-title-link"><?= e($name) ?></a>
                 </h5>
-
-                <p class="card-text small text-muted mb-2"><?= e(mb_strimwidth($desc, 0, 80, '…')) ?></p>
-
-                <div class="mb-2">
-                  <span class="fw-bold text-danger"><?= formatPrice($price) ?></span>
-                  <?php if (!empty($product['discount']) && $product['discount'] > 0): ?>
-                    <span class="text-muted text-decoration-line-through ms-2"><?= formatPrice($product['price']) ?></span>
-                    <span class="badge bg-success ms-2"><?= intval($product['discount']) ?>% off</span>
+                <p class="card-text small text-muted mb-3"><?= e(mb_strimwidth($desc, 0, 80, '…')) ?></p>
+                <div class="mt-auto">
+                  <p class="fs-5 fw-bold text-dark m-0 mb-2">
+                    <?= formatPrice($finalPrice) ?>
+                    <?php if ($discount > 0): ?>
+                      <span class="text-muted text-decoration-line-through small ms-1"><?= formatPrice($price) ?></span>
+                    <?php endif; ?>
+                  </p>
+                  <?php if ((int)$product['stock'] > 0): ?>
+                    <form action="addtocart.php" method="POST" class="d-grid">
+                      <input type="hidden" name="product_id" value="<?= $pid ?>">
+                      <button type="submit" class="btn btn-add-to-cart">Add to Cart</button>
+                    </form>
+                  <?php else: ?>
+                    <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
                   <?php endif; ?>
                 </div>
-
-                <a href="" class="btn btn-sm btn-warning mt-auto">Add to Cart</a>
               </div>
             </div>
           </div>
@@ -138,126 +105,104 @@ require('./includes/functions.php');
       <?php endif; ?>
     </div>
 
+
     <!-- Custom PC Build Section -->
-    <div class="custom-build-section" id="custom">
-      <div class="text-center mb-5">
-        <h2 class="fw-bold">Custom PC Builds</h2>
-        <p class="text-muted">Choose your preferred processor and let us build your perfect gaming rig</p>
-      </div>
-
-      <div class="row g-4">
-        <!-- Intel Build -->
-        <div class="col-md-6">
-          <div class="card build-card-modern  shadow-sm position-relative h-100">
-            <div class="custom-build-img bg-light">
-              <img src="assets/images/intel_custom_build.jpg"
-                onerror="this.src='assets/images/placeholder-intel-build.jpg'"
-                alt="Intel Custom PC Build" class="w-100 h-100 object-fit-cover">
-            </div>
-
-            <span class="brand-badge badge rounded-pill bg-light border text-dark fw-semibold">
-              Intel
-            </span>
-
-            <div class="card-body">
-              <h3 class="h5 fw-semibold mb-2">Intel Custom Builds</h3>
-              <p class="text-secondary mb-3">
-                Latest Intel CPUs for strong single-core performance and smooth gaming.
-              </p>
-
-              <div class="d-flex align-items-baseline gap-2 mb-2">
-                <span class="price h5 mb-0">Starting from ₹45000</span>
-              </div>
-
-              <ul class="specs list-unstyled text-secondary mb-3">
-                <li><i class="bi bi-check-circle-fill text-success"></i> 12th/13th/14th Gen options</li>
-                <li><i class="bi bi-check-circle-fill text-success"></i> DDR5 support</li>
-                <li><i class="bi bi-check-circle-fill text-success"></i> PCIe 5.0 ready</li>
-                <li><i class="bi bi-check-circle-fill text-success"></i> 2-year warranty</li>
-              </ul>
-
-              <a href="custom-pc.php?platform=intel" class="btn btn-primary w-100">
-                Build Intel PC
-              </a>
-            </div>
-          </div>
+    <section class="build-section" id="custom">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Custom PC Builds</h2>
+          <p class="text-muted">Choose your platform and create your perfect rig.</p>
         </div>
 
-        <!-- AMD Build -->
-        <div class="col-md-6">
-          <div class="card build-card-modern shadow-sm position-relative h-100">
-            <div class="custom-build-img bg-light">
-              <img src="assets/images/amd_custom_build.jpg"
-                onerror="this.src='assets/images/placeholder-amd-build.jpg'"
-                alt="AMD Custom PC Build" class="w-100 h-100 object-fit-cover">
-            </div>
-
-            <span class="brand-badge badge rounded-pill bg-light border text-dark fw-semibold">
-              AMD
-            </span>
-
-            <div class="card-body">
-              <h3 class="h5 fw-semibold mb-2">AMD Custom Builds</h3>
-              <p class="text-secondary mb-3">
-                Ryzen multi-core power for creation and gaming at great value.
-              </p>
-
-              <div class="d-flex align-items-baseline gap-2 mb-2">
-                <span class="price h5 mb-0">Starting from ₹42000</span>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="build-card">
+              <img src="assets/images/intel_custom_build.jpg" alt="Intel Custom PC Build">
+              <div class="card-body">
+                <h3 class="fw-bold">Intel Builds</h3>
+                <p class="text-muted">Optimized for high-end gaming and single-core performance.</p>
+                <ul class="specs-list">
+                  <li><i class="ri-checkbox-circle-line"></i> Latest Gen Options</li>
+                  <li><i class="ri-checkbox-circle-line"></i> DDR5 Memory Support</li>
+                  <li><i class="ri-checkbox-circle-line"></i> PCIe 5.0 Ready</li>
+                </ul>
+                <a href="custom-pc.php?platform=intel" class="btn btn-add-to-cart d-block">Build Intel PC</a>
               </div>
+            </div>
+          </div>
 
-              <ul class="specs list-unstyled text-secondary mb-3">
-                <li><i class="bi bi-check-circle-fill text-success"></i> Ryzen 5000/7000 series</li>
-                <li><i class="bi bi-check-circle-fill text-success"></i> High core counts</li>
-                <li><i class="bi bi-check-circle-fill text-success"></i> Strong price-performance</li>
-                <li><i class="bi bi-check-circle-fill text-success"></i> 2-year warranty</li>
-              </ul>
-
-              <a href="custom-pc.php?platform=amd" class="btn btn-danger w-100">
-                Build AMD PC
-              </a>
+          <div class="col-md-6">
+            <div class="build-card">
+              <img src="assets/images/amd_custom_build.jpg" alt="AMD Custom PC Build">
+              <div class="card-body">
+                <h3 class="fw-bold">AMD Builds</h3>
+                <p class="text-muted">Excellent multi-core power for streaming and content creation.</p>
+                <ul class="specs-list">
+                  <li><i class="ri-checkbox-circle-line"></i> Ryzen 7000 Series</li>
+                  <li><i class="ri-checkbox-circle-line"></i> High Core Counts</li>
+                  <li><i class="ri-checkbox-circle-line"></i> Great Value & Performance</li>
+                </ul>
+                <a href="custom-pc.php?platform=amd" class="btn btn-add-to-cart d-block">Build AMD PC</a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!--  Contact US Section -->
-    <div class="contact-container" id="contact">
-      <div class="form-section">
-        <h2>Contact Us</h2>
-        <form action="#" method="POST">
-          <div class="mb-3">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" class="form-control" placeholder="Your full name..." required>
+    <section class="contact-section mt-5" id="contact">
+      <div class="container">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-5 contact-info">
+            <h2>Get In Touch</h2>
+            <p>Have questions about a product or a custom build? We're here to help.</p>
+            <ul class="contact-details mt-4">
+              <li>
+                <i class="ri-phone-fill"></i>
+                <span>+1 234 567 8900</span>
+              </li>
+              <li>
+                <i class="ri-mail-fill"></i>
+                <span>support@pczone.com</span>
+              </li>
+              <li>
+                <i class="ri-map-pin-fill"></i>
+                <span>Surendranagar, Gujarat, India</span>
+              </li>
+            </ul>
           </div>
 
-          <div class="mb-3">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" class="form-control" placeholder="Your email..." required>
+          <div class="col-lg-7">
+            <form action="#" method="POST" class="contact-form">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <input type="text" name="name" class="form-control" placeholder="Your Full Name" required>
+                </div>
+                <div class="col-md-6">
+                  <input type="email" name="email" class="form-control" placeholder="Your Email" required>
+                </div>
+                <div class="col-12">
+                  <input type="text" name="subject" class="form-control" placeholder="Subject" required>
+                </div>
+                <div class="col-12">
+                  <textarea name="message" rows="5" class="form-control" placeholder="Write your message here..." required></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-add-to-cart w-100">Send Message</button>
+                </div>
+              </div>
+            </form>
           </div>
-
-          <div class="mb-3">
-            <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" class="form-control" placeholder="Subject..." required>
-          </div>
-
-          <div class="mb-3">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="5" class="form-control" placeholder="Write your message here..." required></textarea>
-          </div>
-
-          <div class="d-grid">
-            <button type="submit" class="submit-btn">Send Message</button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </section>
 
   </main>
 
+  <?php include './includes/footer.php'; ?>
+
   <script>
-    var title = document.querySelectorAll('.product-link');
+    var title = document.querySelectorAll('.product-title-link');
 
     title.forEach((title) => {
       var text = title.textContent;

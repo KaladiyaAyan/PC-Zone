@@ -63,6 +63,7 @@ session_start();
       }
     })();
   </script>
+  <script src="./assets/js/script.js"></script>
   <script src="./includes/footer-link.php"></script>
 </body>
 

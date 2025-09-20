@@ -1,85 +1,60 @@
-<footer class="footer bg-dark text-white border-top pt-5 pb-4">
+<footer class="site-footer">
   <div class="container">
-    <div class="row gy-4">
+    <div class="footer-content">
+      <div class="row g-5">
 
-      <!-- Shop Categories -->
-      <div class="col-md-4">
-        <h5 class="mb-3">🛍️ Shop Categories</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">Custom PC</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">PC Components</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">PC Peripherals</a>
-          </li>
-        </ul>
+        <!-- Column 1: About & Social -->
+        <div class="col-lg-4">
+          <div class="footer-about">
+            <a href="index.php" class="footer-logo">
+              <i class="ri-cpu-line"></i>
+              <span>PC Zone</span>
+            </a>
+            <p>Your one-stop shop for premium PC components and expert-guided custom builds. Based in Surendranagar, we're dedicated to helping you build your dream rig.</p>
+            <div class="footer-social mt-4">
+              <a href="https://facebook.com" target="_blank"><i class="ri-facebook-box-fill"></i></a>
+              <a href="https://twitter.com" target="_blank"><i class="ri-twitter-x-fill"></i></a>
+              <a href="https://instagram.com" target="_blank"><i class="ri-instagram-fill"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Shop Links -->
+        <div class="col-lg-2 col-md-4">
+          <h5 class="footer-title">Shop</h5>
+          <ul class="footer-links">
+            <li><a href="product.php">All Products</a></li>
+            <li><a href="product.php?slug=processor">Processors</a></li>
+            <li><a href="product.php?slug=graphics-card">Graphics Cards</a></li>
+            <li><a href="custom-pc.php">Custom Builds</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Support Links -->
+        <div class="col-lg-3 col-md-4">
+          <h5 class="footer-title">Support</h5>
+          <ul class="footer-links">
+            <li><a href="index.php#contact">Contact Us</a></li>
+            <li><a href="#">Track Your Order</a></li>
+            <li><a href="#">FAQs</a></li>
+            <li><a href="#">Warranty</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Company Links -->
+        <div class="col-lg-3 col-md-4">
+          <h5 class="footer-title">Company</h5>
+          <ul class="footer-links">
+            <li><a href="#">About PC Zone</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
       </div>
-
-      <!-- Information -->
-      <div class="col-md-4">
-        <h5 class="mb-3">📄 Information</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">Contact Us</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">About Us</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">Terms & Conditions</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">Privacy Policy</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">Shipping Policy</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link p-0 text-white-50 hover-white" href="#">Refund & Cancellation Policy</a>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Contact Info -->
-      <div class="col-md-4">
-        <h5 class="mb-3">📞 Contact Us</h5>
-        <ul class="list-unstyled text-white-50 small">
-          <li class="mb-2">
-            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
-            305, 3rd Floor, Gedore House, Nehru Place, New Delhi 110019
-          </li>
-          <li class="mb-2">
-            <i class="fas fa-phone-alt me-2 text-primary"></i>
-            +91-7011805001, 9403890290
-          </li>
-          <li class="mb-2">
-            <i class="fas fa-clock me-2 text-primary"></i>
-            11am – 6pm (Mon–Sat), Sunday Closed
-          </li>
-          <li>
-            <i class="fas fa-envelope me-2 text-primary"></i>
-            support@modxcomputers.com
-          </li>
-        </ul>
-      </div>
-
-    </div>
-    <hr>
-    <div class="text-center">
-      <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
     </div>
 
+    <div class="footer-bottom">
+      &copy; <?= date('Y') ?> PC Zone. All Rights Reserved.
+    </div>
   </div>
 </footer>
-
-
-
-<script src="assets/js/jquery/jquery-3.6.0.min.js"></script>
-<script src="assets/js/bootstrap/bootstrap.bundle.min.js"></script>
-<script src="assets/js/custom.js"></script>
-</body>
-
-</html>

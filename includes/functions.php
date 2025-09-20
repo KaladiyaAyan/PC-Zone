@@ -93,7 +93,7 @@ function getCartItems($userId)
   $sql = "SELECT ci.cart_item_id, ci.quantity, 
                  p.product_id, p.product_name, p.price, p.discount,
                  p.main_image
-          FROM cart_items ci
+          FROM cart ci
           JOIN products p ON ci.product_id = p.product_id
           WHERE ci.user_id = ?";
 
@@ -111,7 +111,7 @@ function getCartTotal($userId)
 {
   $conn = getConnection();
   $sql = "SELECT COALESCE(SUM(ci.quantity * (p.price - (p.price * (p.discount/100)))), 0) AS total
-          FROM cart_items ci
+          FROM cart ci
           JOIN products p ON ci.product_id = p.product_id
           WHERE ci.user_id = ?";
 
