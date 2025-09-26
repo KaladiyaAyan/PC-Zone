@@ -1,18 +1,20 @@
 <?php
-
-
+// Function to determine if a nav link is active
 function active($name)
 {
-  // prefer explicit page marker if set
+  // Prefer explicit page marker if set
   if (!empty($GLOBALS['current_page'])) {
     return ($GLOBALS['current_page'] === $name) ? 'active' : '';
   }
-  // fallback to filename check
+  // Fallback to filename check
   return (basename($_SERVER['PHP_SELF']) === $name . '.php') ? 'active' : '';
 }
-
-
 ?>
+
+<link rel="stylesheet" href="./assets/css/style.css">
+<!-- Link to the dedicated sidebar stylesheet -->
+<link rel="stylesheet" href="./assets/css/sidebar.css">
+
 <aside id="sidebar" class="sidebar">
   <div class="admin-profile d-flex align-items-center px-3 mb-3">
     <img src="./assets/images/admin.jpg" alt="avatar" class="admin-avatar">
@@ -28,32 +30,26 @@ function active($name)
       <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
       <span class="label">Dashboard</span>
     </a>
-
     <a href="./product.php" class="<?= active('product') ?>">
       <span class="icon"><i class="fas fa-boxes"></i></span>
       <span class="label">Products</span>
     </a>
-
     <a href="./categories.php" class="<?= active('categories') ?>">
       <span class="icon"><i class="fas fa-tags"></i></span>
       <span class="label">Categories</span>
     </a>
-
     <a href="./brands.php" class="<?= active('brands') ?>">
-      <span class="icon"><i class="fas fa-tags"></i></span>
+      <span class="icon"><i class="fas fa-tag"></i></span> <!-- Changed to singular tag for variety -->
       <span class="label">Brands</span>
     </a>
-
     <a href="./orders.php" class="<?= active('orders') ?>">
       <span class="icon"><i class="fas fa-shopping-cart"></i></span>
       <span class="label">Orders</span>
     </a>
-
-    <a href="./customers.php" class="<?= active(name: 'customers') ?>">
+    <a href="./customers.php" class="<?= active('customers') ?>">
       <span class="icon"><i class="fas fa-users"></i></span>
       <span class="label">Customers</span>
     </a>
-
     <a href="./payment.php" class="<?= active('payments') ?>">
       <span class="icon"><i class="fas fa-credit-card"></i></span>
       <span class="label">Payments</span>
@@ -70,7 +66,6 @@ function active($name)
       <span class="icon"><i class="fas fa-cog"></i></span>
       <span class="label">Settings</span>
     </a>
-
     <a href="./logout.php" class="mt-3">
       <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
       <span class="label">Logout</span>

@@ -276,6 +276,8 @@ $finalPrice = (float)$product['price'] - ((float)$product['price'] * (float)$pro
 </head>
 
 <body>
+
+  <?php include('./includes/alert.php'); ?>
   <?php include('./includes/navbar.php'); ?>
 
   <div class="container my-5">
@@ -314,15 +316,29 @@ $finalPrice = (float)$product['price'] - ((float)$product['price'] * (float)$pro
             <?php endif; ?>
           </div>
 
-          <?php if ((int)$product['stock'] > 0): ?>
+          <!-- <?php if ((int)$product['stock'] > 0): ?>
             <span class="badge bg-success mb-3">In Stock</span>
             <form method="post" action="addtocart.php" class="add-to-cart-form">
               <input type="number" name="quantity" value="1" min="1" max="<?= (int)$product['stock'] ?>" class="form-control">
               <button type="submit" class="btn btn-add-to-cart"><i class="ri-shopping-cart-line"></i> Add to Cart</button>
             </form>
+            <?php else: ?>
+              <span class="badge bg-danger mb-3">Out of Stock</span>
+              <form method="post" action="addtocart.php" class="add-to-cart-form">
+                <button type="submit" class="btn btn-add-to-cart"><i class="ri-shopping-cart-line"></i> Add to Cart</button>
+                <button class="btn btn-secondary w-100" disabled>Add to Cart</button>
+              </form>
+              <?php endif; ?> -->
+
+          <?php if ((int)$product['stock'] > 0): ?>
+            <span class="badge bg-success mb-3">In Stock</span>
+            <form action="addtocart.php" method="POST" class="add-to-cart-form">
+              <input type="number" name="quantity" value="1" min="1" max="<?= (int)$product['stock'] ?>" class="form-control">
+              <input type="hidden" name="product_id" value="<?= $pid ?>">
+              <button type="submit" class="btn btn-add-to-cart">Add to Cart</button>
+            </form>
           <?php else: ?>
-            <span class="badge bg-danger mb-3">Out of Stock</span>
-            <button class="btn btn-secondary w-100" disabled>Add to Cart</button>
+            <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
           <?php endif; ?>
         </div>
       </div>

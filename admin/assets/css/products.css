@@ -1,34 +1,31 @@
+/* ========================================
+   PC ZONE - Products Page Styles
+   ======================================== */
+
 .products-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+.products-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
 }
 
-.table-container {
-  overflow-x: auto;
+/* Specific styles for the product table */
+.data-table .product-image .product-thumb {
+  max-width: 80px;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
 }
 
-.product-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-}
-
-.product-table th,
-.product-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-.product-table th {
-  background-color: #f4f4f4;
-}
-
-/* Row hover - slightly darker */
-.product-table tbody tr.product-row:hover {
-  background-color: #e6f0ff; /* Light shade of blue */
+.data-table tbody .product-row {
   cursor: pointer;
-  transition: background-color 0.1s ease;
 }

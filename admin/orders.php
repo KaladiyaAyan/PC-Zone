@@ -104,7 +104,7 @@ $result = mysqli_query($conn, $sql);
                   <td>#<?php echo $row['order_id']; ?></td>
                   <td><?php echo htmlspecialchars($row['username']) ?></td>
                   <td><?php echo htmlspecialchars($row['email']); ?></td>
-                  <td><?php echo htmlspecialchars($row['phone']); ?></td>
+                  <td><?php echo htmlspecialchars($row['phone'] ?? '-'); ?></td>
                   <td><?php echo date("d M Y, h:i A", strtotime($row['order_date'])); ?></td>
                   <td>₹<?php echo number_format($row['total_amount'], 2); ?></td>
                   <td>

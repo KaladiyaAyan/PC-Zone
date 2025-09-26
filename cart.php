@@ -75,6 +75,16 @@ mysqli_close($conn);
       background-color: #f8f9fa;
     }
 
+    .shopping-button {
+      background-color: #2e3742ff;
+      color: #fff;
+    }
+
+    .shopping-button:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      color: #fff;
+    }
+
     .cart-item-row {
       display: flex;
       align-items: center;
@@ -152,6 +162,7 @@ mysqli_close($conn);
 
 <body>
 
+  <?php include('./includes/alert.php'); ?>
   <?php include('./includes/navbar.php'); ?>
 
   <div class="container my-5">
@@ -163,7 +174,7 @@ mysqli_close($conn);
           <?php if (empty($cart_items)): ?>
             <div class="text-center py-5">
               <p class="fs-4">Your cart is empty.</p>
-              <a href="product.php" class="btn btn-primary mt-2">Continue Shopping</a>
+              <a href="product.php" class="shopping-button btn mt-2">Continue Shopping</a>
             </div>
           <?php else: ?>
             <form action="cart.php" method="POST">

@@ -176,7 +176,7 @@ if (isset($_POST['edit-product'])) {
           $sn = mysqli_real_escape_string($conn, $sname);
           $sv = mysqli_real_escape_string($conn, $svalue);
           $so = intval($sorder);
-          $ins = "INSERT INTO product_specs (product_id, group_name, spec_name, spec_value, sort_order) VALUES ($product_id, '$gn', '$sn', '$sv', $so)";
+          $ins = "INSERT INTO product_specs (product_id, spec_group, spec_name, spec_value, display_order) VALUES ($product_id, '$gn', '$sn', '$sv', $so)";
           mysqli_query($conn, $ins);
         }
       }

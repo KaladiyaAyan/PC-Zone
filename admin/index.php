@@ -48,11 +48,12 @@ $totalRevenue   = getTotalRevenue($conn);
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PC ZONE Dashboard</title>
+  <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./assets/vendor/fontawesome/css/all.min.css">
 
-  <?php require('./includes/header-link.php'); ?>
-  <link rel="stylesheet" href="../fonts/remixicon.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/dashboard.css">
 
-  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
     (function() {
       const saved = localStorage.getItem('pczoneTheme');
@@ -74,7 +75,7 @@ $totalRevenue   = getTotalRevenue($conn);
     <div class="content-wrapper">
 
       <!-- Dashboard Cards -->
-      <div class="dashboard-cards mb-4 d-grid" style="grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
+      <div class="dashboard-cards mb-4 d-grid">
         <div class="card d-flex align-items-center p-3">
           <i class="fas fa-box fa-2x"></i>
           <div class="ms-3">
