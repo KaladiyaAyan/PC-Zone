@@ -1,7 +1,7 @@
 <?php
 // admin/add_product.php
 session_start();
-require_once __DIR__ . '/../includes/functions.php';
+require_once './../includes/functions.php';
 $conn = getConnection();
 
 // Admin protection
@@ -25,6 +25,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
 </head>
 
 <body>
+  <?php require('./includes/alert.php'); ?>
   <?php include './includes/header.php'; ?>
   <?php $current_page = 'product';
   include './includes/sidebar.php'; ?>
@@ -212,6 +213,8 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
     </div>
   </main>
 
+  <?php require('./includes/footer-link.php') ?>
+
   <script>
     // simplified JS for specifications. No draft, no complex helpers.
     (function() {
@@ -358,7 +361,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
     })();
   </script>
 
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

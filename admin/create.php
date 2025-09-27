@@ -81,6 +81,16 @@ if (isset($_POST['add-product'])) {
   $slug = preg_replace('/\s+/', '-', $slug);
   $slug = trim($slug, '-');
 
+  // Check SLUG uniqueness
+  $check_slug = "SELECT * FROM products WHERE slug='$slug'";
+  $check_slug_run = mysqli_query($conn, $check_slug);
+
+  if (mysqli_num_rows($check_slug_run) > 0) {
+    message('popup-error', '<i class="ri-close-line"></i>', 'Slug already exists');
+    header('Location: add_product.php');
+    exit;
+  }
+
   // Insert product into database
   $insert_product = "INSERT INTO `products`(`product_name`, `sku`, `slug`, `description`, `price`, `discount`, `stock`, `weight`, `brand_id`, `category_id`, `main_image`, `image_1`, `image_2`, `image_3`, `is_featured`, `is_active`) 
                       VALUES ('$name', '$sku', '$slug', '$description', '$price', '$discount', '$stock', '$weight', '$brand', '$category', '$main_image', '$image_1', '$image_2', '$image_3', '$is_featured', '$is_active')";

@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/db_connect.php';
+require_once '../includes/functions.php';
 session_start();
 
 // Redirect if not logged in
@@ -8,37 +9,36 @@ if (empty($_SESSION['admin_logged_in'])) {
   exit;
 }
 
-// Query remains the same
-$query = "
-    SELECT p.product_id, p.product_name, p.description, p.price, p.stock, 
-           b.brand_name, c.category_name, p.main_image
-    FROM products p
-    LEFT JOIN brands b ON p.brand_id = b.brand_id
-    LEFT JOIN categories c ON p.category_id = c.category_id
-    ORDER BY p.product_id DESC";
+// Simplified helper function
+function h($s)
+{
+  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+}
 
+// --- DATA FETCHING ---
+$query = "SELECT p.product_id, p.product_name, p.description, p.price, p.stock, b.brand_name, c.category_name, p.main_image
+          FROM products p
+          LEFT JOIN brands b ON p.brand_id = b.brand_id
+          LEFT JOIN categories c ON p.category_id = c.category_id
+          ORDER BY p.product_id DESC";
 $result = $conn->query($query);
+$products = $result->fetch_all(MYSQLI_ASSOC);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PC ZONE Admin - Products</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products - PCZone Admin</title>
 
-  <!-- VENDOR CSS -->
-  <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="./assets/vendor/fontawesome/css/all.min.css">
-
-  <!-- CORE & PAGE CSS -->
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <?php require('./includes/header-link.php') ?>
   <link rel="stylesheet" href="./assets/css/products.css">
 
   <script>
     (function() {
-      const theme = localStorage.getItem('pczoneTheme');
-      if (theme === 'light') {
+      if (localStorage.getItem('pczoneTheme') === 'light') {
         document.documentElement.setAttribute('data-theme', 'light');
       }
     })();
@@ -46,6 +46,7 @@ $result = $conn->query($query);
 </head>
 
 <body>
+  <?php require('./includes/alert.php'); ?>
   <?php
   $current_page = 'product';
   include './includes/header.php';
@@ -53,30 +54,13 @@ $result = $conn->query($query);
   ?>
 
   <main class="main-content">
-    <!-- Flash Messages -->
-    <div id="flash-alert">
-      <?php if (isset($_GET['delete'])): ?>
-        <div class="<?= $_GET['delete'] === 'success' ? 'alert-success' : 'alert-danger' ?>">
-          <?= $_GET['delete'] === 'success' ? 'Product deleted successfully!' : 'Failed to delete product.' ?>
-        </div>
-      <?php endif; ?>
-      <?php if (isset($_GET['update']) && $_GET['update'] === 'success'): ?>
-        <div class="alert-success">Product updated successfully!</div>
-      <?php endif; ?>
-      <?php if (isset($_GET['insert']) && $_GET['insert'] === 'success'): ?>
-        <div class="alert-success">Product added successfully!</div>
-      <?php endif; ?>
-    </div>
-
-    <!-- Products Header -->
-    <div class="products-header">
-      <h1>Products</h1>
+    <div class="page-header">
+      <h2><i class="fas fa-boxes"></i> Products</h2>
       <a href="./add_product.php" class="btn-add">
         <i class="fas fa-plus"></i> Add New Product
       </a>
     </div>
 
-    <!-- Products Table -->
     <div class="table-container">
       <table class="data-table">
         <thead>
@@ -92,53 +76,62 @@ $result = $conn->query($query);
           </tr>
         </thead>
         <tbody>
-          <?php if ($result && $result->num_rows > 0): ?>
-            <?php while ($product = $result->fetch_assoc()): ?>
-              <tr class="product-row" data-product='<?= htmlspecialchars(json_encode($product)) ?>'>
+          <?php if (empty($products)): ?>
+            <tr>
+              <td colspan="8" class="text-center py-4">No products found.</td>
+            </tr>
+            <?php else: foreach ($products as $product): ?>
+              <?php
+              $pdata = [
+                "name" => $product["product_name"],
+                "description" => $product["description"],
+                "price" => number_format((float)$product["price"], 2),
+                "stock" => (int)$product["stock"],
+                "brand" => $product["brand_name"] ?? 'N/A',
+                "category" => $product["category_name"] ?? 'N/A',
+                "image" => $product["main_image"] ?? ''
+              ];
+              ?>
+              <tr class="product-row" data-product='<?= h(json_encode($pdata)) ?>' style="cursor: pointer;">
                 <td><?= (int)$product['product_id'] ?></td>
-                <td class="product-image">
+                <td>
                   <?php
-                  $image_path = '';
+                  $imagePath = '';
                   if (!empty($product['main_image'])) {
-                    $primary_path = '../uploads/' . $product['main_image'];
-                    $fallback_path = '../assets/images/products/' . $product['main_image'];
-
-                    if (file_exists($primary_path)) {
-                      $image_path = $primary_path;
-                    } elseif (file_exists($fallback_path)) {
-                      $image_path = $fallback_path;
-                    }
+                    $candidate1 = '../uploads/' . $product['main_image'];
+                    $candidate2 = '../assets/images/products/' . $product['main_image'];
+                    if (file_exists($candidate1)) $imagePath = $candidate1;
+                    elseif (file_exists($candidate2)) $imagePath = $candidate2;
                   }
-
-                  if ($image_path):
-                  ?>
-                    <img src="<?= htmlspecialchars($image_path) ?>"
-                      alt="<?= htmlspecialchars($product['product_name']) ?>"
-                      class="product-thumb">
+                  if ($imagePath): ?>
+                    <img src="<?= h($imagePath) ?>" alt="<?= h($product['product_name']) ?>" class="product-thumb">
                   <?php endif; ?>
                 </td>
-                <td><?= htmlspecialchars($product['product_name']) ?></td>
-                <td><?= htmlspecialchars($product['category_name'] ?? 'N/A') ?></td>
-                <td><?= htmlspecialchars($product['brand_name'] ?? 'N/A') ?></td>
-                <td>₹<?= number_format($product['price'], 2) ?></td>
+                <td><?= h($product['product_name']) ?></td>
+                <td><?= h($product['category_name'] ?? 'N/A') ?></td>
+                <td><?= h($product['brand_name'] ?? 'N/A') ?></td>
+                <td>₹<?= number_format((float)$product['price'], 2) ?></td>
                 <td>
                   <?php
                   $stock = (int)$product['stock'];
-                  $stockClass = ($stock <= 0) ? 'out-of-stock' : (($stock < 10) ? 'low-stock' : 'in-stock');
+                  $stock_class = 'completed'; // In stock
+                  if ($stock < 10) $stock_class = 'pending'; // Low stock
+                  if ($stock == 0) $stock_class = 'cancelled'; // Out of stock
                   ?>
-                  <span class="badge-status <?= $stockClass ?>"><?= $stock ?></span>
+                  <span class="badge-status <?= $stock_class ?>"><?= $stock ?></span>
                 </td>
                 <td>
                   <a href="edit_product.php?product_id=<?= (int)$product['product_id'] ?>" class="btn-edit"><i class="fas fa-edit"></i> Edit</a>
-                  <a href="delete.php?product=<?= (int)$product['product_id'] ?>" class="btn-delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i> Delete</a>
+                  <button class="btn-delete"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmModal"
+                    data-delete-url="delete.php?product=<?= (int)$product['product_id'] ?>">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
                 </td>
               </tr>
-            <?php endwhile; ?>
-          <?php else: ?>
-            <tr>
-              <td colspan="8" class="text-center py-4">No products found. <a href="add_product.php">Add a Product</a></td>
-            </tr>
-          <?php endif; ?>
+          <?php endforeach;
+          endif; ?>
         </tbody>
       </table>
     </div>
@@ -146,10 +139,12 @@ $result = $conn->query($query);
 
   <!-- Product Details Modal -->
   <div id="productModal" class="product-modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h4 id="modal-title" class="product-title"></h4>
-      <div class="modal-images" id="modal-image"></div>
+    <div class="product-modal-content">
+      <span class="product-modal-close" id="closeModalBtn">&times;</span>
+      <h2 id="modal-title"></h2>
+      <div class="modal-image-container">
+        <img id="modal-image" src="" alt="Product Image">
+      </div>
       <p><strong>Description:</strong> <span id="modal-description"></span></p>
       <p><strong>Price:</strong> ₹<span id="modal-price"></span></p>
       <p><strong>Stock:</strong> <span id="modal-stock"></span></p>
@@ -158,77 +153,78 @@ $result = $conn->query($query);
     </div>
   </div>
 
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content theme-card">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Deletion</h5>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this product? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <a href="#" id="confirmDeleteBtn" class="btn-add" style="background-color: var(--danger); color: #fff;">Delete</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <?php require('./includes/footer-link.php') ?>
+
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      const modal = document.getElementById("productModal");
-      const closeBtn = document.querySelector(".close-btn");
+      const productModal = document.getElementById("productModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
 
-      function openModal(product) {
-        document.getElementById("modal-title").textContent = product.product_name || '';
-        document.getElementById("modal-description").textContent = product.description || 'No description available.';
-        document.getElementById("modal-price").textContent = parseFloat(product.price || 0).toFixed(2);
-        document.getElementById("modal-stock").textContent = product.stock || 0;
-        document.getElementById("modal-brand").textContent = product.brand_name || 'N/A';
-        document.getElementById("modal-category").textContent = product.category_name || 'N/A';
-
-        const imgContainer = document.getElementById("modal-image");
-        imgContainer.innerHTML = ""; // Clear previous image
-
-        if (product.main_image) {
-          // --- NEW: Image fallback logic for the modal ---
-          const img = document.createElement('img');
-          img.alt = product.product_name;
-
-          // Set the primary source
-          img.src = `../uploads/${product.main_image}`;
-
-          // Set the fallback source via the onerror event
-          img.onerror = function() {
-            this.onerror = null; // Prevents infinite loops if fallback also fails
-            this.src = `../assets/images/products/${product.main_image}`;
-          };
-
-          imgContainer.appendChild(img);
-        }
-        modal.style.display = "block";
-      }
-
-      function closeModal() {
-        modal.style.display = "none";
-      }
-
-      // Event listeners for modal
+      // --- Product Details Modal Logic ---
       document.querySelectorAll(".product-row").forEach(row => {
         row.addEventListener("click", (e) => {
-          if (e.target.closest('a')) return;
-          const productData = JSON.parse(row.dataset.product || '{}');
-          openModal(productData);
+          // Don't open modal if an action button was clicked
+          if (e.target.closest('a, button')) return;
+
+          const data = JSON.parse(row.dataset.product || '{}');
+
+          document.getElementById("modal-title").textContent = data.name || '';
+          document.getElementById("modal-description").textContent = data.description || 'No description available.';
+          document.getElementById("modal-price").textContent = data.price || '0.00';
+          document.getElementById("modal-stock").textContent = data.stock || '0';
+          document.getElementById("modal-brand").textContent = data.brand || 'N/A';
+          document.getElementById("modal-category").textContent = data.category || 'N/A';
+
+          const imgEl = document.getElementById("modal-image");
+          if (data.image) {
+            imgEl.style.display = 'inline-block';
+            imgEl.src = `../uploads/${data.image}`;
+            imgEl.onerror = () => {
+              imgEl.src = `../assets/images/products/${data.image}`;
+            };
+          } else {
+            imgEl.style.display = 'none';
+          }
+
+          productModal.style.display = "block";
         });
       });
 
-      closeBtn.addEventListener("click", closeModal);
-      window.addEventListener("click", (event) => {
-        if (event.target === modal) closeModal();
+      // Close modal functionality
+      const closeModal = () => {
+        productModal.style.display = "none";
+      };
+      closeModalBtn.onclick = closeModal;
+      window.onclick = (event) => {
+        if (event.target == productModal) closeModal();
+      };
+
+      // --- Delete Confirmation Modal Logic ---
+      const deleteModal = document.getElementById('deleteConfirmModal');
+      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+      deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const deleteUrl = button.getAttribute('data-delete-url');
+        confirmDeleteBtn.setAttribute('href', deleteUrl);
       });
-
-      // Auto-hide flash messages
-      setTimeout(() => {
-        const alertBox = document.getElementById('flash-alert');
-        if (alertBox && alertBox.children.length > 0) {
-          alertBox.style.transition = 'opacity 0.5s';
-          alertBox.style.opacity = 0;
-          setTimeout(() => alertBox.remove(), 500);
-
-          // Clean up URL
-          if (window.history.replaceState) {
-            const url = new URL(window.location);
-            ['delete', 'update', 'insert'].forEach(param => url.searchParams.delete(param));
-            window.history.replaceState({
-              path: url.href
-            }, '', url.href);
-          }
-        }
-      }, 4000);
     });
   </script>
 </body>

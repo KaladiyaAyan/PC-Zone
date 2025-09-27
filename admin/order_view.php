@@ -2,10 +2,10 @@
 session_start();
 
 // Admin check
-// if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-//   header("Location: ../login.php");
-//   exit;
-// }
+if (empty($_SESSION['admin_logged_in'])) {
+  header('Location: ./login.php');
+  exit;
+}
 
 require_once '../includes/db_connect.php';
 
@@ -159,6 +159,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
 </head>
 
 <body>
+  <?php require('./includes/alert.php'); ?>
   <?php include './includes/header.php'; ?>
   <?php $current_page = 'orders';
   include './includes/sidebar.php'; ?>
@@ -364,7 +365,7 @@ function addrLine($a1, $a2, $city, $state, $zip, $country)
     </div>
   </main>
 
-  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <?php require('./includes/footer-link.php') ?>
 </body>
 
 </html>

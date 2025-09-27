@@ -130,6 +130,7 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
 </head>
 
 <body>
+  <?php require('./includes/alert.php'); ?>
   <?php
   $current_page = 'customers';
   include './includes/header.php';
@@ -424,7 +425,7 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
     </div>
   </main>
 
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <?php require('./includes/footer-link.php') ?>
   <script>
     // Make order rows toggle their detail collapse when clicked.
     (function() {

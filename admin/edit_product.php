@@ -109,6 +109,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
 </head>
 
 <body>
+  <?php require('./includes/alert.php'); ?>
   <?php include './includes/header.php'; ?>
   <?php $current_page = 'product';
   include './includes/sidebar.php'; ?>
@@ -323,6 +324,8 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
     </div>
   </main>
 
+  <?php require('./includes/footer-link.php') ?>
+
   <script>
     // Filter brands by category
     document.addEventListener('DOMContentLoaded', function() {
@@ -421,7 +424,6 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
       })();
     });
   </script>
-  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
