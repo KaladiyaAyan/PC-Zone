@@ -10,14 +10,11 @@ session_start();
   <title>PC ZONE — Signup</title>
 
   <?php include('./includes/header-link.php'); ?>
+  <link rel="stylesheet" href="./assets/css/login_signup.css">
 
-  <style>
-    <?php include('./assets/css/login_signup.css'); ?>
-  </style>
 </head>
 
 <body>
-
   <?php include('./includes/alert.php') ?>
 
   <div class="signup-container">

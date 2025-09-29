@@ -102,109 +102,99 @@ if (isset($_POST['signup'])) {
     header("Location: ./index.php");
     exit;
   }
-} else if (isset($_POST['user-account'])) {
+} else if (isset($_POST['update_profile'])) {
+  $username = mysqli_real_escape_string($conn, $_POST['username'] ?? '');
+  $phone    = mysqli_real_escape_string($conn, $_POST['phone'] ?? '');
+  $dob      = mysqli_real_escape_string($conn, $_POST['dob'] ?? '');
+  $gender   = mysqli_real_escape_string($conn, $_POST['gender'] ?? '');
+  $password = mysqli_real_escape_string($conn, $_POST['password'] ?? '');
 
-  $username = mysqli_real_escape_string($conn, $_POST['username']);
-  $email = mysqli_real_escape_string($conn, $_POST['email']);
-  $password = mysqli_real_escape_string($conn, $_POST['password']);
-  $number = mysqli_real_escape_string($conn, $_POST['number']);
+  $user_id = $_SESSION['user_id'];
 
-  if ($password == '') {
-    $update_user = "UPDATE users SET username='$username', number='$number' WHERE email='$email'";
+  if ($password === '') {
+    $update_user = "
+      UPDATE users
+      SET username='$username',
+          phone='$phone',
+          date_of_birth='$dob',
+          gender='$gender'
+      WHERE user_id=$user_id
+    ";
   } else {
-    $password = password_hash($password, PASSWORD_BCRYPT);
-    $update_user = "UPDATE users SET username='$username', password='$password', number='$number' WHERE email='$email'";
+    $hashed = password_hash($password, PASSWORD_BCRYPT);
+    $update_user = "
+      UPDATE users
+      SET username='$username',
+          password='$hashed',
+          phone='$phone',
+          date_of_birth='$dob',
+          gender='$gender'
+      WHERE user_id=$user_id
+    ";
   }
-  $update_user_run = mysqli_query($conn, $update_user);
 
+  $ok = mysqli_query($conn, $update_user);
 
-  if ($update_user_run) {
+  if ($ok) {
     message('popup-success', '<i class="ri-check-line"></i>', 'Profile Updated Successfully');
-    header("Location: index.php");
+    header("Location: account.php");
+    exit;
   } else {
     message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Profile Update Failed');
-    header("Location: user_profile.php");
+    header("Location: account.php");
+    exit;
   }
+} else if (isset($_POST['update_address'])) {
+  $user_id = $_SESSION['user_id'];
 
-  $stname = mysqli_real_escape_string($conn, $_POST['stname']);
-  $city = mysqli_real_escape_string($conn, $_POST['city']);
-  $state = mysqli_real_escape_string($conn, $_POST['state']);
-  $country = mysqli_real_escape_string($conn, $_POST['country']);
-  $pincode = mysqli_real_escape_string($conn, $_POST['pincode']);
-  $email = $_SESSION['user']['email'];
+  $full_name     = mysqli_real_escape_string($conn, $_POST['full_name'] ?? '');
+  $address_phone = mysqli_real_escape_string($conn, $_POST['address_phone'] ?? '');
+  $address1      = mysqli_real_escape_string($conn, $_POST['address1'] ?? '');
+  $address2      = mysqli_real_escape_string($conn, $_POST['address2'] ?? '');
+  $city          = mysqli_real_escape_string($conn, $_POST['city'] ?? '');
+  $state         = mysqli_real_escape_string($conn, $_POST['state'] ?? '');
+  $zip           = mysqli_real_escape_string($conn, $_POST['zip'] ?? '');
+  $country       = mysqli_real_escape_string($conn, $_POST['country'] ?? '');
 
-  $select_address = "SELECT * FROM user_address WHERE email='$email'";
-  $select_address_run = mysqli_query($conn, $select_address);
+  $select_address = "SELECT * FROM user_address WHERE user_id=$user_id LIMIT 1";
+  $res = mysqli_query($conn, $select_address);
 
-  if (mysqli_num_rows($select_address_run) == 0) {
-    $insert_address = "INSERT INTO user_address (email, street, city, state, country, pincode) VALUES ('$email', '$stname', '$city', '$state', '$country', '$pincode')";
-    $insert_address_run = mysqli_query($conn, $insert_address);
+  if (mysqli_num_rows($res) == 0) {
+    $insert_address = "
+      INSERT INTO user_address
+        (user_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default)
+      VALUES
+        ($user_id, '$full_name', '$address_phone', '$address1', '$address2', '$city', '$state', '$zip', '$country', 1)
+    ";
+    $run = mysqli_query($conn, $insert_address);
 
-    if ($insert_address_run) {
-      message('popup-success', '<i class="ri-check-line"></i>', 'Address Updated Successfully');
-      header("Location: profile.php");
+    if ($run) {
+      message('popup-success', '<i class="ri-check-line"></i>', 'Address Saved Successfully');
     } else {
-      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Address Update Failed');
-      header("Location: profile.php");
+      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Address Save Failed');
     }
   } else {
-    $update_address = "UPDATE user_address SET street='$stname', city='$city', state='$state', country='$country', pincode='$pincode' WHERE email='$email'";
-    $update_address_run = mysqli_query($conn, $update_address);
+    $update_address = "
+      UPDATE user_address
+      SET full_name='$full_name',
+          phone='$address_phone',
+          address_line1='$address1',
+          address_line2='$address2',
+          city='$city',
+          state='$state',
+          zip='$zip',
+          country='$country'
+      WHERE user_id=$user_id
+    ";
+    $run = mysqli_query($conn, $update_address);
 
-    if ($update_address_run) {
+    if ($run) {
       message('popup-success', '<i class="ri-check-line"></i>', 'Address Updated Successfully');
-      header("Location: profile.php");
     } else {
       message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Address Update Failed');
-      header("Location: profile.php");
     }
   }
-} else if (isset($_POST['checkout-address'])) {
-  $number = mysqli_real_escape_string($conn, $_POST['number']);
-  $email = $_SESSION['user']['email'];
 
-  $update_user = "UPDATE users SET number='$number' WHERE email='$email'";
-  $update_user_run = mysqli_query($conn, $update_user);
-
-  if ($update_user_run) {
-    message('popup-success', '<i class="ri-check-line"></i>', 'Profile Updated Successfully');
-    header("Location: checkout.php");
-  } else {
-    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Profile Update Failed');
-    header("Location: checkout.php");
-  }
-
-  $stname = mysqli_real_escape_string($conn, $_POST['stname']);
-  $city = mysqli_real_escape_string($conn, $_POST['city']);
-  $state = mysqli_real_escape_string($conn, $_POST['state']);
-  $country = mysqli_real_escape_string($conn, $_POST['country']);
-  $pincode = mysqli_real_escape_string($conn, $_POST['pincode']);
-  $email = $_SESSION['user']['email'];
-
-  $select_address = "SELECT * FROM user_address WHERE email='$email'";
-  $select_address_run = mysqli_query($conn, $select_address);
-
-  if (mysqli_num_rows($select_address_run) == 0) {
-    $insert_address = "INSERT INTO user_address (email, street, city, state, country, pincode) VALUES ('$email', '$stname', '$city', '$state', '$country', '$pincode')";
-    $insert_address_run = mysqli_query($conn, $insert_address);
-
-    if ($insert_address_run) {
-      message('popup-success', '<i class="ri-check-line"></i>', 'Address Updated Successfully');
-      header("Location: checkout.php");
-    } else {
-      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Address Update Failed');
-      header("Location: checkout.php");
-    }
-  } else {
-    $update_address = "UPDATE user_address SET street='$stname', city='$city', state='$state', country='$country', pincode='$pincode' WHERE email='$email'";
-    $update_address_run = mysqli_query($conn, $update_address);
-
-    if ($update_address_run) {
-      message('popup-success', '<i class="ri-check-line"></i>', 'Address Updated Successfully');
-      header("Location: checkout.php");
-    } else {
-      message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Address Update Failed');
-      header("Location: checkout.php");
-    }
-  }
+  header("Location: account.php");
+  exit();
 }

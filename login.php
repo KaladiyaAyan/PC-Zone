@@ -10,7 +10,6 @@ session_start();
   <title>PC ZONE — Login</title>
 
   <?php include('./includes/header-link.php'); ?>
-
   <style>
     <?php include('./assets/css/login_signup.css'); ?>
   </style>

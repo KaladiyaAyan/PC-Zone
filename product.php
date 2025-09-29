@@ -1,26 +1,24 @@
 <?php
 session_start();
+require('./includes/db_connect.php');
+require('./includes/functions.php');
 
-require("./includes/db_connect.php");
-require("./includes/functions.php");
-
-$conn = getConnection();
 $slug = trim($_GET['slug'] ?? '');
 $products = [];
 
 if ($slug === '') {
-  // If no slug, just get the latest featured products
+  // If no slug, get latest featured products
   $sql = "SELECT * FROM products WHERE is_active=1 ORDER BY is_featured DESC, created_at DESC LIMIT 24";
   $result = mysqli_query($conn, $sql);
   $products = mysqli_fetch_all($result, MYSQLI_ASSOC);
 } else {
-  // If there is a slug, get the category ID first
+  // If there is a slug, get the category ID
   $safe_slug = mysqli_real_escape_string($conn, $slug);
   $sql_cat = "SELECT category_id FROM categories WHERE slug = '$safe_slug' LIMIT 1";
   $result_cat = mysqli_query($conn, $sql_cat);
   $cid = mysqli_fetch_assoc($result_cat)['category_id'] ?? 0;
 
-  // Now, find all products that match the category, its children, OR the platform
+  // find all products that match the category, its children, OR the platform
   $sql_products = "
       SELECT * FROM products
       WHERE is_active = 1 AND (
@@ -43,15 +41,11 @@ if ($slug === '') {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Products</title>
-
   <?php include('./includes/header-link.php') ?>
-
 </head>
 
 <body>
-
   <?php require('./includes/alert.php'); ?>
-
   <?php require('./includes/navbar.php'); ?>
 
   <div class="container py-4">
@@ -63,10 +57,10 @@ if ($slug === '') {
         </div>
       <?php else: ?>
         <?php foreach ($products as $product):
-          // --- Logic to get product details ---
+
           $pid = (int)$product['product_id'];
           $name = $product['product_name'];
-          $slug = $product['slug'];
+          $slug_product = $product['slug']; // Renamed to avoid conflict with category slug
           $desc = $product['description'] ?? '';
           $price = (float)$product['price'];
           $discount = (float)$product['discount'];
@@ -85,12 +79,12 @@ if ($slug === '') {
         ?>
           <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="card h-100 border-0 shadow-sm">
-              <a href="product-detail.php?slug=<?= e($slug) ?>" class="product-image-container">
+              <a href="product-detail.php?slug=<?= e($slug_product) ?>" class="product-image-container">
                 <img src="<?= e($imgPath) ?>" alt="<?= e($name) ?>">
               </a>
               <div class="card-body d-flex flex-column">
                 <h5 class="card-title">
-                  <a href="product-detail.php?slug=<?= e($slug) ?>" class="product-title-link">
+                  <a href="product-detail.php?slug=<?= e($slug_product) ?>" class="product-title-link">
                     <?= e($name) ?>
                   </a>
                 </h5>
@@ -112,7 +106,7 @@ if ($slug === '') {
                   <?php if ((int)$product['stock'] > 0): ?>
                     <form action="addtocart.php" method="POST" class="d-grid">
                       <input type="hidden" name="product_id" value="<?= $pid ?>">
-                      <button type="submit" class="btn btn-add-to-cart">Add to Cart</button>
+                      <button type="submit" class="btn btn-gradient">Add to Cart</button>
                     </form>
                   <?php else: ?>
                     <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
@@ -127,6 +121,7 @@ if ($slug === '') {
   </div>
 
   <?php include('./includes/footer.php') ?>
+  <?php include('./includes/footer-link.php') ?>
   <script>
     var title = document.querySelectorAll('.product-title-link');
 
@@ -140,8 +135,6 @@ if ($slug === '') {
       }
     });
   </script>
-  <script src="./assets/js/script.js"></script>
 </body>
 
 </html>
-<?php mysqli_close($conn); ?>

@@ -1,8 +1,7 @@
 <?php
 session_start();
-
-require("./includes/db_connect.php");
-require("./includes/functions.php"); // For the e() function
+require('./includes/db_connect.php');
+require('./includes/functions.php');
 
 // Determine platform from URL, defaulting to 'intel'
 $platform = isset($_GET['platform']) ? $_GET['platform'] : 'intel';
@@ -19,12 +18,9 @@ $parts = [
   'cooling-system' => 'CPU Cooler',
 ];
 
-$conn = getConnection();
 $partsProducts = []; // This array will hold the products for each part
 
-
-// --- 2. FETCH PRODUCTS FOR EACH PART ---
-
+// FETCH PRODUCTS FOR EACH PART
 foreach ($parts as $slug => $label) {
   // First, get the category ID for the current part's slug
   $safe_slug = mysqli_real_escape_string($conn, $slug);
@@ -38,7 +34,7 @@ foreach ($parts as $slug => $label) {
     continue; // Skip to the next part
   }
 
-  // Now, build the query to get the products for this category ID
+  // query to get the products for this category ID
   $sql_products = "
         SELECT p.product_id, p.product_name, p.price, p.discount, p.main_image AS image
         FROM products p
@@ -47,7 +43,7 @@ foreach ($parts as $slug => $label) {
           AND (p.category_id = $cid OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = $cid))
     ";
 
-  // Add the platform filter for 'processor' and 'motherboard'
+  // platform filter for 'processor' and 'motherboard'
   if (in_array($slug, ['processor', 'motherboard'])) {
     $safe_platform = mysqli_real_escape_string($conn, $platform);
     $sql_products .= " AND (p.platform = '$safe_platform' OR p.platform = 'both')";
@@ -55,7 +51,6 @@ foreach ($parts as $slug => $label) {
 
   $sql_products .= " ORDER BY (p.price - (p.price * (p.discount/100))) ASC LIMIT 500";
 
-  // Execute the query and process the results
   $result_products = mysqli_query($conn, $sql_products);
   $products = [];
   while ($row = mysqli_fetch_assoc($result_products)) {
@@ -87,16 +82,10 @@ mysqli_close($conn);
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title><?= e(ucfirst($platform)) ?> Custom PC Build</title>
   <?php include('./includes/header-link.php') ?>
-  <style>
-    <?php
-    include('./assets/css/navbar.css');
-    include('./assets/css/custom-pc.css'); ?>
-  </style>
+  <link rel="stylesheet" href="assets/css/custom-pc.css">
 </head>
 
 <body>
-
-
   <?php include('./includes/alert.php'); ?>
   <?php include('./includes/navbar.php'); ?>
 
@@ -262,7 +251,6 @@ mysqli_close($conn);
       recalculateTotal(); // Calculate total on page load
     });
   </script>
-  <script src="./assets/js/script.js"></script>
 </body>
 
 </html>

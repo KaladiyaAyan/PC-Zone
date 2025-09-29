@@ -1,6 +1,7 @@
 <?php
 // admin/index.php
 session_start();
+require('../includes/db_connect.php');
 require('../includes/functions.php');
 
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
@@ -8,7 +9,6 @@ if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true
   exit;
 }
 
-$conn = getConnection();
 
 // validate plain identifier (table names)
 function valid_identifier($s)

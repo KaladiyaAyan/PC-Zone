@@ -1,0 +1,50 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.checkout-panel {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.summary-item-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 0.25rem;
+}
+
+.payment-option {
+  border: 1px solid #dee2e6;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.payment-option:has(input:checked) {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+
+.btn-place-order {
+  background: linear-gradient(to bottom, #2b5876, #4e4376);
+  color: #fff;
+  border: none;
+  width: 100%;
+  padding: 0.8rem;
+  font-weight: 700;
+}
+
+.btn-place-order:hover {
+  background: linear-gradient(to bottom, #4e4376, #2b5876);
+  color: #fff;
+}

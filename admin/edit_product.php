@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-require_once '../includes/functions.php';
-$conn = getConnection();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
 // Validate product_id in GET
 if (!isset($_GET['product_id']) || !is_numeric($_GET['product_id'])) {

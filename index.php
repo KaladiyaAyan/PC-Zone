@@ -1,9 +1,7 @@
 <?php
 session_start();
-
 require('./includes/db_connect.php');
 require('./includes/functions.php');
-
 ?>
 <!doctype html>
 <html lang="en">
@@ -12,12 +10,8 @@ require('./includes/functions.php');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PC Zone</title>
-
-  <!-- include css links page  -->
-  <link rel="stylesheet" href="./assets/css/contact.css">
-  <link rel="stylesheet" href="./assets/css/navbar.css">
   <?php include('./includes/header-link.php') ?>
-
+  <link rel="stylesheet" href="assets/css/index.css">
 </head>
 
 <body>
@@ -26,7 +20,6 @@ require('./includes/functions.php');
   require('./includes/navbar.php');
   $featuredProducts = getFeaturedProducts(4, true);
   ?>
-
   <main class="container mt-4">
     <section class="hero-section">
       <div class="hero-content">
@@ -92,7 +85,7 @@ require('./includes/functions.php');
                   <?php if ((int)$product['stock'] > 0): ?>
                     <form action="addtocart.php" method="POST" class="d-grid">
                       <input type="hidden" name="product_id" value="<?= $pid ?>">
-                      <button type="submit" class="btn btn-add-to-cart">Add to Cart</button>
+                      <button type="submit" class="btn btn-gradient">Add to Cart</button>
                     </form>
                   <?php else: ?>
                     <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
@@ -106,7 +99,6 @@ require('./includes/functions.php');
     </div>
 
 
-    <!-- Custom PC Build Section -->
     <section class="build-section" id="custom">
       <div class="container">
         <div class="text-center mb-5">
@@ -126,7 +118,7 @@ require('./includes/functions.php');
                   <li><i class="ri-checkbox-circle-line"></i> DDR5 Memory Support</li>
                   <li><i class="ri-checkbox-circle-line"></i> PCIe 5.0 Ready</li>
                 </ul>
-                <a href="custom-pc.php?platform=intel" class="btn btn-add-to-cart d-block">Build Intel PC</a>
+                <a href="custom-pc.php?platform=intel" class="btn btn-gradient d-block">Build Intel PC</a>
               </div>
             </div>
           </div>
@@ -142,7 +134,7 @@ require('./includes/functions.php');
                   <li><i class="ri-checkbox-circle-line"></i> High Core Counts</li>
                   <li><i class="ri-checkbox-circle-line"></i> Great Value & Performance</li>
                 </ul>
-                <a href="custom-pc.php?platform=amd" class="btn btn-add-to-cart d-block">Build AMD PC</a>
+                <a href="custom-pc.php?platform=amd" class="btn btn-gradient d-block">Build AMD PC</a>
               </div>
             </div>
           </div>
@@ -188,7 +180,7 @@ require('./includes/functions.php');
                   <textarea name="message" rows="5" class="form-control" placeholder="Write your message here..." required></textarea>
                 </div>
                 <div class="col-12">
-                  <button type="submit" class="btn btn-add-to-cart w-100">Send Message</button>
+                  <button type="submit" class="btn btn-gradient w-100">Send Message</button>
                 </div>
               </div>
             </form>
@@ -200,7 +192,7 @@ require('./includes/functions.php');
   </main>
 
   <?php include './includes/footer.php'; ?>
-
+  <?php include './includes/footer-link.php'; ?>
   <script>
     var title = document.querySelectorAll('.product-title-link');
 
@@ -214,9 +206,6 @@ require('./includes/functions.php');
       }
     });
   </script>
-
-  <!-- include js link component page -->
-  <?php include './includes/footer-link.php'; ?>
 </body>
 
 </html>

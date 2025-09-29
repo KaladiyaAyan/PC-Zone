@@ -3,11 +3,10 @@
     <div class="footer-content">
       <div class="row g-5">
 
-        <!-- Column 1: About & Social -->
+        <!-- About & Social -->
         <div class="col-lg-4">
           <div class="footer-about">
             <a href="index.php" class="footer-logo">
-              <i class="ri-cpu-line"></i>
               <span>PC Zone</span>
             </a>
             <p>Your one-stop shop for premium PC components and expert-guided custom builds. Based in Surendranagar, we're dedicated to helping you build your dream rig.</p>
@@ -19,7 +18,7 @@
           </div>
         </div>
 
-        <!-- Column 2: Shop Links -->
+        <!-- Shop Links -->
         <div class="col-lg-2 col-md-4">
           <h5 class="footer-title">Shop</h5>
           <ul class="footer-links">
@@ -30,7 +29,7 @@
           </ul>
         </div>
 
-        <!-- Column 3: Support Links -->
+        <!-- Support Links -->
         <div class="col-lg-3 col-md-4">
           <h5 class="footer-title">Support</h5>
           <ul class="footer-links">
@@ -41,7 +40,7 @@
           </ul>
         </div>
 
-        <!-- Column 4: Company Links -->
+        <!-- Company Links -->
         <div class="col-lg-3 col-md-4">
           <h5 class="footer-title">Company</h5>
           <ul class="footer-links">

@@ -1,10 +1,7 @@
 <?php
 session_start();
-
-require('./includes/functions.php');
 require('./includes/db_connect.php');
-
-$conn = getConnection();
+require('./includes/functions.php');
 
 // Get the product slug from the URL
 $slug = isset($_GET['slug']) ? mysqli_real_escape_string($conn, $_GET['slug']) : '';
@@ -12,12 +9,10 @@ if (!$slug) {
   header('Location: index.php');
   exit;
 }
-
-// --- Simplified Main Query ---
-// Fetches product details, brand, category, average rating, and review count in one go.
+// Fetches product details, brand, category, average rating, and review count
 $sql_product = "SELECT p.*, b.brand_name, c.category_name,
-                    (SELECT COALESCE(AVG(rating), 0) FROM product_reviews WHERE product_id = p.product_id) as avg_rating,
-                    (SELECT COUNT(*) FROM product_reviews WHERE product_id = p.product_id) as review_count
+                      (SELECT COALESCE(AVG(rating), 0) FROM product_reviews WHERE product_id = p.product_id) as avg_rating,
+                      (SELECT COUNT(*) FROM product_reviews WHERE product_id = p.product_id) as review_count
                 FROM products p
                 LEFT JOIN brands b ON p.brand_id = b.brand_id
                 LEFT JOIN categories c ON p.category_id = c.category_id
@@ -34,7 +29,7 @@ if (!$product) {
 }
 $productId = (int)$product['product_id'];
 
-// Fetch product specifications (remains a separate query)
+// Fetch product specifications
 $sql_specs = "SELECT spec_group, spec_name, spec_value FROM product_specs WHERE product_id = $productId ORDER BY display_order ASC";
 $result_specs = mysqli_query($conn, $sql_specs);
 $specs = [];
@@ -43,7 +38,7 @@ while ($row = mysqli_fetch_assoc($result_specs)) {
   $specs[$group][] = $row;
 }
 
-// Fetch all reviews (remains a separate query)
+// Fetch all reviews
 $sql_reviews = "SELECT r.comment, r.created_at, r.rating, u.username 
                 FROM product_reviews r JOIN users u ON r.user_id = u.user_id 
                 WHERE r.product_id = $productId ORDER BY r.created_at DESC";
@@ -51,8 +46,6 @@ $result_reviews = mysqli_query($conn, $sql_reviews);
 $reviews = mysqli_fetch_all($result_reviews, MYSQLI_ASSOC);
 
 mysqli_close($conn);
-
-// --- Prepare Data for the Page ---
 
 // Assign rating and review data directly from the main product query
 $avgRating = round((float)($product['avg_rating'] ?? 0), 1);
@@ -86,197 +79,10 @@ $finalPrice = (float)$product['price'] - ((float)$product['price'] * (float)$pro
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($product['product_name']); ?> - PCZone</title>
   <?php include('./includes/header-link.php') ?>
-  <style>
-    <?php
-    include('./assets/css/navbar.css');
-    ?>
-
-    /* --- Product Detail Page Styles --- */
-    body {
-      background-color: #f8f9fa;
-      /* A light gray background for the page */
-    }
-
-    /* Main Product Section */
-    .product-view-container {
-      background-color: #fff;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Image Gallery (Left Column) */
-    .product-gallery-main {
-      border: 1px solid #dee2e6;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      height: 450px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .product-gallery-main img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-
-    .product-gallery-thumbs {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-    }
-
-    .thumb-item {
-      width: 80px;
-      height: 80px;
-      border: 2px solid #dee2e6;
-      border-radius: 0.5rem;
-      padding: 0.5rem;
-      cursor: pointer;
-      opacity: 0.6;
-      transition: all 0.2s ease;
-    }
-
-    .thumb-item:hover,
-    .thumb-item.active {
-      opacity: 1;
-      border-color: #0d6efd;
-      /* Theme blue */
-    }
-
-    /* Product Info (Right Column) */
-    .product-title {
-      font-weight: 700;
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .product-meta {
-      font-size: 0.9rem;
-      color: #6c757d;
-      margin-bottom: 1rem;
-    }
-
-    .product-rating {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      color: #fd7e14;
-      /* Orange/Yellow for stars */
-    }
-
-    .product-rating .review-count {
-      color: #6c757d;
-      font-size: 0.9rem;
-    }
-
-    .product-price-box {
-      background-color: #f8f9fa;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .product-price-box .final-price {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #d9534f;
-      /* A shade of red */
-    }
-
-    .product-price-box .original-price {
-      color: #6c757d;
-    }
-
-    .add-to-cart-form {
-      display: grid;
-      grid-template-columns: 100px 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .add-to-cart-form .form-control {
-      border-radius: 0.5rem;
-      text-align: center;
-    }
-
-    /* Reusing the gradient button style */
-    .btn-add-to-cart {
-      background: linear-gradient(to bottom, #2b5876, #4e4376);
-      color: #fff;
-      border: none;
-      transition: all 0.2s ease-in-out;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      font-weight: bold;
-    }
-
-    .btn-add-to-cart:hover {
-      opacity: 0.9;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Details & Reviews Tabs */
-    .product-details-tabs {
-      margin-top: 3rem;
-    }
-
-    .product-details-tabs .nav-tabs {
-      border-bottom: 2px solid #dee2e6;
-    }
-
-    .product-details-tabs .nav-link {
-      color: #495057;
-      font-weight: 500;
-      border: none;
-      border-bottom: 2px solid transparent;
-      padding: 1rem;
-    }
-
-    .product-details-tabs .nav-link.active {
-      color: #0d6efd;
-      border-bottom-color: #0d6efd;
-    }
-
-    .spec-table {
-      margin-top: 1.5rem;
-    }
-
-    .spec-row {
-      display: grid;
-      grid-template-columns: 200px 1fr;
-      padding: 0.8rem 0;
-      border-bottom: 1px solid #f1f1f1;
-    }
-
-    .spec-row .spec-name {
-      font-weight: 500;
-      color: #343a40;
-    }
-
-    .spec-row .spec-value {
-      color: #6c757d;
-    }
-
-    .review-item {
-      padding: 1.5rem 0;
-      border-bottom: 1px solid #f1f1f1;
-    }
-
-    .review-item:last-child {
-      border-bottom: none;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/product-detail.css">
 </head>
 
 <body>
-
   <?php include('./includes/alert.php'); ?>
   <?php include('./includes/navbar.php'); ?>
 
@@ -315,27 +121,12 @@ $finalPrice = (float)$product['price'] - ((float)$product['price'] * (float)$pro
               <span class="badge bg-success ms-2"><?= (int)$product['discount'] ?>% OFF</span>
             <?php endif; ?>
           </div>
-
-          <!-- <?php if ((int)$product['stock'] > 0): ?>
-            <span class="badge bg-success mb-3">In Stock</span>
-            <form method="post" action="addtocart.php" class="add-to-cart-form">
-              <input type="number" name="quantity" value="1" min="1" max="<?= (int)$product['stock'] ?>" class="form-control">
-              <button type="submit" class="btn btn-add-to-cart"><i class="ri-shopping-cart-line"></i> Add to Cart</button>
-            </form>
-            <?php else: ?>
-              <span class="badge bg-danger mb-3">Out of Stock</span>
-              <form method="post" action="addtocart.php" class="add-to-cart-form">
-                <button type="submit" class="btn btn-add-to-cart"><i class="ri-shopping-cart-line"></i> Add to Cart</button>
-                <button class="btn btn-secondary w-100" disabled>Add to Cart</button>
-              </form>
-              <?php endif; ?> -->
-
           <?php if ((int)$product['stock'] > 0): ?>
             <span class="badge bg-success mb-3">In Stock</span>
             <form action="addtocart.php" method="POST" class="add-to-cart-form">
               <input type="number" name="quantity" value="1" min="1" max="<?= (int)$product['stock'] ?>" class="form-control">
-              <input type="hidden" name="product_id" value="<?= $pid ?>">
-              <button type="submit" class="btn btn-add-to-cart">Add to Cart</button>
+              <input type="hidden" name="product_id" value="<?= $productId ?>">
+              <button type="submit" class="btn btn-gradient">Add to Cart</button>
             </form>
           <?php else: ?>
             <button class="btn btn-secondary w-100" disabled>Out of Stock</button>

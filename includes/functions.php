@@ -16,47 +16,25 @@ function e($v)
 function getConnection()
 {
   $host = "localhost";
-  $user = "root";
-  $pass = "";
+  $username = "root";
+  $password = "";
   $dbname = "pczone";
 
-  $conn = mysqli_connect($host, $user, $pass, $dbname);
+  $conn = mysqli_connect($host, $username, $password, $dbname);
 
   if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+    die("Connection Failed : " . mysqli_connect_error());
   }
-
   return $conn;
 }
-
 
 /* ====================
    CATEGORY & BRAND FUNCTIONS
 ==================== */
-
-function getAllCategories()
-{
-  $conn = getConnection();
-  $sql = "SELECT * FROM categories ORDER BY level ASC, category_name ASC";
-  $result = mysqli_query($conn, $sql);
-  $categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
-  mysqli_close($conn);
-  return $categories;
-}
-
 function getRootCategories()
 {
   $conn = getConnection();
   $sql = "SELECT * FROM categories WHERE parent_id IS NULL OR parent_id = 0 ORDER BY category_name ASC";
-  $result = mysqli_query($conn, $sql);
-  $categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
-  mysqli_close($conn);
-  return $categories;
-}
-function getAllSubCategories()
-{
-  $conn = getConnection();
-  $sql = "SELECT * FROM categories WHERE parent_id != 0 ORDER BY category_name ASC";
   $result = mysqli_query($conn, $sql);
   $categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
   mysqli_close($conn);
@@ -130,15 +108,4 @@ function getCartTotal($userId)
 function formatPrice($amount)
 {
   return '₹' . number_format($amount, 2);
-}
-
-function isLoggedIn()
-{
-  return isset($_SESSION['user_id']);
-}
-
-function redirect($url)
-{
-  header("Location: $url");
-  exit();
 }

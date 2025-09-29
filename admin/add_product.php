@@ -1,8 +1,8 @@
 <?php
 // admin/add_product.php
 session_start();
-require_once './../includes/functions.php';
-$conn = getConnection();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
 // Admin protection
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {

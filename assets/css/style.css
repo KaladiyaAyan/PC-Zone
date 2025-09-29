@@ -1,197 +1,12 @@
-/* popup alert container style */
-.popup {
-  position: absolute;
-  background-color: white;
-  height: 80px;
-  min-width: 300px;
-  bottom: 100px;
-  right: 50px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  z-index: 15;
-  transform: translateX(100%);
-  animation: popup-come 0.5s linear forwards;
-}
-
-/* popup alert constructor left to right animation  */
-
-@keyframes popup-come {
-  100% {
-    transform: translateX(0);
-  }
-}
-
-/* popup alert icon  */
-
-.popup > .icon > i {
-  font-size: 2rem;
-  border-radius: 50%;
-  margin: 0 10px;
-  font-weight: 700;
-}
-
-/* popup alert progress anination */
-
-@keyframes popup-time {
-  100% {
-    width: 0;
-  }
-}
-
-/* popup alert for success */
-
-.popup-success {
-  background-color: #ddffdd;
-  color: green;
-}
-
-/* popup success alert icon border  */
-
-.popup-success > .icon > i {
-  background-color: #ddffdd;
-  color: green;
-  border: 3px solid green;
-  border-radius: 50%;
-}
-
-/* popup alert animation of success */
-
-.popup-success::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background-color: green;
-  animation: popup-time 2.5s 0.5s linear forwards;
-}
-
-/* popup alert for warning */
-
-.popup-warning {
-  background-color: #fff3cd;
-  color: orange;
-}
-
-/* popup alert for warning animation */
-
-.popup-warning::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background-color: orange;
-  animation: popup-time 2.5s 0.5s linear forwards;
-}
-
-/* popup alert for error  */
-
-.popup-error {
-  background-color: #f8d7da;
-  color: red;
-}
-
-/* popup alert animation of error  */
-
-.popup-error::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background-color: red;
-  animation: popup-time 2.5s 0.5s linear forwards;
-}
-
-/* popup alert text  */
-
-.popup > .title {
-  font-size: 1.2rem;
-  margin-right: 20px;
-}
-
-/* ---------------------------------------------------- index page style ------------------------------------------------------------ */
-/* --- New Hero Section Styles --- */
-.hero-section {
-  background: linear-gradient(to right, #2b5876, #4e4376);
-  /* Dark blueish gradient */
-  color: #ffffff;
-  padding: 5rem 1rem;
-  text-align: center;
-  border-radius: 1rem;
-}
-
-.hero-section h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.hero-section p {
-  font-size: 1.2rem;
-  max-width: 600px;
-  margin: 0 auto 2rem auto;
-  opacity: 0.9;
-}
-
-.hero-buttons .btn {
-  padding: 0.8rem 2rem;
-  font-weight: bold;
-  border-radius: 50px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 0.9rem;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.hero-buttons .btn-light {
-  background-color: #fff;
-  color: #333;
-}
-
-.hero-buttons .btn-light:hover {
-  background-color: #f1f1f1;
-  transform: translateY(-2px);
-}
-
-.hero-buttons .btn-outline-light {
-  border-width: 2px;
-}
-
-.hero-buttons .btn-outline-light:hover {
-  background-color: #fff;
-  color: #333;
-  transform: translateY(-2px);
-}
-
-/* (You may already have these in another file) */
-.product-title-link {
-  color: #111;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.product-title-link:hover {
-  color: #c7511f;
-  text-decoration: underline;
-}
-
-.btn-add-to-cart {
+.btn-gradient {
   background: linear-gradient(to bottom, #2b5876, #4e4376);
   color: #fff;
   border: none;
+  font-weight: bold;
   transition: all 0.2s ease-in-out;
 }
 
-.btn-add-to-cart:hover {
+.btn-gradient:hover {
   opacity: 0.9;
   color: #fff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -211,93 +26,52 @@
   object-fit: contain;
 }
 
-/* Custom pc and contact us styles */
-/* --- Custom PC Build Section Styles --- */
-.build-section {
-  padding: 4rem 0;
+.product-title-link {
+  color: #111;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-.build-card {
-  border-radius: 1rem;
-  border: none;
-  overflow: hidden;
-  background-color: #f8f9fa;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.product-title-link:hover {
+  color: #c7511f;
+  text-decoration: underline;
 }
 
-.build-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+.page-header {
+  background: #f8f9fa;
+  padding: 60px 20px;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.build-card img {
-  height: 250px;
-  object-fit: cover;
+.content-section {
+  padding: 60px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.form-label {
+  font-weight: 600;
 }
 
-.build-card .card-body {
-  padding: 2rem;
+.original-price {
+  text-decoration: line-through;
+  color: #6c757d;
+  font-weight: 400;
 }
 
-.build-card .specs-list {
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0;
-}
-
-.build-card .specs-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  color: #495057;
-}
-
-.build-card .specs-list i {
-  color: #198754;
-}
-
-/* --- Contact Us Section Styles --- */
-.contact-section {
-  padding: 4rem 0;
-  background-color: #f8f9fa;
-  border-radius: 1rem;
-}
-
-.contact-info h2 {
+.final-price {
   font-weight: 700;
+  color: #212529;
 }
 
-.contact-info p {
-  font-size: 1.1rem;
-  color: #495057;
+.small-muted {
+  font-size: 0.85rem;
+  color: #6c757d;
 }
 
-.contact-details {
-  list-style: none;
-  padding: 0;
-}
-
-.contact-details li {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-}
-
-.contact-details i {
-  font-size: 1.5rem;
-  color: #0d6efd;
-}
-
-.contact-form .form-control {
-  border-radius: 0.5rem;
-  padding: 0.8rem 1rem;
-  border: 1px solid #ced4da;
-}
-
-.contact-form .form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+.discount-text {
+  color: #ff9a1f;
+  font-weight: 700;
+  margin-left: 8px;
+  font-size: 0.95rem;
 }

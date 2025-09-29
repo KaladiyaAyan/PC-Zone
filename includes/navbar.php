@@ -1,17 +1,17 @@
 <?php
 require('./includes/db_connect.php');
-// 1. Fetch all active categories from the database in a single query.
+// Fetch all active categories from the database in a single query.
 $sql_all_categories = "SELECT category_id, category_name, slug, parent_id 
                        FROM categories 
                        WHERE status = 'active' 
                        ORDER BY parent_id, sort_order, category_name";
-// Note: Assumes $conn (database connection) is available from an included file.
+
 $result = mysqli_query($conn, $sql_all_categories);
 $all_categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-// 2. Loop through the results once to create the parent and child arrays.
 $parents = [];
 $children = [];
+
 foreach ($all_categories as $category) {
   if ($category['parent_id'] === NULL) {
     // If parent_id is NULL, it's a top-level category.
@@ -23,9 +23,6 @@ foreach ($all_categories as $category) {
   }
 }
 
-
-// --- The rest of your existing code stays the same ---
-
 // logged-in checks
 $isLogged = isset($_SESSION['user_id']) || isset($_SESSION['customer_id']) || !empty($_SESSION['user']);
 
@@ -34,7 +31,6 @@ $cartCount = 0;
 $cartTotal = 0.0;
 $customerId = $_SESSION['customer_id'] ?? $_SESSION['user_id'] ?? null;
 if ($customerId) {
-  // These functions would still come from your functions.php file
   $cartItems = getCartItems($customerId);
   $cartCount = is_array($cartItems) ? count($cartItems) : 0;
   $cartTotal = getCartTotal($customerId);
@@ -84,7 +80,6 @@ if ($customerId) {
   <div class="container header-container">
 
     <a class="header-logo" href="./index.php">
-      <i class="ri-cpu-line"></i>
       <span>PC Zone</span>
     </a>
 
@@ -95,7 +90,7 @@ if ($customerId) {
 
     <div class="header-actions">
       <?php if ($isLogged): ?>
-        <a href="/account.php" class="action-link">
+        <a href="./account.php" class="action-link">
           <i class="ri-user-line"></i>
           <span class="d-none d-md-inline">Account</span>
         </a>
@@ -156,7 +151,7 @@ if ($customerId) {
 
         <li class="main-nav-item"><a class="main-nav-link" href="index.php#custom">Custom PC</a></li>
         <li class="main-nav-item"><a class="main-nav-link" href="index.php#contact">Contact Us</a></li>
-        <li class="main-nav-item"><a class="main-nav-link" href="/pages/about.php">About Us</a></li>
+        <li class="main-nav-item"><a class="main-nav-link" href="about.php">About Us</a></li>
       </ul>
     </div>
   </div>

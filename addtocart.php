@@ -1,7 +1,7 @@
 <?php
 session_start();
-include('./includes/functions.php');
-include('./includes/db_connect.php');
+include('includes/functions.php');
+include('includes/db_connect.php');
 
 // 1. Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -10,10 +10,9 @@ if (!isset($_SESSION['user_id'])) {
   exit();
 }
 
-$conn = getConnection();
 $userId = (int)$_SESSION['user_id'];
 
-// --- A. HANDLE CUSTOM PC BUILD ---
+// HANDLE CUSTOM PC BUILD 
 if (isset($_POST['part'])) {
   $parts_to_add = array_filter($_POST['part'], fn($id) => (int)$id > 0);
 
@@ -50,10 +49,8 @@ if (isset($_POST['part'])) {
   message('popup-success', '<i class="ri-check-line"></i>', "Your PC build ($added_count components) has been added to the cart!");
   header('Location: cart.php');
   exit();
-}
-
-// --- B. HANDLE INDIVIDUAL PRODUCT ---
-elseif (isset($_POST['product_id'])) {
+} // HANDLE INDIVIDUAL PRODUCT
+else if (isset($_POST['product_id'])) {
   $productId = (int)$_POST['product_id'];
   $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
   if ($quantity < 1) $quantity = 1;
@@ -83,13 +80,8 @@ elseif (isset($_POST['product_id'])) {
 
   header('Location: ' . $_SERVER['HTTP_REFERER']);
   exit();
-}
-
-// --- C. FALLBACK IF NO DATA IS SENT ---
-else {
+} else {
   message('popup-error', '<i class="ri-close-line"></i>', 'No product selected.');
   header('Location: index.php');
   exit();
 }
-
-mysqli_close($conn);
