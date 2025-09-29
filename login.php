@@ -8,38 +8,30 @@ session_start();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PC ZONE — Login</title>
-
   <?php include('./includes/header-link.php'); ?>
-  <style>
-    <?php include('./assets/css/login_signup.css'); ?>
-  </style>
+  <link rel="stylesheet" href="./assets/css/auth.css">
 </head>
 
 <body>
-
   <?php include('./includes/alert.php') ?>
 
-  <div class="signup-container">
+  <div class="auth-container">
     <h2>Login</h2>
-
     <form action="verify.php" method="POST" autocomplete="off" novalidate>
-      <div class="inputGroup">
+      <div class="auth-group">
         <label for="email"><i class="ri-mail-line"></i> Email</label>
         <input type="email" id="email" name="email" placeholder="Enter Your Email" required autofocus>
       </div>
-
-      <div class="inputGroup">
+      <div class="auth-group">
         <label for="password"><i class="ri-lock-line"></i> Password</label>
         <div class="password-field">
           <input type="password" id="password" name="password" placeholder="Enter Your Password" required>
           <div class="show-hide-password"><i class="ri-eye-line"></i></div>
         </div>
       </div>
-
-      <button type="submit" name="login">Login</button>
+      <button type="submit" name="login" class="btn btn-gradient w-100">Login</button>
     </form>
-
-    <div class="have-account">
+    <div class="auth-link">
       Don't have an account? <a href="signup.php">Signup</a>
     </div>
   </div>
@@ -62,8 +54,8 @@ session_start();
       }
     })();
   </script>
-  <script src="./assets/js/script.js"></script>
-  <script src="./includes/footer-link.php"></script>
+
+  <?php include('./includes/footer-link.php'); ?>
 </body>
 
 </html>

@@ -1,9 +1,9 @@
 <?php
 session_start();
-// if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
-//   header('Location: ../login.php');
-//   exit;
-// }
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ../login.php');
+  exit;
+}
 require_once '../includes/db_connect.php'; // $conn (mysqli)
 
 function h($s)

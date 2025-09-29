@@ -4,15 +4,9 @@ require_once '../includes/functions.php';
 session_start();
 
 // Redirect if not logged in
-if (empty($_SESSION['admin_logged_in'])) {
-  header('Location: ./login.php');
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ../login.php');
   exit;
-}
-
-// Simplified helper function
-function h($s)
-{
-  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 }
 
 // --- DATA FETCHING ---
@@ -83,6 +77,7 @@ $products = $result->fetch_all(MYSQLI_ASSOC);
             <?php else: foreach ($products as $product): ?>
               <?php
               $pdata = [
+                "id" => (int)$product["product_id"],
                 "name" => $product["product_name"],
                 "description" => $product["description"],
                 "price" => number_format((float)$product["price"], 2),
@@ -92,7 +87,7 @@ $products = $result->fetch_all(MYSQLI_ASSOC);
                 "image" => $product["main_image"] ?? ''
               ];
               ?>
-              <tr class="product-row" data-product='<?= h(json_encode($pdata)) ?>' style="cursor: pointer;">
+              <tr class="product-row" data-product='<?= e(json_encode($pdata)) ?>' style="cursor: pointer;">
                 <td><?= (int)$product['product_id'] ?></td>
                 <td>
                   <?php
@@ -104,12 +99,12 @@ $products = $result->fetch_all(MYSQLI_ASSOC);
                     elseif (file_exists($candidate2)) $imagePath = $candidate2;
                   }
                   if ($imagePath): ?>
-                    <img src="<?= h($imagePath) ?>" alt="<?= h($product['product_name']) ?>" class="product-thumb">
+                    <img src="<?= e($imagePath) ?>" alt="<?= e($product['product_name']) ?>" class="product-thumb">
                   <?php endif; ?>
                 </td>
-                <td><?= h($product['product_name']) ?></td>
-                <td><?= h($product['category_name'] ?? 'N/A') ?></td>
-                <td><?= h($product['brand_name'] ?? 'N/A') ?></td>
+                <td><?= e($product['product_name']) ?></td>
+                <td><?= e($product['category_name'] ?? 'N/A') ?></td>
+                <td><?= e($product['brand_name'] ?? 'N/A') ?></td>
                 <td>₹<?= number_format((float)$product['price'], 2) ?></td>
                 <td>
                   <?php

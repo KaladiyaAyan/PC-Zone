@@ -2,9 +2,6 @@
 $userName = trim(($_SESSION['full_name'] ?? '')) ?: ($_SESSION['username'] ?? 'Admin');
 ?>
 
-<link rel="stylesheet" href="./assets/css/style.css">
-<link rel="stylesheet" href="./assets/css/header.css">
-
 <header class="admin-header">
   <div class="left-section">
     <button id="hamburger" class="hamburger" type="button" aria-label="Toggle sidebar">
@@ -23,10 +20,9 @@ $userName = trim(($_SESSION['full_name'] ?? '')) ?: ($_SESSION['username'] ?? 'A
     <div class="dropdown">
       <button class="user-btn d-flex align-items-center gap-2" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         <img src="./assets/images/admin.jpg" alt="avatar" class="admin-avatar">
-        <span class="d-none d-sm-inline"><?= htmlspecialchars($userName) ?></span>
+        <span class="d-none d-sm-inline"><?= e($userName) ?></span>
         <i class="fas fa-caret-down ms-1"></i>
       </button>
-
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
         <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2"></i>Profile</a></li>
         <li><a class="dropdown-item" href="settings.php"><i class="fas fa-cog me-2"></i>Settings</a></li>
@@ -39,14 +35,16 @@ $userName = trim(($_SESSION['full_name'] ?? '')) ?: ($_SESSION['username'] ?? 'A
   </div>
 </header>
 
+<!-- Main Admin Panel Logic -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
 
     // --- Sidebar Toggle Logic ---
     const hamburger = document.getElementById("hamburger");
-    const sidebar = document.getElementById("sidebar"); // Assumes sidebar has id="sidebar"
+    const sidebar = document.getElementById("sidebar");
+    const mainContent = document.querySelector(".main-content");
 
-    if (hamburger && sidebar) {
+    if (hamburger && sidebar && mainContent) {
       // Restore desktop sidebar state on page load
       if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
         sidebar.classList.add("collapsed");
@@ -54,16 +52,26 @@ $userName = trim(($_SESSION['full_name'] ?? '')) ?: ($_SESSION['username'] ?? 'A
 
       // Toggle sidebar on click
       hamburger.addEventListener("click", () => {
-        if (window.innerWidth > 768) { // Desktop
+        if (window.innerWidth > 768) { // Desktop: Toggle collapsed class
           sidebar.classList.toggle("collapsed");
+          // Save state to local storage
           localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
-        } else { // Mobile
+        } else { // Mobile: Toggle show class
           sidebar.classList.toggle("show");
+        }
+      });
+
+      // Close mobile sidebar when clicking outside of it
+      document.addEventListener('click', (event) => {
+        if (window.innerWidth <= 768 && sidebar.classList.contains('show')) {
+          if (!sidebar.contains(event.target) && !hamburger.contains(event.target)) {
+            sidebar.classList.remove('show');
+          }
         }
       });
     }
 
-    // --- Theme Toggle Logic (Simplified) ---
+    // --- Theme Toggle Logic ---
     const themeToggle = document.getElementById("themeToggle");
     const themeIcon = document.getElementById("themeIcon");
     const storageKey = 'pczoneTheme';
@@ -71,23 +79,24 @@ $userName = trim(($_SESSION['full_name'] ?? '')) ?: ($_SESSION['username'] ?? 'A
     const applyTheme = (theme) => {
       if (theme === 'light') {
         document.documentElement.setAttribute('data-theme', 'light');
-        themeIcon.classList.replace('fa-moon', 'fa-sun');
+        if (themeIcon) themeIcon.classList.replace('fa-moon', 'fa-sun');
         localStorage.setItem(storageKey, 'light');
       } else {
         document.documentElement.removeAttribute('data-theme');
-        themeIcon.classList.replace('fa-sun', 'fa-moon');
+        if (themeIcon) themeIcon.classList.replace('fa-sun', 'fa-moon');
         localStorage.setItem(storageKey, 'dark');
       }
     };
 
-    // Apply saved theme on load
+    // Apply saved theme on initial load
     applyTheme(localStorage.getItem(storageKey));
 
-    // Handle button click
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = document.documentElement.hasAttribute('data-theme') ? 'light' : 'dark';
-      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
-    });
-
+    // Handle button click to toggle theme
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.hasAttribute('data-theme') ? 'light' : 'dark';
+        applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+      });
+    }
   });
 </script>

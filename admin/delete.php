@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
 
 // admin auth
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: ./login.php');
+    header('Location: ../login.php');
     exit;
 }
 

@@ -1,35 +1,40 @@
 body {
+  background-color: #f8f9fa;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 15px 15px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0;
-}
-
-.signup-container {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
   padding: 1rem;
+}
+
+.auth-container {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 }
 
-h2 {
+.auth-container h2 {
   text-align: center;
-
-  margin: 0.5rem 0 1.8rem;
-  color: #212529;
+  margin: 0 0 1.8rem;
+  color: #2b5876;
   font-weight: 700;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
 }
 
-.inputGroup {
+/* RENAMED CLASS */
+.auth-group {
   margin-bottom: 1.2rem;
 }
 
-.inputGroup label {
+/* RENAMED CLASS */
+.auth-group label {
   display: block;
   margin-bottom: 0.4rem;
   color: #495057;
@@ -37,12 +42,14 @@ h2 {
   font-size: 0.95rem;
 }
 
-.inputGroup i {
+/* RENAMED CLASS */
+.auth-group i {
   margin-right: 8px;
-  color: #0d6efd;
+  color: #2b5876;
 }
 
-.inputGroup input {
+/* RENAMED CLASS */
+.auth-group input {
   width: 100%;
   padding: 0.7rem 1rem;
   border: 1px solid #dee2e6;
@@ -52,13 +59,19 @@ h2 {
   transition: all 0.2s ease;
 }
 
-.inputGroup input:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+/* RENAMED CLASS */
+.auth-group input:focus {
+  border-color: #2b5876;
+  box-shadow: 0 0 0 2px rgba(43, 88, 118, 0.2);
 }
 
 .password-field {
   position: relative;
+}
+
+/* This targets the input inside the password field specifically */
+.password-field input {
+  padding-right: 40px; /* Add space for the icon */
 }
 
 .show-hide-password,
@@ -72,36 +85,19 @@ h2 {
   font-size: 1.1rem;
 }
 
-button[type="submit"] {
-  width: 100%;
-  padding: 0.8rem;
-  border: none;
-  border-radius: 8px;
-  background: #0d6efd;
-  color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-button[type="submit"]:hover {
-  background: #0b5ed7;
-}
-
-.have-account {
+.auth-link {
   text-align: center;
-  margin-top: 1.2rem;
+  margin-top: 1.5rem;
   color: #6c757d;
   font-size: 0.9rem;
 }
 
-.have-account a {
-  color: #0d6efd;
+.auth-link a {
+  color: #2b5876;
   text-decoration: none;
   font-weight: 600;
 }
 
-.have-account a:hover {
+.auth-link a:hover {
   text-decoration: underline;
 }

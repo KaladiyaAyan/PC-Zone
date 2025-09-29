@@ -16,7 +16,7 @@ if (isset($_POST['signup'])) {
   }
 
   if (!preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/", $email)) {
-    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Invalid email format');
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect email or password');
     header('Location: signup.php');
     exit;
   }
@@ -62,7 +62,7 @@ if (isset($_POST['signup'])) {
   }
 
   if (!preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/", $email)) {
-    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Invalid email format');
+    message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Incorrect email or password');
     header('Location: login.php');
     exit;
   }
@@ -94,8 +94,16 @@ if (isset($_POST['signup'])) {
   $_SESSION['role'] = $row['role'];
 
   if ($row['role'] === 'admin') {
-    message('popup-success', '<i class="ri-check-line"></i>', 'Please Login again to continue');
-    header("Location: admin/login.php");
+    $_SESSION['admin_logged_in'] = true;
+    $_SESSION['admin_user'] = [
+      'id' => (int)$row['user_id'],
+      'username' => $row['username'] ?? '',
+      'email' => $row['email']
+    ];
+    $_SESSION['role'] = 'admin';
+
+    message('popup-success', '<i class="ri-check-line"></i>', 'Welcome ' . $_SESSION['admin_user']['username']);
+    header("Location: admin/index.php");
     exit;
   } else {
     message('popup-success', '<i class="ri-check-line"></i>', 'Welcome ' . $_SESSION['user']['username']);

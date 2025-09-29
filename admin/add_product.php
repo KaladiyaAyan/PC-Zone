@@ -6,7 +6,7 @@ require('../includes/functions.php');
 
 // Admin protection
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-  header('Location: ./login.php');
+  header('Location: ../login.php');
   exit;
 }
 

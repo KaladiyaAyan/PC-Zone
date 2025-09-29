@@ -5,8 +5,8 @@ require('../includes/db_connect.php');
 require('../includes/functions.php');
 
 // Validate product_id in GET
-if (!isset($_GET['product_id']) || !is_numeric($_GET['product_id'])) {
-  header("Location: product.php");
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ../login.php');
   exit;
 }
 $product_id = intval($_GET['product_id']);

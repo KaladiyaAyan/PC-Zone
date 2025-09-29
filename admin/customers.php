@@ -4,8 +4,8 @@ require_once '../includes/functions.php';
 session_start();
 
 // Redirect if not logged in
-if (empty($_SESSION['admin_logged_in'])) {
-  header('Location: ./login.php');
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ../login.php');
   exit;
 }
 

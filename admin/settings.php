@@ -4,10 +4,9 @@ include './includes/functions.php';
 
 session_start();
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-  header('Location: ./login1.php');
+  header('Location: ../login.php');
   exit;
 }
-
 
 function h($s)
 {

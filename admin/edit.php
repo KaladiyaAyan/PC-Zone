@@ -1,8 +1,12 @@
 <?php
 session_start();
-
 include('../includes/db_connect.php');
 include('../functions/message.php');
+
+if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+  header('Location: ../login.php');
+  exit;
+}
 
 if (isset($_POST['edit-category'])) {
 

@@ -5,23 +5,18 @@ require('../includes/db_connect.php');
 require('../includes/functions.php');
 
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-  header('Location: ./login.php');
+  header('Location: ../login.php');
   exit;
-}
-
-
-// validate plain identifier (table names)
-function valid_identifier($s)
-{
-  return (bool)preg_match('/^[a-zA-Z0-9_]+$/', $s);
 }
 
 // safe count helper using validated table name and optional condition (simple use)
 function getCount($conn, $table, $condition = '')
 {
-  if (!valid_identifier($table)) return 0;
+  if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) return 0;
+
   $sql = "SELECT COUNT(*) AS total FROM `$table`" . ($condition ? " WHERE $condition" : "");
   $res = mysqli_query($conn, $sql);
+
   if (!$res) return 0;
   $row = mysqli_fetch_assoc($res);
   return (int)($row['total'] ?? 0);
@@ -50,24 +45,15 @@ $totalRevenue   = getTotalRevenue($conn);
   <title>PC ZONE Dashboard</title>
 
   <?php require('./includes/header-link.php') ?>
-
   <link rel="stylesheet" href="./assets/css/dashboard.css">
 
-  <script>
-    (function() {
-      const saved = localStorage.getItem('pczoneTheme');
-      if (saved === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
   <?php require('./includes/alert.php'); ?>
 
-  <?php include './includes/header.php'; ?>
-  <?php $current_page = 'dashboard';
+  <?php include './includes/header.php';
+  $current_page = 'dashboard';
   include './includes/sidebar.php'; ?>
 
   <main class="main-content">
@@ -103,7 +89,7 @@ $totalRevenue   = getTotalRevenue($conn);
           <i class="fas fa-dollar-sign fa-2x"></i>
           <div class="ms-3">
             <h3 class="h6 mb-0">Total Revenue</h3>
-            <p class="mb-0 fs-5"><?= htmlspecialchars(formatPrice($totalRevenue), ENT_QUOTES) ?></p>
+            <p class="mb-0 fs-5"><?= e(formatPrice($totalRevenue)) ?></p>
           </div>
         </div>
       </div>
@@ -133,10 +119,10 @@ $totalRevenue   = getTotalRevenue($conn);
                 if (mysqli_num_rows($res) > 0) {
                   while ($order = mysqli_fetch_assoc($res)) {
                     $statusClass = 'status-' . strtolower(preg_replace('/\s+/', '-', $order['order_status']));
-                    $statusLabel = htmlspecialchars(ucfirst(strtolower($order['order_status'])), ENT_QUOTES);
-                    $custName = htmlspecialchars($order['customer_name'] ?? 'Guest', ENT_QUOTES);
+                    $statusLabel = e(ucfirst(strtolower($order['order_status'])));
+                    $custName = e($order['customer_name'] ?? 'Guest');
                     $orderId  = (int)$order['order_id'];
-                    $totalFmt = htmlspecialchars(formatPrice((float)$order['total_amount']), ENT_QUOTES);
+                    $totalFmt = e(formatPrice((float)$order['total_amount']));
                     $dateFmt  = $order['order_date'] ? date('M d, Y', strtotime($order['order_date'])) : '-';
                     echo "<tr>
                             <td>{$orderId}</td>
@@ -178,7 +164,7 @@ $totalRevenue   = getTotalRevenue($conn);
                 if (mysqli_num_rows($res2) > 0) {
                   while ($product = mysqli_fetch_assoc($res2)) {
                     $pid = (int)$product['product_id'];
-                    $pname = htmlspecialchars($product['product_name'], ENT_QUOTES);
+                    $pname = e($product['product_name']);
                     $stock = (int)$product['stock'];
                     $statusClass = $stock === 0 ? 'out-of-stock' : 'low-stock';
                     $statusText = $stock === 0 ? 'Out of Stock' : 'Low Stock';
@@ -186,7 +172,7 @@ $totalRevenue   = getTotalRevenue($conn);
                             <td>{$pid}</td>
                             <td>{$pname}</td>
                             <td>{$stock}</td>
-                            <td><span class='stock-badge {$statusClass}'>" . htmlspecialchars($statusText, ENT_QUOTES) . "</span></td>
+                            <td><span class='stock-badge {$statusClass}'>" . e($statusText) . "</span></td>
                           </tr>";
                   }
                 } else {
