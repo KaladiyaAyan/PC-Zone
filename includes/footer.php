@@ -44,7 +44,7 @@
         <div class="col-lg-3 col-md-4">
           <h5 class="footer-title">Company</h5>
           <ul class="footer-links">
-            <li><a href="#">About PC Zone</a></li>
+            <li><a href="./about.php">About PC Zone</a></li>
             <li><a href="#">Privacy Policy</a></li>
             <li><a href="#">Terms of Service</a></li>
           </ul>

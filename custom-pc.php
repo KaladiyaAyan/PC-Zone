@@ -170,7 +170,7 @@ mysqli_close($conn);
       </div>
     </form>
   </main>
-
+  <?php require('./includes/footer.php') ?>
   <?php require('./includes/footer-link.php') ?>
   <script>
     document.addEventListener('DOMContentLoaded', () => {

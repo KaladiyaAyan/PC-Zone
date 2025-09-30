@@ -1,36 +1,20 @@
 <?php
-require_once '../includes/db_connect.php';
-require_once '../includes/functions.php';
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
-// Redirect if not logged in
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
-}
-
-// --- CONFIG & HELPERS ---
-$perPage = 20;
-function h($s)
-{
-  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
-}
-function page_url($p, $queryParams)
-{
-  $queryParams['page'] = $p;
-  return basename($_SERVER['PHP_SELF']) . '?' . http_build_query($queryParams);
 }
 
 // --- HANDLE FILTERS ---
 $q = trim($_GET['q'] ?? '');
 $status = trim($_GET['status'] ?? '');
 $method = trim($_GET['method'] ?? '');
-$page = isset($_GET['page']) && ctype_digit($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $perPage;
 
 // --- BUILD QUERY ---
 $whereConditions = [];
-$queryParams = ['q' => $q, 'status' => $status, 'method' => $method]; // For pagination links
 
 if ($q !== '') {
   $searchTerm = $conn->real_escape_string($q);
@@ -57,16 +41,14 @@ $totalsResult = $conn->query($totalsQuery);
 $totals = $totalsResult->fetch_assoc();
 $total_count = (int)$totals['total_count'];
 $total_amount = (float)$totals['total_amount'];
-$totalPages = ceil($total_count / $perPage);
 
-// Get payments for the current page
+// Get all matching payments (no pagination)
 $sql = "SELECT p.*, u.username, u.email
         FROM payments p
         LEFT JOIN orders o ON p.order_id = o.order_id
-        LEFT JOIN users u ON o.user_id = o.user_id
+        LEFT JOIN users u ON o.user_id = u.user_id
         $whereClause
-        ORDER BY p.created_at DESC
-        LIMIT $offset, $perPage";
+        ORDER BY p.created_at DESC";
 $result = $conn->query($sql);
 $payments = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -109,7 +91,7 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
     <div class="theme-card p-3 mb-4">
       <form method="get" class="row g-2 align-items-center">
         <div class="col-md-5 col-12">
-          <input type="search" name="q" value="<?= h($q) ?>" class="form-control" placeholder="Search by Txn, Order ID, Email, or Name">
+          <input type="search" name="q" value="<?= e($q) ?>" class="form-control" placeholder="Search by Txn, Order ID, Email, or Name">
         </div>
         <div class="col-md-2 col-6">
           <select name="method" class="form-select">
@@ -158,12 +140,12 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
                 <td><?= (int)$p['payment_id'] ?></td>
                 <td><a href="order_view.php?id=<?= (int)$p['order_id'] ?>">#<?= (int)$p['order_id'] ?></a></td>
                 <td>
-                  <div><?= h($p['username']) ?></div>
-                  <div class="text-small-muted"><?= h($p['email']) ?></div>
+                  <div><?= e($p['username']) ?></div>
+                  <div class="text-small-muted"><?= e($p['email']) ?></div>
                 </td>
-                <td><?= h($p['payment_method']) ?></td>
+                <td><?= e($p['payment_method']) ?></td>
                 <td>₹ <?= number_format((float)$p['amount'], 2) ?></td>
-                <td><span class="badge-status <?= strtolower(h($p['payment_status'])) ?>"><?= h($p['payment_status']) ?></span></td>
+                <td><span class="badge-status <?= strtolower(e($p['payment_status'])) ?>"><?= e($p['payment_status']) ?></span></td>
                 <td><?= date('d M Y, h:i A', strtotime($p['paid_at'] ?? $p['created_at'])) ?></td>
               </tr>
           <?php endforeach;
@@ -172,24 +154,7 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
       </table>
     </div>
 
-    <!-- Pagination -->
-    <?php if ($totalPages > 1): ?>
-      <nav class="mt-4 d-flex justify-content-end">
-        <ul class="pagination">
-          <?php if ($page > 1): ?>
-            <li class="page-item"><a class="page-link" href="<?= h(page_url($page - 1, $queryParams)) ?>">«</a></li>
-          <?php endif; ?>
-
-          <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <li class="page-item <?= $i === $page ? 'active' : '' ?>"><a class="page-link" href="<?= h(page_url($i, $queryParams)) ?>"><?= $i ?></a></li>
-          <?php endfor; ?>
-
-          <?php if ($page < $totalPages): ?>
-            <li class="page-item"><a class="page-link" href="<?= h(page_url($page + 1, $queryParams)) ?>">»</a></li>
-          <?php endif; ?>
-        </ul>
-      </nav>
-    <?php endif; ?>
+    <!-- Pagination removed -->
   </main>
 
   <?php require('./includes/footer-link.php') ?>

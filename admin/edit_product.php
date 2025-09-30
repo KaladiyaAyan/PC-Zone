@@ -1,15 +1,14 @@
 <?php
 session_start();
-
 require('../includes/db_connect.php');
 require('../includes/functions.php');
 
-// Validate product_id in GET
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
 }
-$product_id = intval($_GET['product_id']);
+
+$product_id = (int)$_GET['product_id'];
 
 // Handle image deletion
 if (isset($_GET['delete_image'])) {
@@ -17,53 +16,36 @@ if (isset($_GET['delete_image'])) {
   $allowed = ['main_image', 'image_1', 'image_2', 'image_3'];
 
   if (in_array($col, $allowed)) {
-    // Fetch current filename
-    $stmt = mysqli_prepare($conn, "SELECT $col FROM products WHERE product_id = ? LIMIT 1");
-    mysqli_stmt_bind_param($stmt, 'i', $product_id);
-    mysqli_stmt_execute($stmt);
-    $res = mysqli_stmt_get_result($stmt);
-    $row = mysqli_fetch_assoc($res);
-    mysqli_stmt_close($stmt);
-
-    $filename = $row[$col] ?? '';
-    if ($filename) {
-      // Remove file from uploads
-      $uploads = '../uploads/' . $filename;
-      if (file_exists($uploads)) @unlink($uploads);
+    // Get current filename and delete
+    $result = mysqli_query($conn, "SELECT $col FROM products WHERE product_id = $product_id");
+    $row = mysqli_fetch_assoc($result);
+    if ($row[$col]) {
+      $file_path = '../uploads/' . $row[$col];
+      if (file_exists($file_path)) @unlink($file_path);
     }
 
-    // Update DB to empty string
-    $uStmt = mysqli_prepare($conn, "UPDATE products SET $col = '' WHERE product_id = ?");
-    mysqli_stmt_bind_param($uStmt, 'i', $product_id);
-    mysqli_stmt_execute($uStmt);
-    mysqli_stmt_close($uStmt);
-
-    // Redirect to refresh page
+    // Update database
+    mysqli_query($conn, "UPDATE products SET $col = '' WHERE product_id = $product_id");
     header("Location: edit_product.php?product_id=$product_id");
     exit;
   }
 }
 
-// Fetch product
-$stmt = mysqli_prepare($conn, "
-  SELECT p.*, c.category_name AS category_name, b.brand_name AS brand_name
-  FROM products p
-  LEFT JOIN categories c ON p.category_id = c.category_id
-  LEFT JOIN brands b ON p.brand_id = b.brand_id
-  WHERE p.product_id = ? LIMIT 1
+// Fetch product data
+$result = mysqli_query($conn, "
+    SELECT p.*, c.category_name, b.brand_name
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.category_id
+    LEFT JOIN brands b ON p.brand_id = b.brand_id
+    WHERE p.product_id = $product_id
 ");
-mysqli_stmt_bind_param($stmt, 'i', $product_id);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-if (!$res || mysqli_num_rows($res) === 0) {
-  mysqli_stmt_close($stmt);
+if (!$result || mysqli_num_rows($result) === 0) {
   header("Location: product.php");
   exit;
 }
-$product = mysqli_fetch_assoc($res);
-mysqli_stmt_close($stmt);
+$product = mysqli_fetch_assoc($result);
 
-// Build existing images array from product columns
+// Get existing images
 $existingImages = [];
 foreach (['main_image', 'image_1', 'image_2', 'image_3'] as $col) {
   if (!empty($product[$col])) {
@@ -75,30 +57,25 @@ foreach (['main_image', 'image_1', 'image_2', 'image_3'] as $col) {
   }
 }
 
-// Fetch specs grouped
+// Get specifications
 $specGroups = [];
-$sStmt = mysqli_prepare($conn, "SELECT spec_name, spec_value, spec_group, display_order FROM product_specs WHERE product_id = ? ORDER BY spec_group, display_order");
-mysqli_stmt_bind_param($sStmt, 'i', $product_id);
-mysqli_stmt_execute($sStmt);
-$sres = mysqli_stmt_get_result($sStmt);
-while ($s = mysqli_fetch_assoc($sres)) {
-  $group = $s['spec_group'] ?: 'General';
-  $specGroups[$group][] = [
-    'name' => $s['spec_name'],
-    'value' => $s['spec_value'],
-    'order' => $s['display_order']
-  ];
+$specs_result = mysqli_query($conn, "
+    SELECT spec_name, spec_value, spec_group, display_order 
+    FROM product_specs 
+    WHERE product_id = $product_id 
+    ORDER BY spec_group, display_order
+");
+while ($spec = mysqli_fetch_assoc($specs_result)) {
+  $group = $spec['spec_group'] ?: 'General';
+  $specGroups[$group][] = $spec;
 }
-mysqli_stmt_close($sStmt);
 
-// categories & brands for dropdowns
+// Get categories and brands
 $categories = getRootCategories();
-$brandsQuery = "SELECT brand_id, brand_name, category_id FROM brands ORDER BY brand_name ASC";
-$brandsResult = mysqli_query($conn, $brandsQuery);
-$brandsData = [];
-while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
-
+$brands_result = mysqli_query($conn, "SELECT brand_id, brand_name, category_id FROM brands ORDER BY brand_name");
+$brandsData = mysqli_fetch_all($brands_result, MYSQLI_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -129,9 +106,9 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
             <div class="current-selection">
               <h6 class="mb-2"><i class="fas fa-info-circle"></i> Current Product Details</h6>
               <div class="row">
-                <div class="col-md-6"><strong>Name:</strong> <?= htmlspecialchars($product['product_name']) ?></div>
-                <div class="col-md-3"><strong>Category:</strong> <?= htmlspecialchars($product['category_name']) ?></div>
-                <div class="col-md-3"><strong>Brand:</strong> <?= htmlspecialchars($product['brand_name']) ?></div>
+                <div class="col-md-6"><strong>Name:</strong> <?= e($product['product_name']) ?></div>
+                <div class="col-md-3"><strong>Category:</strong> <?= e($product['category_name']) ?></div>
+                <div class="col-md-3"><strong>Brand:</strong> <?= e($product['brand_name']) ?></div>
               </div>
             </div>
 
@@ -142,15 +119,15 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Product Name <span class="required">*</span></label>
-                  <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($product['product_name']) ?>" required>
+                  <input type="text" name="name" class="form-control" value="<?= e($product['product_name']) ?>" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">SKU <span class="required">*</span></label>
-                  <input type="text" name="sku" class="form-control" value="<?= htmlspecialchars($product['sku']) ?>" required>
+                  <input type="text" name="sku" class="form-control" value="<?= e($product['sku']) ?>" required>
                 </div>
                 <div class="col-12">
                   <label class="form-label">Description <span class="required">*</span></label>
-                  <textarea name="description" class="form-control" rows="4" required><?= htmlspecialchars($product['description']) ?></textarea>
+                  <textarea name="description" class="form-control" rows="4" required><?= e($product['description']) ?></textarea>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">Price (₹) <span class="required">*</span></label>
@@ -170,7 +147,9 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                   <select name="category" class="form-select" id="categorySelect" required>
                     <option value="">-- Select Category --</option>
                     <?php foreach ($categories as $cat): ?>
-                      <option value="<?= $cat['category_id'] ?>" <?= ($product['category_id'] == $cat['category_id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['category_name']) ?></option>
+                      <option value="<?= $cat['category_id'] ?>" <?= $product['category_id'] == $cat['category_id'] ? 'selected' : '' ?>>
+                        <?= e($cat['category_name']) ?>
+                      </option>
                     <?php endforeach; ?>
                   </select>
                 </div>
@@ -180,7 +159,10 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                   <select name="brand" class="form-select" id="brandSelect" required>
                     <option value="">-- Select Brand --</option>
                     <?php foreach ($brandsData as $brand): ?>
-                      <option value="<?= $brand['brand_id'] ?>" data-category="<?= $brand['category_id'] ?>" <?= ($product['brand_id'] == $brand['brand_id']) ? 'selected' : '' ?>><?= htmlspecialchars($brand['brand_name']) ?></option>
+                      <option value="<?= $brand['brand_id'] ?>" data-category="<?= $brand['category_id'] ?>"
+                        <?= $product['brand_id'] == $brand['brand_id'] ? 'selected' : '' ?>>
+                        <?= e($brand['brand_name']) ?>
+                      </option>
                     <?php endforeach; ?>
                   </select>
                   <div class="brand-info" id="brandInfo">Brands will be filtered based on selected category</div>
@@ -212,22 +194,20 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                 <div class="col-12">
                   <h5 class="mt-4 mb-3">Product Specifications</h5>
                   <div id="specGroupsContainer">
-                    <?php
-                    if (!empty($specGroups)) {
-                      foreach ($specGroups as $gName => $rows) {
-                        $safe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $gName);
-                    ?>
+                    <?php if (!empty($specGroups)): ?>
+                      <?php foreach ($specGroups as $groupName => $specs): ?>
+                        <?php $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName); ?>
                         <div class="spec-group mb-3 border rounded p-2">
                           <div class="d-flex mb-2">
-                            <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="<?= htmlspecialchars($gName) ?>" placeholder="Group name (e.g. Processor)">
+                            <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="<?= e($groupName) ?>" placeholder="Group name">
                             <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
                           </div>
                           <div class="spec-rows">
-                            <?php foreach ($rows as $r): ?>
+                            <?php foreach ($specs as $spec): ?>
                               <div class="input-group mb-2 spec-row">
-                                <input name="spec_name_<?= $safe ?>[]" class="form-control" placeholder="Spec name" value="<?= htmlspecialchars($r['name']) ?>">
-                                <input name="spec_value_<?= $safe ?>[]" class="form-control" placeholder="Spec value" value="<?= htmlspecialchars($r['value']) ?>">
-                                <input type="number" name="spec_order_<?= $safe ?>[]" class="form-control w-25" placeholder="Order" value="<?= (int)$r['order'] ?>">
+                                <input name="spec_name_<?= $safeName ?>[]" class="form-control" placeholder="Spec name" value="<?= e($spec['spec_name']) ?>">
+                                <input name="spec_value_<?= $safeName ?>[]" class="form-control" placeholder="Spec value" value="<?= e($spec['spec_value']) ?>">
+                                <input type="number" name="spec_order_<?= $safeName ?>[]" class="form-control w-25" placeholder="Order" value="<?= (int)$spec['display_order'] ?>">
                                 <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
                               </div>
                             <?php endforeach; ?>
@@ -236,14 +216,11 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                             <button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button>
                           </div>
                         </div>
-                      <?php
-                      }
-                    } else {
-                      // default
-                      ?>
+                      <?php endforeach; ?>
+                    <?php else: ?>
                       <div class="spec-group mb-3 border rounded p-2">
                         <div class="d-flex mb-2">
-                          <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="General" placeholder="Group name (e.g. Processor)">
+                          <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="General" placeholder="Group name">
                           <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
                         </div>
                         <div class="spec-rows">
@@ -258,7 +235,7 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                           <button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button>
                         </div>
                       </div>
-                    <?php } ?>
+                    <?php endif; ?>
                   </div>
                   <div class="mt-2">
                     <button id="addGroupBtn" type="button" class="btn btn-sm btn-success">+ Add Group</button>
@@ -266,45 +243,40 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                   </div>
                 </div>
 
-                <!-- Existing images -->
+                <!-- Existing Images -->
                 <?php if (!empty($existingImages)): ?>
                   <div class="col-12">
                     <h5 class="mt-3 mb-2">Existing Images</h5>
                     <div class="existing-images d-flex flex-wrap gap-2">
-                      <?php foreach ($existingImages as $img):
+                      <?php foreach ($existingImages as $img): ?>
+                        <?php
                         $imagePath = "../uploads/" . $img['filename'];
                         if (!file_exists($imagePath)) $imagePath = "../assets/images/" . $img['filename'];
-                      ?>
+                        ?>
                         <div class="image-container position-relative" style="width:140px;">
-                          <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>" style="max-width:100%;border:1px solid #ddd;border-radius:6px;">
-                          <?php if ($img['is_main']): ?><span class="main-image-badge badge bg-danger position-absolute top-0 start-0">Main</span><?php endif; ?>
-                          <a href="edit_product.php?product_id=<?= $product_id ?>&delete_image=<?= $img['col'] ?>" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0" title="Delete Image" onclick="return confirm('Are you sure you want to delete this image?')">×</a>
+                          <img src="<?= e($imagePath) ?>" alt="<?= e($product['product_name']) ?>" style="max-width:100%;border:1px solid #ddd;border-radius:6px;">
+                          <?php if ($img['is_main']): ?>
+                            <span class="main-image-badge badge bg-danger position-absolute top-0 start-0">Main</span>
+                          <?php endif; ?>
+                          <a href="edit_product.php?product_id=<?= $product_id ?>&delete_image=<?= $img['col'] ?>"
+                            class="btn btn-sm btn-outline-danger position-absolute top-0 end-0"
+                            onclick="return confirm('Delete this image?')">×</a>
                         </div>
                       <?php endforeach; ?>
                     </div>
                   </div>
                 <?php endif; ?>
 
-                <!-- Add New Images -->
+                <!-- New Images -->
                 <div class="col-12">
                   <h5 class="mt-4 mb-3">Add New Images</h5>
                   <div class="row">
-                    <div class="col-md-3">
-                      <label class="form-label">Image 1 (main)</label>
-                      <input type="file" name="image1" class="form-control" accept="image/*">
-                    </div>
-                    <div class="col-md-3">
-                      <label class="form-label">Image 2</label>
-                      <input type="file" name="image2" class="form-control" accept="image/*">
-                    </div>
-                    <div class="col-md-3">
-                      <label class="form-label">Image 3</label>
-                      <input type="file" name="image3" class="form-control" accept="image/*">
-                    </div>
-                    <div class="col-md-3">
-                      <label class="form-label">Image 4</label>
-                      <input type="file" name="image4" class="form-control" accept="image/*">
-                    </div>
+                    <?php foreach (['Image 1 (main)', 'Image 2', 'Image 3', 'Image 4'] as $index => $label): ?>
+                      <div class="col-md-3">
+                        <label class="form-label"><?= $label ?></label>
+                        <input type="file" name="image<?= $index + 1 ?>" class="form-control" accept="image/*">
+                      </div>
+                    <?php endforeach; ?>
                   </div>
                 </div>
 
@@ -315,7 +287,6 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
                     <a href="product.php" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
                   </div>
                 </div>
-
               </div>
             </form>
           </div>
@@ -328,100 +299,88 @@ while ($b = mysqli_fetch_assoc($brandsResult)) $brandsData[] = $b;
 
   <script>
     // Filter brands by category
-    document.addEventListener('DOMContentLoaded', function() {
-      const categorySelect = document.getElementById('categorySelect');
+    document.getElementById('categorySelect').addEventListener('change', function() {
+      const categoryId = this.value;
       const brandSelect = document.getElementById('brandSelect');
 
-      function filterBrands() {
-        const sel = categorySelect.value;
-        Array.from(brandSelect.options).forEach(opt => {
-          if (!opt.value) return;
-          if (!sel || opt.getAttribute('data-category') === sel) opt.style.display = 'block';
-          else {
-            opt.style.display = 'none';
-            opt.selected = false;
-          }
-        });
-        if (!brandSelect.value) brandSelect.selectedIndex = 0;
+      Array.from(brandSelect.options).forEach(option => {
+        if (!option.value) return;
+        const optionCategory = option.getAttribute('data-category');
+        option.style.display = !categoryId || optionCategory === categoryId ? 'block' : 'none';
+      });
+
+      if (!brandSelect.value) brandSelect.selectedIndex = 0;
+    });
+
+    // Initialize brand filter
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('categorySelect').dispatchEvent(new Event('change'));
+    });
+
+    // Specifications management
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('specGroupsContainer');
+      const addGroupBtn = document.getElementById('addGroupBtn');
+
+      function createSpecRow(groupName, name = '', value = '', order = 10) {
+        const safeName = groupName.replace(/[^a-zA-Z0-9]/g, '_');
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 spec-row';
+        div.innerHTML = `
+          <input name="spec_name_${safeName}[]" class="form-control" placeholder="Spec name" value="${name}">
+          <input name="spec_value_${safeName}[]" class="form-control" placeholder="Spec value" value="${value}">
+          <input type="number" name="spec_order_${safeName}[]" class="form-control w-25" placeholder="Order" value="${order}">
+          <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
+        `;
+        return div;
       }
 
-      categorySelect.addEventListener('change', filterBrands);
-      filterBrands();
+      function createGroup(groupName = 'New Group') {
+        const safeName = groupName.replace(/[^a-zA-Z0-9]/g, '_');
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'spec-group mb-3 border rounded p-2';
+        groupDiv.innerHTML = `
+          <div class="d-flex mb-2">
+            <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="${groupName}" placeholder="Group name">
+            <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
+          </div>
+          <div class="spec-rows"></div>
+          <div><button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button></div>
+        `;
 
-      // Spec groups manager
-      (function() {
-        function safeKey(name) {
-          return String(name || 'Group').replace(/[^a-zA-Z0-9]/g, '_');
-        }
+        // Add initial row
+        groupDiv.querySelector('.spec-rows').appendChild(createSpecRow(groupName));
 
-        function escapeHtml(s) {
-          return String(s || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
-        }
-
-        const container = document.getElementById('specGroupsContainer');
-        const addGroupBtn = document.getElementById('addGroupBtn');
-
-        function createRowEl(safe, name = '', value = '', order = 10) {
-          const div = document.createElement('div');
-          div.className = 'input-group mb-2 spec-row';
-          div.innerHTML = `
-            <input name="spec_name_${safe}[]" class="form-control" placeholder="Spec name" value="${escapeHtml(name)}">
-            <input name="spec_value_${safe}[]" class="form-control" placeholder="Spec value" value="${escapeHtml(value)}">
-            <input type="number" name="spec_order_${safe}[]" class="form-control w-25" placeholder="Order" value="${escapeHtml(order)}">
-            <button type="button" class="btn btn-outline-secondary remove-row-btn">−</button>
-          `;
-          return div;
-        }
-
-        function buildGroupNode(group) {
-          const safe = safeKey(group);
-          const wrapper = document.createElement('div');
-          wrapper.className = 'spec-group mb-3 border rounded p-2';
-          wrapper.innerHTML = `
-            <div class="d-flex mb-2">
-              <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="${escapeHtml(group)}" placeholder="Group name (e.g. Processor)">
-              <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
-            </div>
-            <div class="spec-rows"></div>
-            <div><button type="button" class="btn btn-sm btn-primary add-row-btn">+ Add spec</button></div>
-          `;
-          wrapper.querySelector('.spec-rows').appendChild(createRowEl(safe));
-          wrapper.querySelector('.spec-group-name').addEventListener('input', function() {
-            const newSafe = safeKey(this.value || 'General');
-            wrapper.querySelectorAll('.spec-row').forEach(row => {
-              const inputs = row.querySelectorAll('input');
-              if (inputs.length >= 3) {
-                inputs[0].name = `spec_name_${newSafe}[]`;
-                inputs[1].name = `spec_value_${newSafe}[]`;
-                inputs[2].name = `spec_order_${newSafe}[]`;
-              }
-            });
+        // Update input names when group name changes
+        groupDiv.querySelector('.spec-group-name').addEventListener('input', function() {
+          const newSafeName = this.value.replace(/[^a-zA-Z0-9]/g, '_');
+          groupDiv.querySelectorAll('.spec-row').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            inputs[0].name = `spec_name_${newSafeName}[]`;
+            inputs[1].name = `spec_value_${newSafeName}[]`;
+            inputs[2].name = `spec_order_${newSafeName}[]`;
           });
-          return wrapper;
+        });
+
+        return groupDiv;
+      }
+
+      // Event delegation for buttons
+      container.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-group-btn')) {
+          e.target.closest('.spec-group').remove();
+        } else if (e.target.classList.contains('add-row-btn')) {
+          const group = e.target.closest('.spec-group');
+          const groupName = group.querySelector('.spec-group-name').value;
+          group.querySelector('.spec-rows').appendChild(createSpecRow(groupName));
+        } else if (e.target.classList.contains('remove-row-btn')) {
+          e.target.closest('.spec-row').remove();
         }
+      });
 
-        container.addEventListener('click', function(e) {
-          if (e.target.matches('.remove-group-btn')) {
-            e.target.closest('.spec-group')?.remove();
-            return;
-          }
-          if (e.target.matches('.add-row-btn')) {
-            const g = e.target.closest('.spec-group');
-            if (!g) return;
-            const key = safeKey(g.querySelector('.spec-group-name')?.value || 'General');
-            g.querySelector('.spec-rows').appendChild(createRowEl(key));
-            return;
-          }
-          if (e.target.matches('.remove-row-btn')) {
-            e.target.closest('.spec-row')?.remove();
-            return;
-          }
-        });
-
-        addGroupBtn?.addEventListener('click', function() {
-          container.appendChild(buildGroupNode('New Group'));
-        });
-      })();
+      addGroupBtn.addEventListener('click', function() {
+        container.appendChild(createGroup());
+      });
     });
   </script>
 </body>

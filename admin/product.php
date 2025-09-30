@@ -1,9 +1,8 @@
 <?php
-require_once '../includes/db_connect.php';
-require_once '../includes/functions.php';
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
-// Redirect if not logged in
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
@@ -29,21 +28,12 @@ $products = $result->fetch_all(MYSQLI_ASSOC);
 
   <?php require('./includes/header-link.php') ?>
   <link rel="stylesheet" href="./assets/css/products.css">
-
-  <script>
-    (function() {
-      if (localStorage.getItem('pczoneTheme') === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php
-  $current_page = 'product';
+  <?php require('./includes/alert.php');
   include './includes/header.php';
+  $current_page = 'product';
   include './includes/sidebar.php';
   ?>
 

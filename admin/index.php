@@ -46,13 +46,11 @@ $totalRevenue   = getTotalRevenue($conn);
 
   <?php require('./includes/header-link.php') ?>
   <link rel="stylesheet" href="./assets/css/dashboard.css">
-
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-
-  <?php include './includes/header.php';
+  <?php require('./includes/alert.php');
+  include './includes/header.php';
   $current_page = 'dashboard';
   include './includes/sidebar.php'; ?>
 
@@ -189,7 +187,6 @@ $totalRevenue   = getTotalRevenue($conn);
 
     </div>
   </main>
-
   <?php require('./includes/footer-link.php') ?>
 </body>
 

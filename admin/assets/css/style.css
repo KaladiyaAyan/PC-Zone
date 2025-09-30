@@ -1,9 +1,3 @@
-/* ========================================
-   PC ZONE - Core Admin Stylesheet
-   - Base, Theme, Layout, Common Components
-   ======================================== */
-
-/* Reset & Base */
 * {
   margin: 0;
   padding: 0;
@@ -107,11 +101,19 @@ body {
 /* Tables */
 .table-container {
   width: 100%;
+  max-width: 100%;
   background-color: var(--bg-section);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow-x: auto;
   padding: 12px;
+}
+.data-table,
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: var(--text-color);
 }
 .data-table {
   width: 100%;
@@ -212,6 +214,7 @@ body {
   text-decoration: none;
 }
 .btn-secondary:hover {
+  color: var(--text-color);
   background-color: var(--hover-bg);
 }
 

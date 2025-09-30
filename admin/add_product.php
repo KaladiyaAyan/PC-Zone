@@ -1,10 +1,8 @@
 <?php
-// admin/add_product.php
 session_start();
 require('../includes/db_connect.php');
 require('../includes/functions.php');
 
-// Admin protection
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
@@ -25,9 +23,9 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php include './includes/header.php'; ?>
-  <?php $current_page = 'product';
+  <?php require('./includes/alert.php');
+  include './includes/header.php';
+  $current_page = 'product';
   include './includes/sidebar.php'; ?>
 
   <main class="main-content my-4">

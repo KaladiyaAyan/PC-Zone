@@ -1,9 +1,8 @@
 <?php
-require_once '../includes/db_connect.php';
-require_once '../includes/functions.php'; // Assuming getRootCategories() is here
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
-// Redirect if not logged in
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
@@ -18,7 +17,7 @@ $result_all = $conn->query($query_all);
 $allCategories = $result_all->fetch_all(MYSQLI_ASSOC);
 
 // Fetch only top-level categories for the dropdowns
-$rootCategories = getRootCategories($conn); // Pass connection if needed
+$rootCategories = getRootCategories($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,22 +28,12 @@ $rootCategories = getRootCategories($conn); // Pass connection if needed
   <title>PC-Zone Admin - Categories</title>
 
   <?php require('./includes/header-link.php') ?>
-  <script>
-    // Immediately apply theme from localStorage
-    (function() {
-      const theme = localStorage.getItem('pczoneTheme');
-      if (theme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php
-  $current_page = 'categories';
+  <?php require('./includes/alert.php');
   include './includes/header.php';
+  $current_page = 'categories';
   include './includes/sidebar.php';
   ?>
 
@@ -73,13 +62,13 @@ $rootCategories = getRootCategories($conn); // Pass connection if needed
             <?php foreach ($allCategories as $row): ?>
               <tr>
                 <td><?= (int)$row['category_id'] ?></td>
-                <td><?= htmlspecialchars($row['category_name']) ?></td>
-                <td><?= htmlspecialchars($row['parent_name'] ?? '—') ?></td>
-                <td><?= htmlspecialchars($row['slug']) ?></td>
+                <td><?= e($row['category_name']) ?></td>
+                <td><?= e($row['parent_name'] ?? '—') ?></td>
+                <td><?= e($row['slug']) ?></td>
                 <td>
                   <button class="btn-edit" data-bs-toggle="modal" data-bs-target="#editCategoryModal"
                     data-id="<?= (int)$row['category_id'] ?>"
-                    data-name="<?= htmlspecialchars($row['category_name'], ENT_QUOTES) ?>"
+                    data-name="<?= e($row['category_name'], ENT_QUOTES) ?>"
                     data-parent="<?= $row['parent_id'] ?? '' ?>">
                     <i class="fas fa-edit"></i> Edit
                   </button>
@@ -118,7 +107,7 @@ $rootCategories = getRootCategories($conn); // Pass connection if needed
             <select class="form-select" name="parent_id" id="parentCategory">
               <option value="">— None —</option>
               <?php foreach ($rootCategories as $cat): ?>
-                <option value="<?= (int)$cat['category_id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>
+                <option value="<?= (int)$cat['category_id'] ?>"><?= e($cat['category_name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -150,7 +139,7 @@ $rootCategories = getRootCategories($conn); // Pass connection if needed
             <select class="form-select" name="parent_id" id="editParentCategory">
               <option value="">— None —</option>
               <?php foreach ($rootCategories as $cat): ?>
-                <option value="<?= (int)$cat['category_id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>
+                <option value="<?= (int)$cat['category_id'] ?>"><?= e($cat['category_name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>

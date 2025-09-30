@@ -31,16 +31,6 @@ $allCategories = $categories_result->fetch_all(MYSQLI_ASSOC);
   <title>PC-Zone Admin - Brands</title>
 
   <?php require('./includes/header-link.php') ?>
-
-  <script>
-    // Immediately apply theme from localStorage
-    (function() {
-      const theme = localStorage.getItem('pczoneTheme');
-      if (theme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
@@ -76,13 +66,13 @@ $allCategories = $categories_result->fetch_all(MYSQLI_ASSOC);
             <?php foreach ($allBrands as $row): ?>
               <tr>
                 <td><?= (int)$row['brand_id'] ?></td>
-                <td><?= htmlspecialchars($row['brand_name']) ?></td>
-                <td><?= htmlspecialchars($row['category_name'] ?? '—') ?></td>
-                <td><?= htmlspecialchars($row['slug']) ?></td>
+                <td><?= e($row['brand_name']) ?></td>
+                <td><?= e($row['category_name'] ?? '—') ?></td>
+                <td><?= e($row['slug']) ?></td>
                 <td>
                   <button class="btn-edit" data-bs-toggle="modal" data-bs-target="#editBrandModal"
                     data-id="<?= (int)$row['brand_id'] ?>"
-                    data-name="<?= htmlspecialchars($row['brand_name'], ENT_QUOTES) ?>"
+                    data-name="<?= e($row['brand_name'] ?? '') ?>"
                     data-category="<?= $row['category_id'] ?? '' ?>">
                     <i class="fas fa-edit"></i> Edit
                   </button>
@@ -121,7 +111,7 @@ $allCategories = $categories_result->fetch_all(MYSQLI_ASSOC);
             <select class="form-select" name="category_id" id="brandCategory">
               <option value="">— Select Category —</option>
               <?php foreach ($allCategories as $cat): ?>
-                <option value="<?= (int)$cat['category_id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>
+                <option value="<?= (int)$cat['category_id'] ?>"><?= e($cat['category_name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -153,7 +143,7 @@ $allCategories = $categories_result->fetch_all(MYSQLI_ASSOC);
             <select class="form-select" name="category_id" id="editBrandCategory">
               <option value="">— Select Category —</option>
               <?php foreach ($allCategories as $cat): ?>
-                <option value="<?= (int)$cat['category_id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>
+                <option value="<?= (int)$cat['category_id'] ?>"><?= e($cat['category_name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>

@@ -1,86 +1,88 @@
 <?php
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
+
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
 }
-require_once '../includes/db_connect.php'; // $conn (mysqli)
 
-function h($s)
-{
-  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
-}
-
-// validate id
+// Validate customer ID
 $customer_id = isset($_GET['id']) && ctype_digit($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($customer_id <= 0) {
-  http_response_code(400);
-  echo 'Invalid customer id.';
-  exit;
+  die('Invalid customer ID.');
 }
 
-// customer
-$stmt = mysqli_prepare($conn, "
-  SELECT user_id, username, email, phone, date_of_birth, gender, 
-         status, created_at, updated_at
-  FROM users WHERE user_id = ?
-");
-mysqli_stmt_bind_param($stmt, 'i', $customer_id);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-$customer = mysqli_fetch_assoc($res);
-mysqli_stmt_close($stmt);
-if (!$customer) {
-  http_response_code(404);
-  echo 'Customer not found.';
-  exit;
-}
+// Fetch customer data
+$customer = mysqli_fetch_assoc(mysqli_query(
+  $conn,
+  "SELECT user_id, username, email, phone, date_of_birth, gender, status, created_at, updated_at 
+     FROM users WHERE user_id = $customer_id"
+));
+if (!$customer) die('Customer not found.');
 
-// totals / counts
-$stmt = mysqli_prepare($conn, "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_amount),0) AS total_purchases FROM orders WHERE user_id = ?");
-mysqli_stmt_bind_param($stmt, 'i', $customer_id);
-mysqli_stmt_execute($stmt);
-$r = mysqli_stmt_get_result($stmt);
-$totals = mysqli_fetch_assoc($r);
-mysqli_stmt_close($stmt);
+// Get order statistics
+$totals = mysqli_fetch_assoc(mysqli_query(
+  $conn,
+  "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_amount),0) AS total_purchases 
+     FROM orders WHERE user_id = $customer_id"
+));
 $orders_count = (int)($totals['orders_count'] ?? 0);
-$total_purchases = (float)($totals['total_purchases'] ?? 0.0);
+$total_purchases = (float)($totals['total_purchases'] ?? 0);
 
-// addresses list
-$stmt = mysqli_prepare($conn, "SELECT address_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default FROM user_address WHERE user_id = ? ORDER BY is_default DESC, address_id ASC");
-mysqli_stmt_bind_param($stmt, 'i', $customer_id);
-mysqli_stmt_execute($stmt);
-$addresses_res = mysqli_stmt_get_result($stmt);
+// Get addresses
+$addresses_res = mysqli_query(
+  $conn,
+  "SELECT address_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default 
+     FROM user_address WHERE user_id = $customer_id ORDER BY is_default DESC, address_id ASC"
+);
 $addresses = mysqli_fetch_all($addresses_res, MYSQLI_ASSOC);
-mysqli_stmt_close($stmt);
 
-// orders with billing/shipping summary + payment status + items_count
-$stmt = mysqli_prepare($conn, "
-  SELECT o.order_id, o.order_date, o.order_status, o.total_amount, o.tracking_number, o.shipping_method, o.paid_at,
-         o.order_notes, o.cancelled_at, o.refunded_at, o.shipped_date, o.delivered_date,
-         COALESCE(p.payment_status,'Pending') AS payment_status,
-         (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.order_id) AS items_count,
-         b.full_name AS bill_name, b.address_line1 AS bill_line1, b.city AS bill_city, b.state AS bill_state, b.zip AS bill_zip, b.country AS bill_country,
-         s.full_name AS ship_name, s.address_line1 AS ship_line1, s.city AS ship_city, s.state AS ship_state, s.zip AS ship_zip, s.country AS ship_country
-  FROM orders o
-  LEFT JOIN (SELECT order_id, MAX(payment_status) AS payment_status FROM payments GROUP BY order_id) p ON p.order_id = o.order_id
-  LEFT JOIN user_address b ON b.address_id = o.billing_address_id
-  LEFT JOIN user_address s ON s.address_id = o.shipping_address_id
-  WHERE o.user_id = ?
-  ORDER BY o.order_date DESC
-");
-mysqli_stmt_bind_param($stmt, 'i', $customer_id);
-mysqli_stmt_execute($stmt);
-$orders_res = mysqli_stmt_get_result($stmt);
+// Get orders with related data
+$orders_res = mysqli_query(
+  $conn,
+  "SELECT o.order_id, o.order_date, o.order_status, o.total_amount, o.tracking_number, 
+            o.shipping_method, o.paid_at, o.order_notes, o.cancelled_at, o.refunded_at, 
+            o.shipped_date, o.delivered_date,
+            COALESCE(p.payment_status,'Pending') AS payment_status,
+            (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.order_id) AS items_count,
+            b.full_name AS bill_name, b.address_line1 AS bill_line1, b.city AS bill_city, 
+            b.state AS bill_state, b.zip AS bill_zip, b.country AS bill_country,
+            s.full_name AS ship_name, s.address_line1 AS ship_line1, s.city AS ship_city, 
+            s.state AS ship_state, s.zip AS ship_zip, s.country AS ship_country
+     FROM orders o
+     LEFT JOIN (SELECT order_id, MAX(payment_status) AS payment_status FROM payments GROUP BY order_id) p ON p.order_id = o.order_id
+     LEFT JOIN user_address b ON b.address_id = o.billing_address_id
+     LEFT JOIN user_address s ON s.address_id = o.shipping_address_id
+     WHERE o.user_id = $customer_id
+     ORDER BY o.order_date DESC"
+);
 $orders = mysqli_fetch_all($orders_res, MYSQLI_ASSOC);
-mysqli_stmt_close($stmt);
 
-// prepared statements for lazy fetch
-$stmt_items = mysqli_prepare($conn, "SELECT oi.order_item_id, oi.product_id, COALESCE(p.product_name, '') AS product_name, oi.quantity, oi.unit_price, oi.discount, oi.total_price FROM order_items oi LEFT JOIN products p ON p.product_id = oi.product_id WHERE oi.order_id = ?");
-$stmt_payments = mysqli_prepare($conn, "SELECT payment_id, payment_method, transaction_id, amount, currency, payment_status, paid_at, created_at FROM payments WHERE order_id = ? ORDER BY created_at DESC");
-$stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, shipping_method, shipped_date, delivered_date, status, created_at FROM shipments WHERE order_id = ? ORDER BY created_at DESC");
-
+// Prepare statements for detail data
+$stmt_items = mysqli_prepare(
+  $conn,
+  "SELECT oi.order_item_id, oi.product_id, COALESCE(p.product_name, '') AS product_name, 
+            oi.quantity, oi.unit_price, oi.discount, oi.total_price 
+     FROM order_items oi 
+     LEFT JOIN products p ON p.product_id = oi.product_id 
+     WHERE oi.order_id = ?"
+);
+$stmt_payments = mysqli_prepare(
+  $conn,
+  "SELECT payment_id, payment_method, transaction_id, amount, currency, 
+            payment_status, paid_at, created_at 
+     FROM payments WHERE order_id = ? ORDER BY created_at DESC"
+);
+$stmt_shipments = mysqli_prepare(
+  $conn,
+  "SELECT shipment_id, tracking_number, shipping_method, shipped_date, 
+            delivered_date, status, created_at 
+     FROM shipments WHERE order_id = ? ORDER BY created_at DESC"
+);
 ?>
+
 <!doctype html>
 <html lang="en">
 
@@ -88,11 +90,8 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
   <meta charset="utf-8">
   <title>Customer Profile • PCZone Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-
   <?php include './includes/header-link.php'; ?>
-
   <style>
-    /* small page-specific tweaks but still use theme tokens */
     .avatar-lg {
       width: 120px;
       height: 120px;
@@ -136,38 +135,38 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
   include './includes/header.php';
   include './includes/sidebar.php';
   ?>
+
   <main class="main-content pt-5 mt-4">
     <div class="container mt-2 customer-profile">
-
       <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
-          <h3 class="mb-0"><?= h($customer['username']) ?></h3>
-          <small class="text-muted">Customer since <?= h(date('d M Y', strtotime($customer['created_at']))) ?></small>
+          <h3 class="mb-0"><?= e($customer['username']) ?></h3>
+          <small class="text-muted">Customer since <?= e(date('d M Y', strtotime($customer['created_at']))) ?></small>
         </div>
         <div class="text-end">
           <a href="customers.php" class="btn btn-sm btn-secondary">Back to list</a>
-          <a href="edit_customer.php?id=<?= (int)$customer['user_id'] ?>" class="btn btn-add ms-1">Edit</a>
         </div>
       </div>
 
       <div class="row gy-3">
-
-        <!-- LEFT: profile + addresses + stats -->
+        <!-- Left Column: Profile & Addresses -->
         <div class="col-lg-3">
           <div class="card theme-card p-3 mb-3">
             <div class="card-body text-center d-flex flex-column align-items-center p-0">
               <?php if (!empty($customer['profile_image']) && file_exists('../uploads/' . $customer['profile_image'])): ?>
-                <img src="../uploads/<?= h($customer['profile_image']) ?>" alt="profile" class="avatar-lg mb-2" style="object-fit:cover;">
+                <img src="../uploads/<?= e($customer['profile_image']) ?>" alt="profile" class="avatar-lg mb-2" style="object-fit:cover;">
               <?php else: ?>
                 <div class="avatar-lg mb-2"><?= strtoupper(substr($customer['username'], 0, 1)) ?></div>
               <?php endif; ?>
 
-              <h5 class="mt-1 mb-0"><?= h($customer['username']) ?></h5>
-              <div class="muted-small"><?= h($customer['email']) ?></div>
-              <div class="muted-small mb-2"><?= h($customer['phone'] ?: '—') ?></div>
+              <h5 class="mt-1 mb-0"><?= e($customer['username']) ?></h5>
+              <div class="muted-small"><?= e($customer['email']) ?></div>
+              <div class="muted-small mb-2"><?= e($customer['phone'] ?: '—') ?></div>
 
               <div class="d-flex justify-content-center gap-2 mt-2">
-                <span class="stock-badge <?= ($customer['status'] === 'active') ? 'in-stock' : ($customer['status'] === 'inactive' ? 'low-stock' : 'out-of-stock') ?>"><?= h(ucfirst($customer['status'])) ?></span>
+                <span class="stock-badge <?= $customer['status'] === 'active' ? 'in-stock' : ($customer['status'] === 'inactive' ? 'low-stock' : 'out-of-stock') ?>">
+                  <?= e(ucfirst($customer['status'])) ?>
+                </span>
               </div>
             </div>
 
@@ -188,7 +187,7 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
               <div class="col-12 mt-2">
                 <div class="stat-box">
                   <div class="muted-small">Date of Birth</div>
-                  <div class="fw-bold"><?= $customer['date_of_birth'] ? h($customer['date_of_birth']) : '—' ?></div>
+                  <div class="fw-bold"><?= $customer['date_of_birth'] ? e($customer['date_of_birth']) : '—' ?></div>
                 </div>
               </div>
             </div>
@@ -196,20 +195,20 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
 
           <div class="card theme-card p-3 mb-3">
             <div class="card-header mb-2">Addresses</div>
-            <?php if (count($addresses) === 0): ?>
+            <?php if (empty($addresses)): ?>
               <p class="text-muted mb-0">No addresses available.</p>
             <?php else: ?>
               <?php foreach ($addresses as $addr): ?>
                 <div class="address-block mb-2 p-2">
                   <div class="d-flex justify-content-between align-items-start">
                     <div>
-                      <strong><?= h($addr['full_name']) ?></strong>
-                      <div class="muted-small"><?= h($addr['phone'] ?: '—') ?></div>
+                      <strong><?= e($addr['full_name']) ?></strong>
+                      <div class="muted-small"><?= e($addr['phone'] ?: '—') ?></div>
                     </div>
                     <?= $addr['is_default'] ? '<span class="badge bg-success">Default</span>' : '' ?>
                   </div>
-                  <div class="muted-small small mt-1"><?= h($addr['address_line1']) ?> <?= h($addr['address_line2']) ?></div>
-                  <div class="muted-small small"><?= h($addr['city']) ?>, <?= h($addr['state']) ?> <?= h($addr['zip']) ?>, <?= h($addr['country']) ?></div>
+                  <div class="muted-small small mt-1"><?= e($addr['address_line1']) ?> <?= e($addr['address_line2']) ?></div>
+                  <div class="muted-small small"><?= e($addr['city']) ?>, <?= e($addr['state']) ?> <?= e($addr['zip']) ?>, <?= e($addr['country']) ?></div>
                 </div>
               <?php endforeach; ?>
             <?php endif; ?>
@@ -217,13 +216,13 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
 
           <div class="card theme-card p-3">
             <div class="card-header mb-2">Account</div>
-            <div class="muted-small mb-1"><strong>Created</strong> <?= h($customer['created_at']) ?></div>
-            <div class="muted-small mb-1"><strong>Last updated</strong> <?= h($customer['updated_at']) ?></div>
-            <div class="muted-small"><strong>Gender</strong> <?= h($customer['gender'] ?: '—') ?></div>
+            <div class="muted-small mb-1"><strong>Created</strong> <?= e($customer['created_at']) ?></div>
+            <div class="muted-small mb-1"><strong>Last updated</strong> <?= e($customer['updated_at']) ?></div>
+            <div class="muted-small"><strong>Gender</strong> <?= e($customer['gender'] ?: '—') ?></div>
           </div>
         </div>
 
-        <!-- RIGHT: complete order history with details -->
+        <!-- Right Column: Order History -->
         <div class="col-lg-9">
           <div class="card theme-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -231,11 +230,10 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
               <small class="muted-small"><?= count($orders) ?> orders</small>
             </div>
 
-            <?php if (count($orders) === 0): ?>
+            <?php if (empty($orders)): ?>
               <p class="text-muted mb-0">No orders placed yet.</p>
             <?php else: ?>
               <div class="table-container">
-
                 <table class="product-table">
                   <thead>
                     <tr>
@@ -251,51 +249,49 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                   </thead>
                   <tbody>
                     <?php foreach ($orders as $ord): ?>
-                      <tr class="product-row" role="button" aria-controls="details-<?= (int)$ord['order_id'] ?>" data-order-id="<?= (int)$ord['order_id'] ?>" title="Click row to toggle details">
-                        <td>#<?= (int)$ord['order_id'] ?></td>
-                        <td><?= h(date('d M Y, H:i', strtotime($ord['order_date']))) ?></td>
-                        <td><?= (int)$ord['items_count'] ?></td>
+                      <tr class="product-row" role="button" data-order-id="<?= $ord['order_id'] ?>" title="Click row to toggle details">
+                        <td>#<?= $ord['order_id'] ?></td>
+                        <td><?= e(date('d M Y, H:i', strtotime($ord['order_date']))) ?></td>
+                        <td><?= $ord['items_count'] ?></td>
                         <td>₹ <?= number_format((float)$ord['total_amount'], 2) ?></td>
-                        <td><?= h($ord['payment_status']) ?><?= $ord['paid_at'] ? ' <small class="text-muted">(' . h(date('d M Y', strtotime($ord['paid_at']))) . ')</small>' : '' ?></td>
-                        <td><?= $ord['tracking_number'] ? h($ord['tracking_number']) : '—' ?></td>
-                        <td><span class="status-<?= strtolower($ord['order_status']) ?>"><?= h($ord['order_status']) ?></span></td>
+                        <td><?= e($ord['payment_status']) ?><?= $ord['paid_at'] ? ' <small class="text-muted">(' . e(date('d M Y', strtotime($ord['paid_at']))) . ')</small>' : '' ?></td>
+                        <td><?= $ord['tracking_number'] ? e($ord['tracking_number']) : '—' ?></td>
+                        <td><span class="status-<?= strtolower($ord['order_status']) ?>"><?= e($ord['order_status']) ?></span></td>
                         <td class="text-end">
-                          <a href="order_view.php?id=<?= (int)$ord['order_id'] ?>" class="btn-add open-order">Open</a>
+                          <a href="order_view.php?id=<?= $ord['order_id'] ?>" class="btn-add open-order">Open</a>
                         </td>
                       </tr>
 
                       <tr>
                         <td colspan="8" class="p-0">
-                          <div class="collapse" id="details-<?= (int)$ord['order_id'] ?>">
+                          <div class="collapse" id="details-<?= $ord['order_id'] ?>">
                             <div class="p-3">
-
-                              <!-- billing / shipping summary -->
+                              <!-- Billing/Shipping -->
                               <div class="row mb-2">
                                 <div class="col-md-6">
                                   <div class="muted-small">Billing Address</div>
-                                  <div class="small"><?= h($ord['bill_name'] ?: '—') ?></div>
-                                  <div class="muted-small small"><?= h($ord['bill_line1'] ?: '') ?><?= $ord['bill_city'] ? ', ' . h($ord['bill_city']) : '' ?><?= $ord['bill_state'] ? ', ' . h($ord['bill_state']) : '' ?><?= $ord['bill_zip'] ? ' - ' . h($ord['bill_zip']) : '' ?></div>
-                                  <div class="muted-small small"><?= h($ord['bill_country'] ?: '') ?></div>
+                                  <div class="small"><?= e($ord['bill_name'] ?: '—') ?></div>
+                                  <div class="muted-small small"><?= e($ord['bill_line1'] ?: '') ?><?= $ord['bill_city'] ? ', ' . e($ord['bill_city']) : '' ?><?= $ord['bill_state'] ? ', ' . e($ord['bill_state']) : '' ?><?= $ord['bill_zip'] ? ' - ' . e($ord['bill_zip']) : '' ?></div>
+                                  <div class="muted-small small"><?= e($ord['bill_country'] ?: '') ?></div>
                                 </div>
                                 <div class="col-md-6">
                                   <div class="muted-small">Shipping Address</div>
-                                  <div class="small"><?= h($ord['ship_name'] ?: '—') ?></div>
-                                  <div class="muted-small small"><?= h($ord['ship_line1'] ?: '') ?><?= $ord['ship_city'] ? ', ' . h($ord['ship_city']) : '' ?><?= $ord['ship_state'] ? ', ' . h($ord['ship_state']) : '' ?><?= $ord['ship_zip'] ? ' - ' . h($ord['ship_zip']) : '' ?></div>
-                                  <div class="muted-small small"><?= h($ord['ship_country'] ?: '') ?></div>
+                                  <div class="small"><?= e($ord['ship_name'] ?: '—') ?></div>
+                                  <div class="muted-small small"><?= e($ord['ship_line1'] ?: '') ?><?= $ord['ship_city'] ? ', ' . e($ord['ship_city']) : '' ?><?= $ord['ship_state'] ? ', ' . e($ord['ship_state']) : '' ?><?= $ord['ship_zip'] ? ' - ' . e($ord['ship_zip']) : '' ?></div>
+                                  <div class="muted-small small"><?= e($ord['ship_country'] ?: '') ?></div>
                                 </div>
                               </div>
 
-                              <!-- items -->
+                              <!-- Order Items -->
                               <?php
                               mysqli_stmt_bind_param($stmt_items, 'i', $ord['order_id']);
                               mysqli_stmt_execute($stmt_items);
-                              $items_res = mysqli_stmt_get_result($stmt_items);
-                              $items = mysqli_fetch_all($items_res, MYSQLI_ASSOC);
+                              $items = mysqli_fetch_all(mysqli_stmt_get_result($stmt_items), MYSQLI_ASSOC);
                               ?>
                               <div class="mb-3">
                                 <div class="muted-small mb-1"><strong>Items</strong></div>
-                                <?php if (count($items) === 0): ?>
-                                  <div class="text-muted small">No items found for this order.</div>
+                                <?php if (empty($items)): ?>
+                                  <div class="text-muted small">No items found.</div>
                                 <?php else: ?>
                                   <div class="table-container">
                                     <table class="product-table table">
@@ -310,9 +306,9 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                                       </thead>
                                       <tbody>
                                         <?php foreach ($items as $it): ?>
-                                          <tr class="product-row">
-                                            <td><?= h($it['product_name'] ?: 'Product #' . $it['product_id']) ?></td>
-                                            <td><?= (int)$it['quantity'] ?></td>
+                                          <tr>
+                                            <td><?= e($it['product_name'] ?: 'Product #' . $it['product_id']) ?></td>
+                                            <td><?= $it['quantity'] ?></td>
                                             <td>₹ <?= number_format((float)$it['unit_price'], 2) ?></td>
                                             <td>₹ <?= number_format((float)$it['discount'], 2) ?></td>
                                             <td>₹ <?= number_format((float)$it['total_price'], 2) ?></td>
@@ -324,14 +320,13 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                                 <?php endif; ?>
                               </div>
 
-                              <!-- payments -->
+                              <!-- Payments -->
                               <?php
                               mysqli_stmt_bind_param($stmt_payments, 'i', $ord['order_id']);
                               mysqli_stmt_execute($stmt_payments);
-                              $p_res = mysqli_stmt_get_result($stmt_payments);
-                              $payments = mysqli_fetch_all($p_res, MYSQLI_ASSOC);
+                              $payments = mysqli_fetch_all(mysqli_stmt_get_result($stmt_payments), MYSQLI_ASSOC);
                               ?>
-                              <?php if (count($payments) > 0): ?>
+                              <?php if (!empty($payments)): ?>
                                 <div class="mb-3">
                                   <div class="muted-small mb-1"><strong>Payments</strong></div>
                                   <div class="table-container">
@@ -347,12 +342,12 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                                       </thead>
                                       <tbody>
                                         <?php foreach ($payments as $p): ?>
-                                          <tr class="product-row">
-                                            <td><?= h($p['payment_method']) ?></td>
-                                            <td><?= h($p['transaction_id'] ?: '—') ?></td>
-                                            <td>₹ <?= number_format((float)$p['amount'], 2) ?> <?= h($p['currency']) ?></td>
-                                            <td><?= h($p['payment_status']) ?></td>
-                                            <td><?= h($p['paid_at'] ?: $p['created_at']) ?></td>
+                                          <tr>
+                                            <td><?= e($p['payment_method']) ?></td>
+                                            <td><?= e($p['transaction_id'] ?: '—') ?></td>
+                                            <td>₹ <?= number_format((float)$p['amount'], 2) ?> <?= e($p['currency']) ?></td>
+                                            <td><?= e($p['payment_status']) ?></td>
+                                            <td><?= e($p['paid_at'] ?: $p['created_at']) ?></td>
                                           </tr>
                                         <?php endforeach; ?>
                                       </tbody>
@@ -361,14 +356,13 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                                 </div>
                               <?php endif; ?>
 
-                              <!-- shipments -->
+                              <!-- Shipments -->
                               <?php
                               mysqli_stmt_bind_param($stmt_shipments, 'i', $ord['order_id']);
                               mysqli_stmt_execute($stmt_shipments);
-                              $s_res = mysqli_stmt_get_result($stmt_shipments);
-                              $ships = mysqli_fetch_all($s_res, MYSQLI_ASSOC);
+                              $ships = mysqli_fetch_all(mysqli_stmt_get_result($stmt_shipments), MYSQLI_ASSOC);
                               ?>
-                              <?php if (count($ships) > 0): ?>
+                              <?php if (!empty($ships)): ?>
                                 <div class="mb-3">
                                   <div class="muted-small mb-1"><strong>Shipments</strong></div>
                                   <div class="table-container">
@@ -384,12 +378,12 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                                       </thead>
                                       <tbody>
                                         <?php foreach ($ships as $sh): ?>
-                                          <tr class="product-row">
-                                            <td><?= h($sh['shipping_method']) ?></td>
-                                            <td><?= h($sh['tracking_number']) ?></td>
-                                            <td><?= h($sh['shipped_date'] ?: '—') ?></td>
-                                            <td><?= h($sh['delivered_date'] ?: '—') ?></td>
-                                            <td><?= h($sh['status']) ?></td>
+                                          <tr>
+                                            <td><?= e($sh['shipping_method']) ?></td>
+                                            <td><?= e($sh['tracking_number']) ?></td>
+                                            <td><?= e($sh['shipped_date'] ?: '—') ?></td>
+                                            <td><?= e($sh['delivered_date'] ?: '—') ?></td>
+                                            <td><?= e($sh['status']) ?></td>
                                           </tr>
                                         <?php endforeach; ?>
                                       </tbody>
@@ -398,68 +392,57 @@ $stmt_shipments = mysqli_prepare($conn, "SELECT shipment_id, tracking_number, sh
                                 </div>
                               <?php endif; ?>
 
-                              <!-- misc meta -->
+                              <!-- Order Meta -->
                               <div class="muted-small">
-                                <div><strong>Order Notes</strong> <?= $ord['order_notes'] ? '<div class="small mt-1">' . h($ord['order_notes']) . '</div>' : '<span class="small text-muted">—</span>' ?></div>
-                                <div class="small mt-2"><strong>Paid at</strong> <?= h($ord['paid_at'] ?: '—') ?></div>
-                                <div class="small"><strong>Cancelled</strong> <?= h($ord['cancelled_at'] ?: '—') ?></div>
-                                <div class="small"><strong>Refunded</strong> <?= h($ord['refunded_at'] ?: '—') ?></div>
-                                <div class="small"><strong>Shipped</strong> <?= h($ord['shipped_date'] ?: '—') ?> <strong class="ms-2">Delivered</strong> <?= h($ord['delivered_date'] ?: '—') ?></div>
+                                <div><strong>Order Notes</strong> <?= $ord['order_notes'] ? '<div class="small mt-1">' . e($ord['order_notes']) . '</div>' : '<span class="small text-muted">—</span>' ?></div>
+                                <div class="small mt-2"><strong>Paid at</strong> <?= e($ord['paid_at'] ?: '—') ?></div>
+                                <div class="small"><strong>Cancelled</strong> <?= e($ord['cancelled_at'] ?: '—') ?></div>
+                                <div class="small"><strong>Refunded</strong> <?= e($ord['refunded_at'] ?: '—') ?></div>
+                                <div class="small"><strong>Shipped</strong> <?= e($ord['shipped_date'] ?: '—') ?> <strong class="ms-2">Delivered</strong> <?= e($ord['delivered_date'] ?: '—') ?></div>
                               </div>
-
                             </div>
                           </div>
                         </td>
                       </tr>
-
                     <?php endforeach; ?>
                   </tbody>
                 </table>
-
               </div>
             <?php endif; ?>
           </div>
         </div>
       </div>
-
     </div>
   </main>
 
   <?php require('./includes/footer-link.php') ?>
   <script>
-    // Make order rows toggle their detail collapse when clicked.
-    (function() {
-      document.addEventListener('click', function(e) {
-        const row = e.target.closest('.product-row[role="button"]');
-        if (!row) return;
+    // Toggle order details
+    document.addEventListener('click', function(e) {
+      const row = e.target.closest('.product-row[role="button"]');
+      if (!row) return;
+      if (e.target.closest('a, button, input, select')) return;
 
-        // ignore clicks on actionable controls inside the row
-        if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+      const orderId = row.getAttribute('data-order-id');
+      const detailsEl = document.getElementById('details-' + orderId);
+      if (detailsEl) {
+        new bootstrap.Collapse(detailsEl).toggle();
+      }
+    });
 
-        const orderId = row.getAttribute('data-order-id');
-        if (!orderId) return;
-        const detailsEl = document.getElementById('details-' + orderId);
-        if (!detailsEl) return;
-
-        // toggle using Bootstrap Collapse API
-        const instance = bootstrap.Collapse.getOrCreateInstance(detailsEl);
-        instance.toggle();
-      }, false);
-
-      // Prevent 'Open' link from toggling collapse when clicked
-      document.querySelectorAll('.open-order').forEach(function(el) {
-        el.addEventListener('click', function(ev) {
-          ev.stopPropagation();
-        });
+    // Prevent open link from toggling collapse
+    document.querySelectorAll('.open-order').forEach(function(el) {
+      el.addEventListener('click', function(ev) {
+        ev.stopPropagation();
       });
-    })();
+    });
   </script>
 </body>
 
 </html>
 
 <?php
-// cleanup prepared stmts
+// Cleanup
 mysqli_stmt_close($stmt_items);
 mysqli_stmt_close($stmt_payments);
 mysqli_stmt_close($stmt_shipments);
