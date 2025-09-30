@@ -1,13 +1,13 @@
 <?php
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
 // Admin check
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
 }
-
-require_once '../includes/db_connect.php';
 
 // Validate order id
 if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {

@@ -136,7 +136,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
 
                   <div id="specGroupsContainer">
                     <!-- default group -->
-                    <div class="spec-group mb-3 border rounded p-2">
+                    <div class="spec-group mb-3 rounded p-2">
                       <div class="d-flex mb-2">
                         <input name="spec_group_name[]" class="form-control me-2 spec-group-name" value="General" placeholder="Group name (e.g. Processor)">
                         <button type="button" class="btn btn-outline-danger btn-sm remove-group-btn">Remove Group</button>
@@ -348,16 +348,6 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
       document.getElementById('categorySelect').addEventListener('change', filterBrands);
       filterBrands();
 
-      const hamburger = document.getElementById("hamburger");
-      const sidebar = document.getElementById("sidebar");
-      if (hamburger && sidebar) {
-        const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-        if (isCollapsed) sidebar.classList.add("collapsed");
-        hamburger.addEventListener("click", () => {
-          sidebar.classList.toggle("collapsed");
-          localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
-        });
-      }
     })();
   </script>
 

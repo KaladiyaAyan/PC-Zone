@@ -2,7 +2,7 @@
 session_start();
 
 include('../includes/db_connect.php');
-include('../functions/message.php');
+include('../includes/functions.php');
 
 // Check admin authentication
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
@@ -114,7 +114,7 @@ if (isset($_POST['add-product'])) {
     }
 
     message('popup-success', '<i class="ri-check-line"></i>', 'Product added successfully');
-    header('Location: products.php');
+    header('Location: product.php');
     exit;
   } else {
     message('popup-error', '<i class="ri-close-line"></i>', 'Failed to add product');

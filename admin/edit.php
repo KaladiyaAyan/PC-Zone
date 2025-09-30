@@ -1,7 +1,7 @@
 <?php
 session_start();
-include('../includes/db_connect.php');
-include('../functions/message.php');
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');

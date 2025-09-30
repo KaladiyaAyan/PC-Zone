@@ -25,6 +25,9 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $address = $result->fetch_assoc();
+if (!is_array($address)) {
+  $address = [];
+}
 $stmt->close();
 
 // Close the connection
@@ -74,11 +77,11 @@ $conn->close();
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="username" class="form-label">Username</label>
-                  <input type="text" class="form-control" id="username" name="username" value="<?php echo e($user['username']); ?>" required>
+                  <input type="text" class="form-control" id="username" name="username" value="<?php echo e($user['username'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="email" class="form-label">Email Address</label>
-                  <input type="email" class="form-control" id="email" value="<?php echo e($user['email']); ?>" disabled readonly>
+                  <input type="email" class="form-control" id="email" value="<?php echo e($user['email'] ?? ''); ?>" disabled readonly>
                   <div class="form-text">Email address cannot be changed.</div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -87,11 +90,11 @@ $conn->close();
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="phone" class="form-label">Phone Number</label>
-                  <input type="tel" class="form-control" id="phone" name="phone" value="<?php echo e($user['phone']); ?>">
+                  <input type="tel" class="form-control" id="phone" name="phone" value="<?php echo e($user['phone'] ?? ''); ?>">
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="dob" class="form-label">Date of Birth</label>
-                  <input type="date" class="form-control" id="dob" name="dob" value="<?php echo e($user['date_of_birth']); ?>">
+                  <input type="date" class="form-control" id="dob" name="dob" value="<?php echo e($user['date_of_birth'] ?? ''); ?>">
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Gender</label>
@@ -118,35 +121,35 @@ $conn->close();
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="full_name" class="form-label">Full Name</label>
-                  <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo e($address['full_name']); ?>" required>
+                  <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo e($address['username'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="address_phone" class="form-label">Phone Number</label>
-                  <input type="tel" class="form-control" id="address_phone" name="address_phone" value="<?php echo e($address['phone']); ?>" required>
+                  <input type="tel" class="form-control" id="address_phone" name="address_phone" value="<?php echo e($address['phone'] ?? ''); ?>" required>
                 </div>
                 <div class="col-12 mb-3">
                   <label for="address1" class="form-label">Address Line 1</label>
-                  <input type="text" class="form-control" id="address1" name="address1" placeholder="1234 Main St" value="<?php echo e($address['address_line1']); ?>" required>
+                  <input type="text" class="form-control" id="address1" name="address1" placeholder="1234 Main St" value="<?php echo e($address['address_line1'] ?? ''); ?>" required>
                 </div>
                 <div class="col-12 mb-3">
                   <label for="address2" class="form-label">Address Line 2 <span class="text-muted">(Optional)</span></label>
-                  <input type="text" class="form-control" id="address2" name="address2" placeholder="Apartment, studio, or floor" value="<?php echo e($address['address_line2']); ?>">
+                  <input type="text" class="form-control" id="address2" name="address2" placeholder="Apartment, studio, or floor" value="<?php echo e($address['address_line2'] ?? ''); ?>">
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="city" class="form-label">City</label>
-                  <input type="text" class="form-control" id="city" name="city" value="<?php echo e($address['city']); ?>" required>
+                  <input type="text" class="form-control" id="city" name="city" value="<?php echo e($address['city'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-4 mb-3">
                   <label for="state" class="form-label">State</label>
-                  <input type="text" class="form-control" id="state" name="state" value="<?php echo e($address['state']); ?>" required>
+                  <input type="text" class="form-control" id="state" name="state" value="<?php echo e($address['state'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-2 mb-3">
                   <label for="zip" class="form-label">Zip Code</label>
-                  <input type="text" class="form-control" id="zip" name="zip" value="<?php echo e($address['zip']); ?>" required>
+                  <input type="text" class="form-control" id="zip" name="zip" value="<?php echo e($address['zip'] ?? ''); ?>" required>
                 </div>
                 <div class="col-12 mb-3">
                   <label for="country" class="form-label">Country</label>
-                  <input type="text" class="form-control" id="country" name="country" value="<?php echo e($address['country']); ?>" required>
+                  <input type="text" class="form-control" id="country" name="country" value="<?php echo e($address['country'] ?? ''); ?>" required>
                 </div>
               </div>
               <button type="submit" name="update_address" class="btn btn-gradient">Save Address</button>

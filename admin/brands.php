@@ -1,6 +1,7 @@
 <?php
-require_once '../includes/db_connect.php';
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
 // Redirect if not logged in
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {

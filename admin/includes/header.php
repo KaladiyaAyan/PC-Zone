@@ -24,7 +24,6 @@ $userName = trim(($_SESSION['full_name'] ?? '')) ?: ($_SESSION['username'] ?? 'A
         <i class="fas fa-caret-down ms-1"></i>
       </button>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-        <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2"></i>Profile</a></li>
         <li><a class="dropdown-item" href="settings.php"><i class="fas fa-cog me-2"></i>Settings</a></li>
         <li>
           <hr class="dropdown-divider">
