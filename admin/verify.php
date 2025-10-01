@@ -20,11 +20,11 @@ if (isset($_POST['update_address'])) {
 
   if (mysqli_num_rows($res) == 0) {
     $insert_address = "
-INSERT INTO user_address
-(user_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default)
-VALUES
-($user_id, '$full_name', '$address_phone', '$address1', '$address2', '$city', '$state', '$zip', '$country', 1)
-";
+      INSERT INTO user_address
+      (user_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default)
+      VALUES
+      ($user_id, '$full_name', '$address_phone', '$address1', '$address2', '$city', '$state', '$zip', '$country', 1)
+      ";
     $run = mysqli_query($conn, $insert_address);
 
     if ($run) {
@@ -34,17 +34,17 @@ VALUES
     }
   } else {
     $update_address = "
-UPDATE user_address
-SET full_name='$full_name',
-phone='$address_phone',
-address_line1='$address1',
-address_line2='$address2',
-city='$city',
-state='$state',
-zip='$zip',
-country='$country'
-WHERE user_id=$user_id
-";
+      UPDATE user_address
+      SET full_name='$full_name',
+      phone='$address_phone',
+      address_line1='$address1',
+      address_line2='$address2',
+      city='$city',
+      state='$state',
+      zip='$zip',
+      country='$country'
+      WHERE user_id=$user_id
+      ";
     $run = mysqli_query($conn, $update_address);
 
     if ($run) {

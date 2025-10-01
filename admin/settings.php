@@ -3,7 +3,6 @@ session_start();
 require('../includes/db_connect.php');
 require('../includes/functions.php');
 
-// Redirect to login page if user is not logged in
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
@@ -29,11 +28,7 @@ if (!$address) {
   $address = [];
 }
 $stmt->close();
-
-// Close the connection
-$conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -45,9 +40,8 @@ $conn->close();
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-
-  <?php include './includes/header.php';
+  <?php require('./includes/alert.php');
+  include './includes/header.php';
   $current_page = 'settings';
   include './includes/sidebar.php'; ?>
 
@@ -56,10 +50,9 @@ $conn->close();
       <h2>Account Settings</h2>
     </div>
 
+    <!-- Edit Profile -->
     <div class="content-wrapper">
-      <!-- The col-lg-9 and other bootstrap grid classes should remain for layout -->
       <div class="col-lg-9 mt-4 mt-lg-0">
-        <!-- Changed .card to .theme-card to apply custom theme -->
         <div class="theme-card mb-4">
           <div class="card-header">
             <h5 class="mb-0">Edit Profile</h5>
@@ -102,8 +95,7 @@ $conn->close();
             </form>
           </div>
         </div>
-
-        <!-- Changed .card to .theme-card to apply custom theme -->
+        <!-- Manage Address -->
         <div class="theme-card">
           <div class="card-header">
             <h5 class="mb-0">Manage Address</h5>

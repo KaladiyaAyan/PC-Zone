@@ -15,9 +15,6 @@ if (isset($_POST['edit-category'])) {
   $parent_id = $_POST['parent_id'] !== '' ? intval($_POST['parent_id']) : NULL;
 
   if ($category_id && $category_name) {
-    // Generate slug
-    // $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
-    // $slug = slugify($category_name);
     $result = mysqli_query($conn, "SELECT slug FROM categories WHERE category_id = $category_id");
     $row = mysqli_fetch_assoc($result);
     $slug = $row['slug'];
@@ -36,9 +33,6 @@ if (isset($_POST['edit-category'])) {
       $stmt = mysqli_prepare($conn, "UPDATE categories SET category_name=?,parent_id=NULL, level=0, slug=? WHERE category_id=?");
       mysqli_stmt_bind_param($stmt, "ssi", $category_name, $slug, $category_id);
     }
-
-    // $stmt = mysqli_prepare($conn, "UPDATE categories SET name=?, parent_id=?, slug=? WHERE id=?");
-    // mysqli_stmt_bind_param($stmt, "sssi", $name, $parent_id, $slug, $id);
 
     if (mysqli_stmt_execute($stmt)) {
       header("Location: categories.php?success=updated");
@@ -153,12 +147,10 @@ if (isset($_POST['edit-product'])) {
         WHERE product_id = $product_id";
 
   if (mysqli_query($conn, $update_query)) {
-    // --- Specifications handling (simple) ---
+    // Specifications handling
     // Remove old specs
     mysqli_query($conn, "DELETE FROM product_specs WHERE product_id = $product_id");
 
-    // Expect spec_group_name[] and for each group the inputs named like:
-    // spec_name_<safe>[], spec_value_<safe>[], spec_order_<safe>[]
     if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
       foreach ($_POST['spec_group_name'] as $gName) {
         $gName = trim($gName);
@@ -185,7 +177,6 @@ if (isset($_POST['edit-product'])) {
         }
       }
     }
-    // ----------------------------
 
     message('popup-success', '<i class="ri-check-line"></i>', 'Product updated successfully');
     header('Location: product.php');
@@ -194,44 +185,6 @@ if (isset($_POST['edit-product'])) {
     message('popup-error', '<i class="ri-close-line"></i>', 'Failed to update product: ' . mysqli_error($conn));
     header('Location: edit-product.php?id=' . $product_id);
     exit;
-  }
-} else if (isset($_POST['edit-user'])) {
-  $user_id = $_POST['user_id'];
-
-  $username = mysqli_real_escape_string($conn, $_POST['username']);
-  $password = mysqli_real_escape_string($conn, $_POST['password']);
-  $status = mysqli_real_escape_string($conn, isset($_POST['status']) ? 1 : 0);
-
-  if ($password == "") {
-    $update_user = "UPDATE `users` SET `username`='$username', `status`='$status' WHERE `user_id`='$user_id'";
-  } else {
-    $password = password_hash($password, PASSWORD_BCRYPT);
-    $update_user = "UPDATE `users` SET `username`='$username', `password`='$password', `status`='$status' WHERE `user_id`='$user_id'";
-  }
-
-  $update_cate_run = mysqli_query($conn, $update_user);
-
-  if ($update_cate_run) {
-    message('popup-success', '<i class="ri-check-line"></i>', 'User updated successfully');
-    header('location: user.php');
-  } else {
-    message('popup-error', '<i class="ri-close-line"></i>', 'Failed to update user');
-    header('location: edit-user.php?id=' . $user_id);
-  }
-} else if (isset($_POST['update-order'])) {
-  $status = $_POST['status'];
-  $user_id = $_POST['user_id'];
-  $product_id = $_POST['product_id'];
-
-  $update_status = "UPDATE `order` SET `status`='$status' WHERE user_id ='$user_id' AND product_id ='$product_id'";
-  $order_update = mysqli_query($conn, $update_status);
-
-  if ($order_update) {
-    message('popup-success', '<i class="ri-check-line"></i>', 'Status updated successfully');
-    header('location: orders.php');
-  } else {
-    message('popup-error', '<i class="ri-close-line"></i>', 'Failed to update Status');
-    header('location: orders.php');
   }
 }
 // If no action, redirect to admin dashboard

@@ -34,10 +34,9 @@ $allCategories = $categories_result->fetch_all(MYSQLI_ASSOC);
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php
-  $current_page = 'brands';
+  <?php require('./includes/alert.php');
   include './includes/header.php';
+  $current_page = 'brands';
   include './includes/sidebar.php';
   ?>
 

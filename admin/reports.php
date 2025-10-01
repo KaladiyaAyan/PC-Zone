@@ -1,20 +1,12 @@
 <?php
-require_once '../includes/db_connect.php';
-require_once '../includes/functions.php';
 session_start();
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
-// Redirect if not logged in
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
   header('Location: ../login.php');
   exit;
 }
-
-// --- CONFIG & HELPERS ---
-function h($s)
-{
-  return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
-}
-$current_page = 'reports';
 
 // --- HANDLE DATE FILTERS (Default: last 30 days) ---
 $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
@@ -100,20 +92,12 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
   <title>Reports - PCZone Admin</title>
 
   <?php require('./includes/header-link.php') ?>
-
-  <script>
-    (function() {
-      if (localStorage.getItem('pczoneTheme') === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php
+  <?php require('./includes/alert.php');
   include './includes/header.php';
+  $current_page = 'reports';
   include './includes/sidebar.php';
   ?>
 
@@ -121,8 +105,8 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
     <div class="page-header">
       <h3><i class="fas fa-chart-line"></i> Reports</h3>
       <form method="get" class="d-flex gap-2 align-items-center">
-        <input type="date" name="from" value="<?= h($from) ?>" class="form-control">
-        <input type="date" name="to" value="<?= h($to) ?>" class="form-control">
+        <input type="date" name="from" value="<?= e($from) ?>" class="form-control">
+        <input type="date" name="to" value="<?= e($to) ?>" class="form-control">
         <button class="btn-add" type="submit">Apply</button>
       </form>
     </div>
@@ -132,9 +116,9 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
       <div class="col-lg-4">
         <div class="theme-card p-3 h-100">
           <p class="text-small-muted mb-1">Orders</p>
-          <h4 class="fw-bold mb-3"><?= (int)$summary['orders_count'] ?></h4>
+          <h4 class="fw-bold mb-3"><?= (int) $summary['orders_count'] ?></h4>
           <p class="text-small-muted mb-1">Revenue</p>
-          <h5 class="mb-0">₹ <?= number_format((float)$summary['revenue'], 2) ?></h5>
+          <h5 class="mb-0">₹ <?= number_format((float) $summary['revenue'], 2) ?></h5>
         </div>
       </div>
       <div class="col-lg-4">
@@ -143,7 +127,8 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
           <?php if (!empty($low_stock)): ?>
             <ul class="list-unstyled small mb-0">
               <?php foreach ($low_stock as $item): ?>
-                <li><?= h($item['product_name']) ?> <span class="text-small-muted">(<?= (int)$item['stock'] ?> left)</span></li>
+                <li><?= e($item['product_name']) ?> <span class="text-small-muted">(<?= (int) $item['stock'] ?> left)</span>
+                </li>
               <?php endforeach; ?>
             </ul>
           <?php else: ?>
@@ -157,7 +142,8 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
           <?php if (!empty($payments_summary)): ?>
             <ul class="list-unstyled small mb-0">
               <?php foreach ($payments_summary as $p_sum): ?>
-                <li><?= h($p_sum['payment_status']) ?>: <?= (int)$p_sum['cnt'] ?> (₹ <?= number_format((float)$p_sum['total_amount'], 2) ?>)</li>
+                <li><?= e($p_sum['payment_status']) ?>: <?= (int) $p_sum['cnt'] ?> (₹
+                  <?= number_format((float) $p_sum['total_amount'], 2) ?>)</li>
               <?php endforeach; ?>
             </ul>
           <?php else: ?>
@@ -184,11 +170,12 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
                   <tr>
                     <td colspan="3" class="text-center py-3">No product sales in this period.</td>
                   </tr>
-                  <?php else: foreach ($top_products as $tp): ?>
+                  <?php else:
+                  foreach ($top_products as $tp): ?>
                     <tr>
-                      <td><?= h($tp['product_name']) ?></td>
-                      <td><?= (int)$tp['qty_sold'] ?></td>
-                      <td>₹ <?= number_format((float)$tp['revenue'], 2) ?></td>
+                      <td><?= e($tp['product_name']) ?></td>
+                      <td><?= (int) $tp['qty_sold'] ?></td>
+                      <td>₹ <?= number_format((float) $tp['revenue'], 2) ?></td>
                     </tr>
                 <?php endforeach;
                 endif; ?>
@@ -214,10 +201,11 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
                   <tr>
                     <td colspan="2" class="text-center py-3">No category revenue in this period.</td>
                   </tr>
-                  <?php else: foreach ($by_category as $cat): ?>
+                  <?php else:
+                  foreach ($by_category as $cat): ?>
                     <tr>
-                      <td><?= h($cat['category_name']) ?></td>
-                      <td>₹ <?= number_format((float)$cat['revenue'], 2) ?></td>
+                      <td><?= e($cat['category_name']) ?></td>
+                      <td>₹ <?= number_format((float) $cat['revenue'], 2) ?></td>
                     </tr>
                 <?php endforeach;
                 endif; ?>
@@ -244,14 +232,15 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
                   <tr>
                     <td colspan="3" class="text-center py-3">No customer data in this period.</td>
                   </tr>
-                  <?php else: foreach ($top_customers as $tc): ?>
+                  <?php else:
+                  foreach ($top_customers as $tc): ?>
                     <tr>
                       <td>
-                        <div><?= h($tc['name']) ?></div>
-                        <div class="text-small-muted"><?= h($tc['email']) ?></div>
+                        <div><?= e($tc['name']) ?></div>
+                        <div class="text-small-muted"><?= e($tc['email']) ?></div>
                       </td>
-                      <td><?= (int)$tc['orders_count'] ?></td>
-                      <td>₹ <?= number_format((float)$tc['total_spent'], 2) ?></td>
+                      <td><?= (int) $tc['orders_count'] ?></td>
+                      <td>₹ <?= number_format((float) $tc['total_spent'], 2) ?></td>
                     </tr>
                 <?php endforeach;
                 endif; ?>
@@ -278,11 +267,12 @@ $payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
                   <tr>
                     <td colspan="3" class="text-center py-3">No orders in this period.</td>
                   </tr>
-                  <?php else: foreach ($orders_by_day as $day): ?>
+                  <?php else:
+                  foreach ($orders_by_day as $day): ?>
                     <tr>
                       <td><?= date('d M Y', strtotime($day['day'])) ?></td>
-                      <td><?= (int)$day['orders_count'] ?></td>
-                      <td>₹ <?= number_format((float)$day['revenue'], 2) ?></td>
+                      <td><?= (int) $day['orders_count'] ?></td>
+                      <td>₹ <?= number_format((float) $day['revenue'], 2) ?></td>
                     </tr>
                 <?php endforeach;
                 endif; ?>

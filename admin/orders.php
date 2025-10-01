@@ -29,22 +29,12 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
   <title>PC-Zone Admin - Orders</title>
 
   <?php require('./includes/header-link.php') ?>
-  <script>
-    // Immediately apply theme from localStorage
-    (function() {
-      const theme = localStorage.getItem('pczoneTheme');
-      if (theme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php
-  $current_page = 'orders';
+  <?php require('./includes/alert.php');
   include './includes/header.php';
+  $current_page = 'orders';
   include './includes/sidebar.php';
   ?>
 
@@ -72,8 +62,8 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
             <?php foreach ($orders as $order): ?>
               <tr>
                 <td>#<?= (int)$order['order_id'] ?></td>
-                <td><?= htmlspecialchars($order['username'] ?? 'Guest') ?></td>
-                <td><?= htmlspecialchars($order['email'] ?? '-') ?></td>
+                <td><?= e($order['username'] ?? 'Guest') ?></td>
+                <td><?= e($order['email'] ?? '-') ?></td>
                 <td><?= date("d M Y", strtotime($order['order_date'])) ?></td>
                 <td>₹<?= number_format($order['total_amount'], 2) ?></td>
                 <td>
@@ -82,7 +72,7 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
                   $status_class = strtolower($order['order_status']);
                   ?>
                   <span class="badge-status <?= $status_class ?>">
-                    <?= htmlspecialchars($order['order_status']) ?>
+                    <?= e($order['order_status']) ?>
                   </span>
                 </td>
                 <td>

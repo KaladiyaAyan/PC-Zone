@@ -15,7 +15,6 @@
 
       const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
       if (window.innerWidth > 768 && sidebarCollapsed) {
-        // We apply a class to the body, which is available immediately.
         document.body.classList.add('sidebar-collapsed');
       }
     })();

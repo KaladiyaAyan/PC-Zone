@@ -8,7 +8,6 @@ if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true
   exit;
 }
 
-// --- DATA FETCHING ---
 $query = "SELECT p.product_id, p.product_name, p.description, p.price, p.stock, b.brand_name, c.category_name, p.main_image
           FROM products p
           LEFT JOIN brands b ON p.brand_id = b.brand_id

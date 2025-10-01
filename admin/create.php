@@ -121,9 +121,7 @@ if (isset($_POST['add-product'])) {
     header('Location: add_product.php');
     exit;
   }
-}
-
-if (isset($_POST['add-category'])) {
+} else if (isset($_POST['add-category'])) {
   $name = trim(mysqli_real_escape_string($conn, $_POST['name'] ?? ''));
   $parent_raw = $_POST['parent_id'] ?? '';
 
@@ -198,9 +196,7 @@ if (isset($_POST['add-category'])) {
     header('Location: categories.php?error=insert_failed');
     exit;
   }
-}
-
-if (isset($_POST['add-brand'])) {
+} else if (isset($_POST['add-brand'])) {
   $name = trim(mysqli_real_escape_string($conn, $_POST['name'] ?? ''));
   $parent_raw = $_POST['category_id'] ?? '';
 

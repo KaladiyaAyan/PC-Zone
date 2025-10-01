@@ -1,8 +1,8 @@
 <?php
 session_start();
-require_once __DIR__ . '/../includes/db_connect.php';
+require('../includes/db_connect.php');
+require('../includes/functions.php');
 
-// admin auth
 if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: ../login.php');
     exit;
@@ -103,8 +103,6 @@ if (isset($_GET['product'])) {
         exit;
     }
 }
-
-
 
 // If no action, redirect to admin dashboard
 header('Location: index.php');

@@ -62,21 +62,12 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
   <title>Payments - PCZone Admin</title>
 
   <?php require('./includes/header-link.php') ?>
-
-  <script>
-    (function() {
-      if (localStorage.getItem('pczoneTheme') === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
 </head>
 
 <body>
-  <?php require('./includes/alert.php'); ?>
-  <?php
-  $current_page = 'payments';
+  <?php require('./includes/alert.php');
   include './includes/header.php';
+  $current_page = 'payments';
   include './includes/sidebar.php';
   ?>
 
@@ -154,9 +145,7 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
       </table>
     </div>
 
-    <!-- Pagination removed -->
   </main>
-
   <?php require('./includes/footer-link.php') ?>
 </body>
 

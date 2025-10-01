@@ -121,7 +121,6 @@ $stmt_shipments = mysqli_prepare(
       padding-bottom: 6px;
     }
 
-    /* make order row clearly clickable but keep existing hover */
     .product-row[role="button"] {
       cursor: pointer;
     }

@@ -68,7 +68,7 @@ $rootCategories = getRootCategories($conn);
                 <td>
                   <button class="btn-edit" data-bs-toggle="modal" data-bs-target="#editCategoryModal"
                     data-id="<?= (int)$row['category_id'] ?>"
-                    data-name="<?= e($row['category_name'], ENT_QUOTES) ?>"
+                    data-name="<?= e($row['category_name'] ?? '') ?>"
                     data-parent="<?= $row['parent_id'] ?? '' ?>">
                     <i class="fas fa-edit"></i> Edit
                   </button>
