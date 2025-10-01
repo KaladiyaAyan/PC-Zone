@@ -83,7 +83,7 @@ if ($customerId) {
       <span>PC Zone</span>
     </a>
 
-    <form class="header-search" role="search" action="/search.php" method="get">
+    <form class="header-search" role="search" action="product.php" method="get">
       <i class="ri-search-line search-icon"></i>
       <input class="search-input" name="q" type="search" placeholder="Search for products...">
     </form>

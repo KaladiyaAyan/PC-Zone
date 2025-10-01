@@ -4,9 +4,29 @@ require('./includes/db_connect.php');
 require('./includes/functions.php');
 
 $slug = trim($_GET['slug'] ?? '');
+$query = trim($_GET['q'] ?? '');
 $products = [];
 
-if ($slug === '') {
+// If there is a search query
+if ($query !== '') {
+  $safe_q = mysqli_real_escape_string($conn, $query);
+  $like = "%$safe_q%";
+  $sql_search = "
+    SELECT * FROM products
+    WHERE is_active = 1
+      AND (
+        product_name LIKE '$like'
+        OR slug LIKE '$like'
+        OR description LIKE '$like'
+        OR sku LIKE '$like'
+      )
+    ORDER BY is_featured DESC, created_at DESC
+  ";
+  $result_search = mysqli_query($conn, $sql_search);
+  if ($result_search) {
+    $products = mysqli_fetch_all($result_search, MYSQLI_ASSOC);
+  }
+} elseif ($slug === '') {
   // If no slug, get latest featured products
   $sql = "SELECT * FROM products WHERE is_active=1 ORDER BY is_featured DESC, created_at DESC LIMIT 24";
   $result = mysqli_query($conn, $sql);
@@ -49,7 +69,7 @@ if ($slug === '') {
   <?php require('./includes/navbar.php'); ?>
 
   <div class="container py-4">
-    <h2 class="mb-4 text-center text-capitalize"><?= e($slug ?: 'All Products') ?></h2>
+    <h2 class="mb-4 text-center text-capitalize"><?= e($query !== '' ? 'Search results for: ' . $query : ($slug ?: 'All Products')) ?></h2>
     <div class="row">
       <?php if (empty($products)): ?>
         <div class="col-12">
@@ -60,7 +80,7 @@ if ($slug === '') {
 
           $pid = (int)$product['product_id'];
           $name = $product['product_name'];
-          $slug_product = $product['slug']; // Renamed to avoid conflict with category slug
+          $slug_product = $product['slug'];
           $desc = $product['description'] ?? '';
           $price = (float)$product['price'];
           $discount = (float)$product['discount'];
