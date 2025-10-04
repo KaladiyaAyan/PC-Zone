@@ -233,6 +233,7 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
             inputs[0].name = 'spec_name_' + safe + '[]';
             inputs[1].name = 'spec_value_' + safe + '[]';
             inputs[2].name = 'spec_order_' + safe + '[]';
+            console.log(inputs);
           }
         });
       }

@@ -138,6 +138,8 @@ INSERT INTO brands (brand_name, category_id, slug) VALUES
 ('be quiet!',     (SELECT category_id FROM categories WHERE category_name='Cooling System'),'be-quiet'),
 ('Arctic',        (SELECT category_id FROM categories WHERE category_name='Cooling System'),'arctic'),
 ('Thermaltake',   (SELECT category_id FROM categories WHERE category_name='Cooling System'),'thermaltake-cooler'),
+('Corsair',       (SELECT category_id FROM categories WHERE category_name='Cooling System'),'corsair-cooler'),
+('Lian Li',       (SELECT category_id FROM categories WHERE category_name='Cooling System'),'lian-li-cooler'),
 
 -- Monitor
 ('Dell',          (SELECT category_id FROM categories WHERE category_name='Monitor'),        'dell-monitor'),
@@ -258,7 +260,7 @@ INSERT INTO products (
     'both',
     TRUE, 
     TRUE
-);
+),
 (
    'Ant Esports ICE-C612 V2 ARGB CPU Cooler| Support Intel LGA1200, LGA115X, LGA20XX, LGA1366, LGA1700 and AMD FM1, FM2, FM2+, AM2, AM2+, AM3, AM3+, AM4, AM5',
    'B084G3MJPZ',
@@ -283,8 +285,7 @@ INSERT INTO products (
    'both',
    TRUE, 
    TRUE
-)
-
+);
 -- user_address
 CREATE TABLE IF NOT EXISTS user_address (
     address_id INT AUTO_INCREMENT PRIMARY KEY,

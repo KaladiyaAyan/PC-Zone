@@ -97,6 +97,44 @@ if (isset($_POST['add-product'])) {
 
   $insert_product_run = mysqli_query($conn, $insert_product);
 
+  $product_id = (int) mysqli_insert_id($conn);
+
+  // Save product specs (delete existing then insert)
+  if (!empty($_POST['spec_group_name']) && is_array($_POST['spec_group_name'])) {
+    $delStmt = mysqli_prepare($conn, "DELETE FROM product_specs WHERE product_id = ?");
+    mysqli_stmt_bind_param($delStmt, 'i', $product_id);
+    mysqli_stmt_execute($delStmt);
+    mysqli_stmt_close($delStmt);
+
+    $insStmt = mysqli_prepare(
+      $conn,
+      "INSERT INTO product_specs (product_id, spec_name, spec_value, spec_group, display_order) VALUES (?, ?, ?, ?, ?)"
+    );
+
+    foreach ($_POST['spec_group_name'] as $gIdx => $groupRaw) {
+      $groupName = trim($groupRaw) ?: 'General';
+      $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $groupName);
+
+      $names  = $_POST['spec_name_' . $safeKey]  ?? [];
+      $values = $_POST['spec_value_' . $safeKey] ?? [];
+      $orders = $_POST['spec_order_' . $safeKey] ?? [];
+
+      $rows = max(count($names), count($values));
+      for ($j = 0; $j < $rows; $j++) {
+        $sname  = trim($names[$j]  ?? '');
+        $svalue = trim($values[$j] ?? '');
+        if ($sname === '' && $svalue === '') continue;
+        $sorder = isset($orders[$j]) ? intval($orders[$j]) : ($j * 10);
+        mysqli_stmt_bind_param($insStmt, 'isssi', $product_id, $sname, $svalue, $groupName, $sorder);
+        mysqli_stmt_execute($insStmt);
+        if (mysqli_stmt_errno($insStmt)) {
+          message('popup-error', '<i class="ri-close-line"></i>', 'Failed to insert product specs: ');
+        }
+      }
+    }
+  }
+
+
   if ($insert_product_run) {
     // Move uploaded files
     move_uploaded_file($_FILES['image1']['tmp_name'], '../uploads/' . $main_image);
