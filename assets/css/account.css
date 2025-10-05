@@ -4,14 +4,22 @@ body {
 }
 
 .account-nav .nav-link {
-  color: #495057;
+  color: #2d3032;
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
 }
+.account-nav .nav-link:not(:last-child):hover {
+  background-color: #2e3742ff !important;
+  color: #fff !important;
+}
+.account-nav .nav-link:hover {
+  background-color: #d13212 !important;
+  color: #fff !important;
+}
 
 .account-nav .nav-link.active {
-  background-color: #e8e8e8;
-  color: #495057;
+  background-color: #2e3742ff;
+  color: #fff;
 }
 
 .account-nav .nav-link i {

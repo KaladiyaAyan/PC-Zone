@@ -8,27 +8,38 @@ if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true
   exit;
 }
 
-$user_id = $_SESSION['user_id'];
+// safe simple conversion to int
+$user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
-// Fetch User Details
-$stmt = $conn->prepare("SELECT username, email, phone, date_of_birth, gender FROM users WHERE user_id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-$stmt->close();
+/* Fetch user (simple mysqli query, no prepared stmt) */
+$user = [
+  'username' => '',
+  'email' => '',
+  'profile_image' => '',
+  'date_of_birth' => '',
+  'gender' => ''
+];
 
-// Fetch Address Details (we'll fetch the default or first one)
-$stmt = $conn->prepare("SELECT * FROM user_address WHERE user_id = ? ORDER BY is_default DESC LIMIT 1");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$address = $result->fetch_assoc();
-if (!$address) {
-  $address = [];
+if ($user_id > 0) {
+  $sql = "SELECT username, email, profile_image, date_of_birth, gender FROM users WHERE user_id = $user_id LIMIT 1";
+  $res = mysqli_query($conn, $sql);
+  if ($res && mysqli_num_rows($res) > 0) {
+    $user = mysqli_fetch_assoc($res);
+  }
 }
-$stmt->close();
+
+/* Fetch address (default/first) */
+$address = [];
+
+if ($user_id > 0) {
+  $sql = "SELECT * FROM user_address WHERE user_id = $user_id ORDER BY is_default DESC LIMIT 1";
+  $res = mysqli_query($conn, $sql);
+  if ($res && mysqli_num_rows($res) > 0) {
+    $address = mysqli_fetch_assoc($res);
+  }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -58,7 +69,8 @@ $stmt->close();
             <h5 class="mb-0">Edit Profile</h5>
           </div>
           <div class="card-body">
-            <form method="POST" action="verify.php">
+            <!-- Note: enctype added for file upload -->
+            <form method="POST" action="verify.php" enctype="multipart/form-data">
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="username" class="form-label">Username</label>
@@ -69,14 +81,24 @@ $stmt->close();
                   <input type="email" class="form-control" id="email" value="<?php echo e($user['email'] ?? ''); ?>" disabled readonly>
                   <div class="form-text text-small-muted">Email address cannot be changed.</div>
                 </div>
+
                 <div class="col-md-6 mb-3">
                   <label for="password" class="form-label">Password <span class="text-small-muted">(leave blank to keep current)</span></label>
                   <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password to change">
                 </div>
+
+                <!-- Profile Image field (new) -->
                 <div class="col-md-6 mb-3">
-                  <label for="phone" class="form-label">Phone Number</label>
-                  <input type="tel" class="form-control" id="phone" name="phone" value="<?php echo e($user['phone'] ?? ''); ?>">
+                  <label for="profile_image" class="form-label">Profile Image <span class="text-small-muted">(optional)</span></label>
+                  <?php if (!empty($user['profile_image'])): ?>
+                    <div class="mb-2">
+                      <img src="<?php echo e($user['profile_image']); ?>" alt="Profile Image" style="max-width:80px; max-height:80px; border-radius:6px;">
+                    </div>
+                  <?php endif; ?>
+                  <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                  <div class="form-text text-small-muted">Recommended: JPG/PNG. Keep file size small.</div>
                 </div>
+
                 <div class="col-md-6 mb-3">
                   <label for="dob" class="form-label">Date of Birth</label>
                   <input type="date" class="form-control" id="dob" name="dob" value="<?php echo e($user['date_of_birth'] ?? ''); ?>">
@@ -105,7 +127,7 @@ $stmt->close();
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="full_name" class="form-label">Full Name</label>
-                  <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo e($address['username'] ?? ''); ?>" required>
+                  <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo e($address['full_name'] ?? ''); ?>" required>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="address_phone" class="form-label">Phone Number</label>

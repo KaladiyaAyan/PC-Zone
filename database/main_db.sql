@@ -562,7 +562,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email_verified` tinyint(1) DEFAULT '0',
   `role` enum('admin','user') NOT NULL DEFAULT 'user',
   `status` enum('active','inactive') DEFAULT 'active',
-  `last_login` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),

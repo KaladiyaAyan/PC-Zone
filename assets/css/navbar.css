@@ -28,6 +28,10 @@
   text-decoration: none;
 }
 
+.header-logo span:hover {
+  color: #232f3e;
+}
+
 .header-logo .ri-cpu-line {
   color: #c7511f;
 }
@@ -50,7 +54,7 @@
 }
 
 .header-search .search-input:focus {
-  border-color: #0d6efd;
+  border-color: #232f3e;
   box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
   outline: none;
 }

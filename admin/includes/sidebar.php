@@ -11,7 +11,7 @@ function active($name)
 
 <aside id="sidebar" class="sidebar">
   <div class="admin-profile d-flex align-items-center">
-    <img src="./assets/images/admin.jpg" alt="avatar" class="admin-avatar">
+    <img src="./assets/images/admin" alt="avatar" class="admin-avatar">
     <div class="admin-info ms-2">
       <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Admin') ?></strong>
       <span class="status">Online</span>

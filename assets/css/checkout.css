@@ -9,6 +9,18 @@ body {
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
 }
 
+.checkout-panel input:focus {
+  color: #212529;
+  border-color: #212529;
+  box-shadow: none;
+}
+
+.form-check-input:checked {
+  background-color: #212529;
+  border-color: #212529;
+  /* box-shadow: none; */
+}
+
 .summary-item {
   display: flex;
   align-items: center;
@@ -31,7 +43,7 @@ body {
 }
 
 .payment-option:has(input:checked) {
-  border-color: #0d6efd;
+  border-color: #232f3e;
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
 }
 

@@ -112,7 +112,6 @@ if (isset($_POST['signup'])) {
   }
 } else if (isset($_POST['update_profile'])) {
   $username = mysqli_real_escape_string($conn, $_POST['username'] ?? '');
-  $phone    = mysqli_real_escape_string($conn, $_POST['phone'] ?? '');
   $dob      = mysqli_real_escape_string($conn, $_POST['dob'] ?? '');
   $gender   = mysqli_real_escape_string($conn, $_POST['gender'] ?? '');
   $password = mysqli_real_escape_string($conn, $_POST['password'] ?? '');
@@ -123,7 +122,6 @@ if (isset($_POST['signup'])) {
     $update_user = "
       UPDATE users
       SET username='$username',
-          phone='$phone',
           date_of_birth='$dob',
           gender='$gender'
       WHERE user_id=$user_id
@@ -134,7 +132,6 @@ if (isset($_POST['signup'])) {
       UPDATE users
       SET username='$username',
           password='$hashed',
-          phone='$phone',
           date_of_birth='$dob',
           gender='$gender'
       WHERE user_id=$user_id

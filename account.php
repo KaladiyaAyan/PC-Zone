@@ -121,7 +121,6 @@ $conn->close();
                       <div class="form-text">Email address cannot be changed.</div>
                     </div>
                     <div class="col-md-6 mb-3"><label for="password" class="form-label">Password <span class="text-muted">(leave blank to keep current)</span></label><input type="password" class="form-control" id="password" name="password" placeholder="Enter new password if you want to change"></div>
-                    <div class="col-md-6 mb-3"><label for="phone" class="form-label">Phone Number</label><input type="tel" class="form-control" id="phone" name="phone" value="<?php echo e($user['phone'] ?? ''); ?>"></div>
                     <div class="col-md-6 mb-3"><label for="dob" class="form-label">Date of Birth</label><input type="date" class="form-control" id="dob" name="dob" value="<?php echo e($user['date_of_birth'] ?? ''); ?>"></div>
                     <div class="col-md-6 mb-3"><label class="form-label">Gender</label><select class="form-select" name="gender">
                         <option value="" <?php echo !isset($user['gender']) ? 'selected' : ''; ?>>Select...</option>

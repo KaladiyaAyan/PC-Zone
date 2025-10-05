@@ -146,13 +146,14 @@
 }
 
 .product-title-link {
-  color: #111;
+  color: #2162a1;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .product-title-link:hover {
-  color: #c7511f;
+  /* color: #c7511f; */
+  color: #0c3353;
   text-decoration: underline;
 }
 
