@@ -14,7 +14,9 @@ $userId = (int)$_SESSION['user_id'];
 
 // HANDLE CUSTOM PC BUILD 
 if (isset($_POST['part'])) {
-  $parts_to_add = array_filter($_POST['part'], fn($id) => (int)$id > 0);
+  $parts_to_add = array_filter($_POST['part'], function ($id) {
+    return (int)$id > 0;
+  });
 
   if (empty($parts_to_add)) {
     message('popup-warning', '<i class="ri-error-warning-line"></i>', 'Please select at least one component.');

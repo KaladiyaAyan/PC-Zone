@@ -24,7 +24,7 @@ function getCount($conn, $table, $condition = '')
 
 function getTotalRevenue($conn)
 {
-  $sql = "SELECT COALESCE(SUM(total_amount),0) AS total FROM orders";
+  $sql = "SELECT COALESCE(SUM(total_price),0) AS total FROM orders";
   $res = mysqli_query($conn, $sql);
   if (!$res) return 0.0;
   $row = mysqli_fetch_assoc($res);
@@ -108,19 +108,23 @@ $totalRevenue   = getTotalRevenue($conn);
             </thead>
             <tbody>
               <?php
-              $sql = "SELECT o.order_id, u.username AS customer_name, o.total_amount, o.order_date, o.order_status
+              // use total_price and created_at from orders. join payments for payment_status if available.
+              $sql = "SELECT o.order_id, u.username AS customer_name, o.total_price, o.created_at AS order_date, p.payment_status
                       FROM orders o
                       LEFT JOIN users u ON o.user_id = u.user_id
-                      ORDER BY o.order_date DESC
+                      LEFT JOIN payments p ON p.order_id = o.order_id
+                      ORDER BY o.created_at DESC
                       LIMIT 5";
               if ($res = mysqli_query($conn, $sql)) {
                 if (mysqli_num_rows($res) > 0) {
                   while ($order = mysqli_fetch_assoc($res)) {
-                    $statusClass = 'status-' . strtolower(preg_replace('/\s+/', '-', $order['order_status']));
-                    $statusLabel = e(ucfirst(strtolower($order['order_status'])));
+                    $rawStatus = $order['payment_status'] ?? null;
+                    $status = $rawStatus ? $rawStatus : '-';
+                    $statusClass = 'status-' . strtolower(preg_replace('/\s+/', '-', $status));
+                    $statusLabel = e(ucfirst(strtolower($status)));
                     $custName = e($order['customer_name'] ?? 'Guest');
                     $orderId  = (int)$order['order_id'];
-                    $totalFmt = e(formatPrice((float)$order['total_amount']));
+                    $totalFmt = e(formatPrice((float)$order['total_price']));
                     $dateFmt  = $order['order_date'] ? date('M d, Y', strtotime($order['order_date'])) : '-';
                     echo "<tr>
                             <td>{$orderId}</td>

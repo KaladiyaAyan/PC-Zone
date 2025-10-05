@@ -104,6 +104,18 @@ $brandsResult = mysqli_query($conn, $brandsQuery);
                   </select>
                 </div>
 
+                <!-- Platform (new field) -->
+                <div class="col-md-6">
+                  <label class="form-label">Platform</label>
+                  <select name="platform" class="form-select" id="platformSelect">
+                    <option value="none" selected>None</option>
+                    <option value="intel">Intel</option>
+                    <option value="amd">AMD</option>
+                    <option value="both">Both</option>
+                  </select>
+                  <small class="text-muted">Choose platform compatibility. Defaults to "None".</small>
+                </div>
+
                 <!-- Weight -->
                 <div class="col-md-6">
                   <label class="form-label">Weight (kg)</label>

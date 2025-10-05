@@ -7,7 +7,6 @@ if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true
   header('Location: ../login.php');
   exit;
 }
-
 // --- HANDLE FILTERS ---
 $q = trim($_GET['q'] ?? '');
 $status = trim($_GET['status'] ?? '');
@@ -18,7 +17,7 @@ $whereConditions = [];
 
 if ($q !== '') {
   $searchTerm = $conn->real_escape_string($q);
-  $whereConditions[] = "(p.transaction_id LIKE '%$searchTerm%' OR p.order_id LIKE '%$searchTerm%' OR u.email LIKE '%$searchTerm%' OR u.username LIKE '%$searchTerm%')";
+  $whereConditions[] = "(p.payment_id LIKE '%$searchTerm%' OR p.order_id LIKE '%$searchTerm%' OR u.email LIKE '%$searchTerm%' OR u.username LIKE '%$searchTerm%')";
 }
 if ($status !== '') {
   $whereConditions[] = "p.payment_status = '" . $conn->real_escape_string($status) . "'";
@@ -38,19 +37,27 @@ $totalsQuery = "SELECT COUNT(p.payment_id) AS total_count, COALESCE(SUM(p.amount
                 LEFT JOIN users u ON o.user_id = u.user_id
                 $whereClause";
 $totalsResult = $conn->query($totalsQuery);
-$totals = $totalsResult->fetch_assoc();
-$total_count = (int)$totals['total_count'];
-$total_amount = (float)$totals['total_amount'];
+if ($totalsResult) {
+  $totals = $totalsResult->fetch_assoc();
+  $total_count = (int)($totals['total_count'] ?? 0);
+  $total_amount = (float)($totals['total_amount'] ?? 0);
+} else {
+  $total_count = 0;
+  $total_amount = 0;
+}
 
 // Get all matching payments (no pagination)
-$sql = "SELECT p.*, u.username, u.email
+$sql = "SELECT p.*, u.username, u.email, o.user_id
         FROM payments p
         LEFT JOIN orders o ON p.order_id = o.order_id
         LEFT JOIN users u ON o.user_id = u.user_id
         $whereClause
         ORDER BY p.created_at DESC";
 $result = $conn->query($sql);
-$payments = $result->fetch_all(MYSQLI_ASSOC);
+$payments = [];
+if ($result) {
+  $payments = $result->fetch_all(MYSQLI_ASSOC);
+}
 
 ?>
 <!DOCTYPE html>
@@ -65,7 +72,8 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
 </head>
 
 <body>
-  <?php require('./includes/alert.php');
+  <?php
+  require('./includes/alert.php');
   include './includes/header.php';
   $current_page = 'payments';
   include './includes/sidebar.php';
@@ -82,21 +90,22 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
     <div class="theme-card p-3 mb-4">
       <form method="get" class="row g-2 align-items-center">
         <div class="col-md-5 col-12">
-          <input type="search" name="q" value="<?= e($q) ?>" class="form-control" placeholder="Search by Txn, Order ID, Email, or Name">
+          <input type="search" name="q" value="<?= e($q) ?>" class="form-control" placeholder="Search by Payment ID, Order ID, Email, or Name">
         </div>
         <div class="col-md-2 col-6">
           <select name="method" class="form-select">
             <option value="">All Methods</option>
             <option value="cash_on_delivery" <?= $method === 'cash_on_delivery' ? 'selected' : '' ?>>Cash on Delivery</option>
             <option value="credit_card" <?= $method === 'credit_card' ? 'selected' : '' ?>>Credit Card</option>
+            <option value="debit_card" <?= $method === 'debit_card' ? 'selected' : '' ?>>Debit Card</option>
             <option value="upi" <?= $method === 'upi' ? 'selected' : '' ?>>UPI</option>
           </select>
         </div>
         <div class="col-md-2 col-6">
           <select name="status" class="form-select">
             <option value="">All Statuses</option>
-            <option value="Paid" <?= $status === 'Paid' ? 'selected' : '' ?>>Paid</option>
             <option value="Pending" <?= $status === 'Pending' ? 'selected' : '' ?>>Pending</option>
+            <option value="Paid" <?= $status === 'Paid' ? 'selected' : '' ?>>Paid</option>
             <option value="Failed" <?= $status === 'Failed' ? 'selected' : '' ?>>Failed</option>
             <option value="Refunded" <?= $status === 'Refunded' ? 'selected' : '' ?>>Refunded</option>
           </select>
@@ -126,21 +135,32 @@ $payments = $result->fetch_all(MYSQLI_ASSOC);
             <tr>
               <td colspan="7" class="text-center py-4">No payments found matching your criteria.</td>
             </tr>
-            <?php else: foreach ($payments as $p): ?>
+          <?php else: ?>
+            <?php foreach ($payments as $p): ?>
               <tr>
                 <td><?= (int)$p['payment_id'] ?></td>
-                <td><a href="order_view.php?id=<?= (int)$p['order_id'] ?>">#<?= (int)$p['order_id'] ?></a></td>
                 <td>
-                  <div><?= e($p['username']) ?></div>
-                  <div class="text-small-muted"><?= e($p['email']) ?></div>
+                  <?php if ($p['order_id']): ?>
+                    <a href="order_view.php?id=<?= (int)$p['order_id'] ?>">#<?= (int)$p['order_id'] ?></a>
+                  <?php else: ?>
+                    #<?= (int)$p['order_id'] ?>
+                  <?php endif; ?>
                 </td>
-                <td><?= e($p['payment_method']) ?></td>
+                <td>
+                  <div><?= e($p['username'] ?? 'N/A') ?></div>
+                  <div class="text-small-muted"><?= e($p['email'] ?? 'N/A') ?></div>
+                </td>
+                <td><?= e(ucwords(str_replace('_', ' ', $p['payment_method']))) ?></td>
                 <td>₹ <?= number_format((float)$p['amount'], 2) ?></td>
-                <td><span class="badge-status <?= strtolower(e($p['payment_status'])) ?>"><?= e($p['payment_status']) ?></span></td>
-                <td><?= date('d M Y, h:i A', strtotime($p['paid_at'] ?? $p['created_at'])) ?></td>
+                <td>
+                  <span class="badge-status <?= strtolower(e($p['payment_status'])) ?>">
+                    <?= e($p['payment_status']) ?>
+                  </span>
+                </td>
+                <td><?= date('d M Y, h:i A', strtotime($p['created_at'])) ?></td>
               </tr>
-          <?php endforeach;
-          endif; ?>
+            <?php endforeach; ?>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>

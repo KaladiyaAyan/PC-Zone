@@ -25,6 +25,13 @@ if (isset($_POST['add-product'])) {
   $is_featured = isset($_POST['is_featured']) ? 1 : 0;
   $is_active = isset($_POST['is_active']) ? 1 : 0;
 
+  // Platform (new). Accept only allowed values, default to 'none'
+  $platform_raw = $_POST['platform'] ?? 'none';
+  $platform_raw = strtolower(trim($platform_raw));
+  $allowed_platforms = ['intel', 'amd', 'both', 'none'];
+  $platform = in_array($platform_raw, $allowed_platforms, true) ? $platform_raw : 'none';
+  $platform = mysqli_real_escape_string($conn, $platform);
+
   // Validate required fields
   if (empty($name) || empty($sku) || empty($description) || empty($price) || empty($category) || empty($brand)) {
     message('popup-error', '<i class="ri-close-line"></i>', 'Please fill all required fields');
@@ -91,9 +98,9 @@ if (isset($_POST['add-product'])) {
     exit;
   }
 
-  // Insert product into database
-  $insert_product = "INSERT INTO `products`(`product_name`, `sku`, `slug`, `description`, `price`, `discount`, `stock`, `weight`, `brand_id`, `category_id`, `main_image`, `image_1`, `image_2`, `image_3`, `is_featured`, `is_active`) 
-                      VALUES ('$name', '$sku', '$slug', '$description', '$price', '$discount', '$stock', '$weight', '$brand', '$category', '$main_image', '$image_1', '$image_2', '$image_3', '$is_featured', '$is_active')";
+  // Insert product into database (included platform)
+  $insert_product = "INSERT INTO `products`(`product_name`, `sku`, `slug`, `description`, `price`, `discount`, `stock`, `weight`, `brand_id`, `category_id`, `main_image`, `image_1`, `image_2`, `image_3`, `platform`, `is_featured`, `is_active`) 
+                      VALUES ('$name', '$sku', '$slug', '$description', '$price', '$discount', '$stock', '$weight', '$brand', '$category', '$main_image', '$image_1', '$image_2', '$image_3', '$platform', '$is_featured', '$is_active')";
 
   $insert_product_run = mysqli_query($conn, $insert_product);
 
@@ -132,8 +139,8 @@ if (isset($_POST['add-product'])) {
         }
       }
     }
+    mysqli_stmt_close($insStmt);
   }
-
 
   if ($insert_product_run) {
     // Move uploaded files

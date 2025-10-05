@@ -15,42 +15,40 @@ $to = $_GET['to'] ?? date('Y-m-d');
 // Sanitize dates and create a full-day range for the query
 $from_dt = $conn->real_escape_string($from . ' 00:00:00');
 $to_dt = $conn->real_escape_string($to . ' 23:59:59');
-$date_filter_sql = "o.order_date BETWEEN '$from_dt' AND '$to_dt'";
+$date_filter_sql = "o.created_at BETWEEN '$from_dt' AND '$to_dt'";
 
-// --- DATA FETCHING (SIMPLIFIED QUERIES) ---
+// --- DATA FETCHING (ADAPTED TO CURRENT SCHEMA) ---
 
 // 1) Sales Summary
-$summary_sql = "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_amount),0) AS revenue FROM orders o WHERE $date_filter_sql";
+$summary_sql = "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_price),0) AS revenue FROM orders o WHERE $date_filter_sql";
 $summary_res = $conn->query($summary_sql);
-$summary = $summary_res->fetch_assoc() ?: ['orders_count' => 0, 'revenue' => 0];
+$summary = $summary_res ? $summary_res->fetch_assoc() : ['orders_count' => 0, 'revenue' => 0];
 
-// 2) Top Products (by quantity)
-$top_products_sql = "SELECT p.product_name, SUM(oi.quantity) AS qty_sold, SUM(oi.total_price) AS revenue
-                     FROM order_items oi
-                     JOIN products p ON p.product_id = oi.product_id
-                     JOIN orders o ON o.order_id = oi.order_id
+// 2) Top Products (by quantity) - orders table stores product_id and quantity
+$top_products_sql = "SELECT p.product_name, SUM(o.quantity) AS qty_sold, SUM(o.total_price) AS revenue
+                     FROM orders o
+                     JOIN products p ON p.product_id = o.product_id
                      WHERE $date_filter_sql
                      GROUP BY p.product_id
                      ORDER BY qty_sold DESC
                      LIMIT 10";
 $top_products_res = $conn->query($top_products_sql);
-$top_products = $top_products_res->fetch_all(MYSQLI_ASSOC);
+$top_products = $top_products_res ? $top_products_res->fetch_all(MYSQLI_ASSOC) : [];
 
 // 3) Revenue by Category
-$category_revenue_sql = "SELECT c.category_name, SUM(oi.total_price) AS revenue
-                         FROM order_items oi
-                         JOIN products p ON p.product_id = oi.product_id
+$category_revenue_sql = "SELECT c.category_name, COALESCE(SUM(o.total_price),0) AS revenue
+                         FROM orders o
+                         JOIN products p ON p.product_id = o.product_id
                          JOIN categories c ON c.category_id = p.category_id
-                         JOIN orders o ON o.order_id = oi.order_id
                          WHERE $date_filter_sql
                          GROUP BY c.category_id
                          ORDER BY revenue DESC
                          LIMIT 10";
 $category_revenue_res = $conn->query($category_revenue_sql);
-$by_category = $category_revenue_res->fetch_all(MYSQLI_ASSOC);
+$by_category = $category_revenue_res ? $category_revenue_res->fetch_all(MYSQLI_ASSOC) : [];
 
 // 4) Top Customers
-$top_customers_sql = "SELECT u.username AS name, u.email, COUNT(o.order_id) AS orders_count, SUM(o.total_amount) AS total_spent
+$top_customers_sql = "SELECT u.username AS name, u.email, COUNT(o.order_id) AS orders_count, COALESCE(SUM(o.total_price),0) AS total_spent
                       FROM orders o
                       JOIN users u ON u.user_id = o.user_id
                       WHERE $date_filter_sql
@@ -58,30 +56,29 @@ $top_customers_sql = "SELECT u.username AS name, u.email, COUNT(o.order_id) AS o
                       ORDER BY total_spent DESC
                       LIMIT 10";
 $top_customers_res = $conn->query($top_customers_sql);
-$top_customers = $top_customers_res->fetch_all(MYSQLI_ASSOC);
+$top_customers = $top_customers_res ? $top_customers_res->fetch_all(MYSQLI_ASSOC) : [];
 
 // 5) Orders by Day
-$orders_by_day_sql = "SELECT DATE(order_date) AS day, COUNT(*) AS orders_count, SUM(total_amount) AS revenue 
+$orders_by_day_sql = "SELECT DATE(o.created_at) AS day, COUNT(*) AS orders_count, COALESCE(SUM(o.total_price),0) AS revenue 
                       FROM orders o 
                       WHERE $date_filter_sql 
                       GROUP BY day ORDER BY day ASC";
 $orders_by_day_res = $conn->query($orders_by_day_sql);
-$orders_by_day = $orders_by_day_res->fetch_all(MYSQLI_ASSOC);
+$orders_by_day = $orders_by_day_res ? $orders_by_day_res->fetch_all(MYSQLI_ASSOC) : [];
 
 // 6) Low Stock Products (not date-dependent)
 $low_stock_sql = "SELECT product_name, stock FROM products WHERE stock <= 5 ORDER BY stock ASC LIMIT 5";
 $low_stock_res = $conn->query($low_stock_sql);
-$low_stock = $low_stock_res->fetch_all(MYSQLI_ASSOC);
+$low_stock = $low_stock_res ? $low_stock_res->fetch_all(MYSQLI_ASSOC) : [];
 
-// 7) Payments Summary
-$payments_sql = "SELECT payment_status, COUNT(*) AS cnt, SUM(amount) AS total_amount 
-                 FROM payments p 
+// 7) Payments Summary (use orders.created_at range)
+$payments_sql = "SELECT p.payment_status, COUNT(*) AS cnt, COALESCE(SUM(p.amount),0) AS total_amount
+                 FROM payments p
                  JOIN orders o ON o.order_id = p.order_id
-                 WHERE o.order_date BETWEEN '$from_dt' AND '$to_dt'
-                 GROUP BY payment_status";
+                 WHERE o.created_at BETWEEN '$from_dt' AND '$to_dt'
+                 GROUP BY p.payment_status";
 $payments_res = $conn->query($payments_sql);
-$payments_summary = $payments_res->fetch_all(MYSQLI_ASSOC);
-
+$payments_summary = $payments_res ? $payments_res->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">

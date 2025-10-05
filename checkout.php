@@ -17,7 +17,7 @@ $sql = "SELECT c.*, p.slug, p.main_image, p.price AS orig_price, COALESCE(p.disc
         JOIN products p ON c.product_id = p.product_id
         WHERE c.user_id = $userId";
 $res = mysqli_query($conn, $sql);
-$cart_items = mysqli_fetch_all($res, MYSQLI_ASSOC);
+$cart_items = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
 
 if (empty($cart_items)) {
   message('popup-warning', '<i class="ri-alert-line"></i>', 'Your cart is empty. Nothing to check out!');
@@ -36,39 +36,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // replace default address (simple)
   mysqli_query($conn, "DELETE FROM user_address WHERE user_id = $userId AND is_default = 1");
+  $fn = mysqli_real_escape_string($conn, $full_name);
+  $ph = mysqli_real_escape_string($conn, $phone);
+  $al1 = mysqli_real_escape_string($conn, $address_line1);
+  $ct = mysqli_real_escape_string($conn, $city);
+  $st = mysqli_real_escape_string($conn, $state);
+  $zp = mysqli_real_escape_string($conn, $zip);
+
   mysqli_query($conn, "INSERT INTO user_address (user_id, full_name, phone, address_line1, city, state, zip, is_default)
-                      VALUES ($userId, '" . mysqli_real_escape_string($conn, $full_name) . "', '" . mysqli_real_escape_string($conn, $phone) . "',
-                              '" . mysqli_real_escape_string($conn, $address_line1) . "', '" . mysqli_real_escape_string($conn, $city) . "',
-                              '" . mysqli_real_escape_string($conn, $state) . "', '" . mysqli_real_escape_string($conn, $zip) . "', 1)");
+                           VALUES ($userId, '$fn', '$ph', '$al1', '$ct', '$st', '$zp', 1)");
   $address_id = mysqli_insert_id($conn);
 
-  // compute total using discounts (percent)
-  $total_amount = 0;
-  foreach ($cart_items as $it) {
-    $orig = (float)($it['orig_price'] ?? $it['price']);
-    $disc_percent = (float)($it['discount_percent'] ?? 0);
-    $disc = $disc_percent > 0 ? ($orig * $disc_percent / 100) : 0;
-    $final = max(0, $orig - $disc);
-    $total_amount += $final * (int)$it['quantity'];
-  }
+  // Prepare payment method for safe SQL insertion
+  $payment_method_sql = mysqli_real_escape_string($conn, $payment_method);
 
-  // insert order
-  mysqli_query($conn, "INSERT INTO orders (user_id, billing_address_id, shipping_address_id, total_amount)
-                      VALUES ($userId, $address_id, $address_id, $total_amount)");
-  $order_id = mysqli_insert_id($conn);
-
-  // insert order items using discounted prices
+  // For current schema: insert one orders row AND one payments row per cart item.
   foreach ($cart_items as $it) {
     $product_id = (int)$it['product_id'];
     $qty = (int)$it['quantity'];
-    $orig = (float)($it['orig_price'] ?? $it['price']);
+
+    $orig = (float)($it['orig_price'] ?? $it['price'] ?? 0);
     $disc_percent = (float)($it['discount_percent'] ?? 0);
     $disc = $disc_percent > 0 ? ($orig * $disc_percent / 100) : 0;
-    $final = max(0, $orig - $disc);
-    $total_price = $final * $qty;
+    $final_unit = max(0, $orig - $disc);
+    $total_price = $final_unit * $qty;
 
-    mysqli_query($conn, "INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
-                        VALUES ($order_id, $product_id, $qty, $final, $total_price)");
+    $discount_store = $disc_percent;
+
+    $user_id_sql = $userId;
+    $product_id_sql = $product_id;
+    $qty_sql = $qty;
+    $unit_sql = (float)$final_unit;
+    $discount_sql = (float)$discount_store;
+    $total_sql = (float)$total_price;
+
+    // Insert into orders table
+    $insert_sql = sprintf(
+      "INSERT INTO orders (user_id, product_id, quantity, unit_price, discount, total_price) VALUES (%d, %d, %d, %f, %f, %f)",
+      $user_id_sql,
+      $product_id_sql,
+      $qty_sql,
+      $unit_sql,
+      $discount_sql,
+      $total_sql
+    );
+    mysqli_query($conn, $insert_sql);
+
+    // ---- START: NEW PAYMENT LOGIC ----
+    // Get the ID of the order we just created
+    $order_id = mysqli_insert_id($conn);
+
+    // If the order was inserted successfully, create the payment record
+    if ($order_id) {
+      $payment_insert_sql = sprintf(
+        "INSERT INTO payments (order_id, payment_method, amount) VALUES (%d, '%s', %f)",
+        $order_id,
+        $payment_method_sql,
+        $total_sql
+      );
+      mysqli_query($conn, $payment_insert_sql);
+    }
+    // ---- END: NEW PAYMENT LOGIC ----
   }
 
   // clear cart
@@ -81,14 +109,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // fetch default address (simple)
 $res_addr = mysqli_query($conn, "SELECT * FROM user_address WHERE user_id = $userId AND is_default = 1 LIMIT 1");
-$user_address = mysqli_fetch_assoc($res_addr);
+$user_address = $res_addr ? mysqli_fetch_assoc($res_addr) : null;
 
 // totals for display
 $subtotal_original = 0.0;
 $total_discount = 0.0;
 $subtotal_after = 0.0;
 foreach ($cart_items as $it) {
-  $orig = (float)($it['orig_price'] ?? $it['price']);
+  $orig = (float)($it['orig_price'] ?? $it['price'] ?? 0);
   $disc_percent = (float)($it['discount_percent'] ?? 0);
   $disc = $disc_percent > 0 ? ($orig * $disc_percent / 100) : 0;
   $final = max(0, $orig - $disc);
@@ -136,6 +164,8 @@ mysqli_close($conn);
             <h3 class="mb-4">Payment Method</h3>
             <div class="d-grid gap-3">
               <label class="payment-option"><input type="radio" name="payment_method" value="cash_on_delivery" class="form-check-input" checked> <span class="ms-2 fw-bold">Cash on Delivery</span></label>
+              <label class="payment-option"><input type="radio" name="payment_method" value="credit_card" class="form-check-input"> <span class="ms-2 fw-bold">Credit Card</span></label>
+              <label class="payment-option"><input type="radio" name="payment_method" value="debit_card" class="form-check-input"> <span class="ms-2 fw-bold">Debit Card</span></label>
               <label class="payment-option"><input type="radio" name="payment_method" value="upi" class="form-check-input"> <span class="ms-2 fw-bold">UPI / QR Code</span></label>
             </div>
           </div>
@@ -144,14 +174,14 @@ mysqli_close($conn);
         <div class="col-lg-5">
           <div class="checkout-panel">
             <h3 class="mb-4">Your Order</h3>
-            <?php foreach ($cart_items as $item):
+            <?php foreach ($cart_items as $item) :
               $img = $item['main_image'] ?? '';
               $imgPath = 'assets/images/no-image.png';
               if (!empty($img)) {
                 if (file_exists('uploads/' . $img)) $imgPath = 'uploads/' . $img;
                 elseif (file_exists('assets/images/products/' . $img)) $imgPath = 'assets/images/products/' . $img;
               }
-              $orig = (float)($item['orig_price'] ?? $item['price']);
+              $orig = (float)($item['orig_price'] ?? $item['price'] ?? 0);
               $disc_percent = (float)($item['discount_percent'] ?? 0);
               $disc = $disc_percent > 0 ? ($orig * $disc_percent / 100) : 0;
               $final = max(0, $orig - $disc);
@@ -163,10 +193,10 @@ mysqli_close($conn);
                   <div class="text-muted small">Qty: <?= $item['quantity'] ?></div>
                 </div>
                 <div class="text-end">
-                  <?php if ($disc_percent > 0): ?>
+                  <?php if ($disc_percent > 0) : ?>
                     <div><span class="original-price"><?= formatPrice($orig * $item['quantity']) ?></span></div>
                     <div><span class="final-price"><?= formatPrice($final * $item['quantity']) ?></span><span class="discount-text">-<?= floatval($disc_percent) ?>%</span></div>
-                  <?php else: ?>
+                  <?php else : ?>
                     <div class="final-price"><?= formatPrice($orig * $item['quantity']) ?></div>
                   <?php endif; ?>
                 </div>

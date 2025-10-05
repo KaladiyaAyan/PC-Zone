@@ -15,19 +15,21 @@ if ($customer_id <= 0) {
 }
 
 // Fetch customer data
-$customer = mysqli_fetch_assoc(mysqli_query(
+$customer_q = mysqli_query(
   $conn,
-  "SELECT user_id, username, email, phone, date_of_birth, gender, status, created_at, updated_at 
-     FROM users WHERE user_id = $customer_id"
-));
+  "SELECT user_id, username, email, phone, date_of_birth, gender, status, created_at, updated_at, NULL AS profile_image
+       FROM users WHERE user_id = $customer_id"
+);
+$customer = $customer_q ? mysqli_fetch_assoc($customer_q) : null;
 if (!$customer) die('Customer not found.');
 
-// Get order statistics
-$totals = mysqli_fetch_assoc(mysqli_query(
+// Get order statistics (total spent across all order rows)
+$totals_q = mysqli_query(
   $conn,
-  "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_amount),0) AS total_purchases 
-     FROM orders WHERE user_id = $customer_id"
-));
+  "SELECT COUNT(*) AS orders_count, COALESCE(SUM(total_price),0) AS total_purchases 
+       FROM orders WHERE user_id = $customer_id"
+);
+$totals = $totals_q ? mysqli_fetch_assoc($totals_q) : ['orders_count' => 0, 'total_purchases' => 0];
 $orders_count = (int)($totals['orders_count'] ?? 0);
 $total_purchases = (float)($totals['total_purchases'] ?? 0);
 
@@ -35,54 +37,34 @@ $total_purchases = (float)($totals['total_purchases'] ?? 0);
 $addresses_res = mysqli_query(
   $conn,
   "SELECT address_id, full_name, phone, address_line1, address_line2, city, state, zip, country, is_default 
-     FROM user_address WHERE user_id = $customer_id ORDER BY is_default DESC, address_id ASC"
+       FROM user_address WHERE user_id = $customer_id ORDER BY is_default DESC, address_id ASC"
 );
-$addresses = mysqli_fetch_all($addresses_res, MYSQLI_ASSOC);
+$addresses = $addresses_res ? mysqli_fetch_all($addresses_res, MYSQLI_ASSOC) : [];
 
-// Get orders with related data
-$orders_res = mysqli_query(
-  $conn,
-  "SELECT o.order_id, o.order_date, o.order_status, o.total_amount, o.tracking_number, 
-            o.shipping_method, o.paid_at, o.order_notes, o.cancelled_at, o.refunded_at, 
-            o.shipped_date, o.delivered_date,
-            COALESCE(p.payment_status,'Pending') AS payment_status,
-            (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.order_id) AS items_count,
-            b.full_name AS bill_name, b.address_line1 AS bill_line1, b.city AS bill_city, 
-            b.state AS bill_state, b.zip AS bill_zip, b.country AS bill_country,
-            s.full_name AS ship_name, s.address_line1 AS ship_line1, s.city AS ship_city, 
-            s.state AS ship_state, s.zip AS ship_zip, s.country AS ship_country
-     FROM orders o
-     LEFT JOIN (SELECT order_id, MAX(payment_status) AS payment_status FROM payments GROUP BY order_id) p ON p.order_id = o.order_id
-     LEFT JOIN user_address b ON b.address_id = o.billing_address_id
-     LEFT JOIN user_address s ON s.address_id = o.shipping_address_id
-     WHERE o.user_id = $customer_id
-     ORDER BY o.order_date DESC"
-);
-$orders = mysqli_fetch_all($orders_res, MYSQLI_ASSOC);
+$orders_sql = "
+  SELECT 
+    MIN(o.order_id) AS group_order_id,
+    o.created_at AS order_date,
+    SUM(o.total_price) AS total_price,
+    COUNT(*) AS items_count,
+    GROUP_CONCAT(o.order_id) AS order_ids,
+    GROUP_CONCAT(DISTINCT p.payment_method) AS payment_methods,
+    GROUP_CONCAT(DISTINCT p.payment_status) AS payment_statuses,
+    MAX(p.created_at) AS last_payment_at
+  FROM orders o
+  LEFT JOIN payments p ON p.order_id = o.order_id
+  WHERE o.user_id = $customer_id
+  GROUP BY o.created_at
+  ORDER BY o.created_at DESC
+";
 
-// Prepare statements for detail data
-$stmt_items = mysqli_prepare(
-  $conn,
-  "SELECT oi.order_item_id, oi.product_id, COALESCE(p.product_name, '') AS product_name, 
-            oi.quantity, oi.unit_price, oi.discount, oi.total_price 
-     FROM order_items oi 
-     LEFT JOIN products p ON p.product_id = oi.product_id 
-     WHERE oi.order_id = ?"
-);
-$stmt_payments = mysqli_prepare(
-  $conn,
-  "SELECT payment_id, payment_method, transaction_id, amount, currency, 
-            payment_status, paid_at, created_at 
-     FROM payments WHERE order_id = ? ORDER BY created_at DESC"
-);
-$stmt_shipments = mysqli_prepare(
-  $conn,
-  "SELECT shipment_id, tracking_number, shipping_method, shipped_date, 
-            delivered_date, status, created_at 
-     FROM shipments WHERE order_id = ? ORDER BY created_at DESC"
-);
+$orders_res = mysqli_query($conn, $orders_sql);
+$grouped_orders = $orders_res ? mysqli_fetch_all($orders_res, MYSQLI_ASSOC) : [];
+
+// No prepared statements for single-id queries here.
+// We'll fetch items and payments for each transaction using the order_ids produced above.
+
 ?>
-
 <!doctype html>
 <html lang="en">
 
@@ -114,15 +96,53 @@ $stmt_shipments = mysqli_prepare(
 
     .muted-small {
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 13px
     }
 
     .meta-row .col-6 {
-      padding-bottom: 6px;
+      padding-bottom: 6px
     }
 
     .product-row[role="button"] {
-      cursor: pointer;
+      cursor: pointer
+    }
+
+    /* Add a hover effect to the main, clickable transaction rows */
+    .product-table>tbody>tr.product-row:hover {
+      background-color: var(--hover-bg);
+    }
+
+    /* ----- Order transaction spacing / visual polish ----- */
+    .product-table th,
+    .product-table td {
+      padding: 14px 18px;
+    }
+
+    .product-table>tbody>tr.product-row td {
+      padding-top: 18px;
+      padding-bottom: 18px;
+    }
+
+    .product-table>tbody>tr:not(.product-row) td {
+      padding-top: 12px;
+      padding-bottom: 18px;
+      background-color: var(--bg-section);
+    }
+
+    /* Increase padding inside the collapse details panel */
+    .product-table .collapse .p-3 {
+      padding: 18px 20px;
+    }
+
+    /* Add a soft divider and rounded detail box to improve readability */
+    .product-table>tbody>tr.product-row {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .product-table .collapse .table {
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
     }
   </style>
 </head>
@@ -148,13 +168,12 @@ $stmt_shipments = mysqli_prepare(
       </div>
 
       <div class="row gy-3">
-        <!-- Left Column: Profile & Addresses -->
         <div class="col-lg-3">
           <div class="card theme-card p-3 mb-3">
             <div class="card-body text-center d-flex flex-column align-items-center p-0">
-              <?php if (!empty($customer['profile_image']) && file_exists('../uploads/' . $customer['profile_image'])): ?>
+              <?php if (!empty($customer['profile_image']) && file_exists('../uploads/' . $customer['profile_image'])) : ?>
                 <img src="../uploads/<?= e($customer['profile_image']) ?>" alt="profile" class="avatar-lg mb-2" style="object-fit:cover;">
-              <?php else: ?>
+              <?php else : ?>
                 <div class="avatar-lg mb-2"><?= strtoupper(substr($customer['username'], 0, 1)) ?></div>
               <?php endif; ?>
 
@@ -174,7 +193,7 @@ $stmt_shipments = mysqli_prepare(
               <div class="col-6">
                 <div class="stat-box text-center">
                   <div class="muted-small">Orders</div>
-                  <div class="fw-bold"><?= $orders_count ?></div>
+                  <div class="fw-bold"><?= count($grouped_orders) ?></div>
                 </div>
               </div>
               <div class="col-6">
@@ -194,10 +213,10 @@ $stmt_shipments = mysqli_prepare(
 
           <div class="card theme-card p-3 mb-3">
             <div class="card-header mb-2">Addresses</div>
-            <?php if (empty($addresses)): ?>
+            <?php if (empty($addresses)) : ?>
               <p class="text-muted mb-0">No addresses available.</p>
-            <?php else: ?>
-              <?php foreach ($addresses as $addr): ?>
+            <?php else : ?>
+              <?php foreach ($addresses as $addr) : ?>
                 <div class="address-block mb-2 p-2">
                   <div class="d-flex justify-content-between align-items-start">
                     <div>
@@ -212,26 +231,18 @@ $stmt_shipments = mysqli_prepare(
               <?php endforeach; ?>
             <?php endif; ?>
           </div>
-
-          <div class="card theme-card p-3">
-            <div class="card-header mb-2">Account</div>
-            <div class="muted-small mb-1"><strong>Created</strong> <?= e($customer['created_at']) ?></div>
-            <div class="muted-small mb-1"><strong>Last updated</strong> <?= e($customer['updated_at']) ?></div>
-            <div class="muted-small"><strong>Gender</strong> <?= e($customer['gender'] ?: '—') ?></div>
-          </div>
         </div>
 
-        <!-- Right Column: Order History -->
         <div class="col-lg-9">
           <div class="card theme-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <h5 class="mb-0">Order History</h5>
-              <small class="muted-small"><?= count($orders) ?> orders</small>
+              <small class="muted-small"><?= count($grouped_orders) ?> orders</small>
             </div>
 
-            <?php if (empty($orders)): ?>
+            <?php if (empty($grouped_orders)) : ?>
               <p class="text-muted mb-0">No orders placed yet.</p>
-            <?php else: ?>
+            <?php else : ?>
               <div class="table-container">
                 <table class="product-table">
                   <thead>
@@ -240,58 +251,71 @@ $stmt_shipments = mysqli_prepare(
                       <th>Date</th>
                       <th>Items</th>
                       <th>Total</th>
-                      <th>Payment</th>
-                      <th>Shipping</th>
+                      <th>Payment Method</th>
                       <th>Status</th>
-                      <th class="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <?php foreach ($orders as $ord): ?>
-                      <tr class="product-row" role="button" data-order-id="<?= $ord['order_id'] ?>" title="Click row to toggle details">
-                        <td>#<?= $ord['order_id'] ?></td>
+                    <?php foreach ($grouped_orders as $ord) :
+                      // order_ids is a comma-separated list like "12,13,14"
+                      $order_ids_raw = $ord['order_ids'] ?? '';
+                      // sanitize ids, produce CSV of ints
+                      $ids = array_filter(array_map(function ($v) {
+                        return intval($v);
+                      }, explode(',', $order_ids_raw)));
+                      $ids_sql = $ids ? implode(',', $ids) : '0';
+
+                      // fetch items belonging to these order rows
+                      $items_sql = "
+                        SELECT o.order_id, o.product_id, COALESCE(p.product_name, '') AS product_name, o.quantity, o.unit_price, o.discount, o.total_price
+                        FROM orders o
+                        LEFT JOIN products p ON p.product_id = o.product_id
+                        WHERE o.order_id IN ($ids_sql)
+                        ORDER BY o.order_id ASC
+                      ";
+                      $items_res = mysqli_query($conn, $items_sql);
+                      $items = $items_res ? mysqli_fetch_all($items_res, MYSQLI_ASSOC) : [];
+
+                      // fetch payments for this transaction (any payments linked to any order row in the group)
+                      $payments_sql = "
+                        SELECT payment_id, payment_method, transaction_id, amount, currency, payment_status, paid_at, created_at
+                        FROM payments
+                        WHERE order_id IN ($ids_sql)
+                        ORDER BY created_at DESC
+                      ";
+                      $payments_res = mysqli_query($conn, $payments_sql);
+                      $payments = $payments_res ? mysqli_fetch_all($payments_res, MYSQLI_ASSOC) : [];
+
+                      // choose a display payment method/status if available (first payment)
+                      $display_payment_method = null;
+                      $display_payment_status = 'Pending';
+                      if (!empty($ord['payment_methods'])) {
+                        $methods = explode(',', $ord['payment_methods']);
+                        $display_payment_method = trim($methods[0]) ?: null;
+                      }
+                      if (!empty($ord['payment_statuses'])) {
+                        $statuses = explode(',', $ord['payment_statuses']);
+                        $display_payment_status = trim($statuses[0]) ?: 'Pending';
+                      }
+                    ?>
+                      <tr class="product-row" role="button" data-group-id="<?= e($ord['group_order_id']) ?>" title="Click row to toggle details">
+                        <td>#<?= e($ord['group_order_id']) ?></td>
                         <td><?= e(date('d M Y, H:i', strtotime($ord['order_date']))) ?></td>
-                        <td><?= $ord['items_count'] ?></td>
-                        <td>₹ <?= number_format((float)$ord['total_amount'], 2) ?></td>
-                        <td><?= e($ord['payment_status']) ?><?= $ord['paid_at'] ? ' <small class="text-muted">(' . e(date('d M Y', strtotime($ord['paid_at']))) . ')</small>' : '' ?></td>
-                        <td><?= $ord['tracking_number'] ? e($ord['tracking_number']) : '—' ?></td>
-                        <td><span class="status-<?= strtolower($ord['order_status']) ?>"><?= e($ord['order_status']) ?></span></td>
-                        <td class="text-end">
-                          <a href="order_view.php?id=<?= $ord['order_id'] ?>" class="btn-add open-order">Open</a>
-                        </td>
+                        <td><?= (int)$ord['items_count'] ?></td>
+                        <td>₹ <?= number_format((float)$ord['total_price'], 2) ?></td>
+                        <td><?= e(ucfirst(str_replace('_', ' ', $display_payment_method ?? 'Unknown'))) ?></td>
+                        <td><span class="status-<?= strtolower(e($display_payment_status)) ?>"><?= e(ucfirst(strtolower($display_payment_status))) ?></span></td>
                       </tr>
 
                       <tr>
                         <td colspan="8" class="p-0">
-                          <div class="collapse" id="details-<?= $ord['order_id'] ?>">
+                          <div class="collapse" id="details-<?= e($ord['group_order_id']) ?>">
                             <div class="p-3">
-                              <!-- Billing/Shipping -->
-                              <div class="row mb-2">
-                                <div class="col-md-6">
-                                  <div class="muted-small">Billing Address</div>
-                                  <div class="small"><?= e($ord['bill_name'] ?: '—') ?></div>
-                                  <div class="muted-small small"><?= e($ord['bill_line1'] ?: '') ?><?= $ord['bill_city'] ? ', ' . e($ord['bill_city']) : '' ?><?= $ord['bill_state'] ? ', ' . e($ord['bill_state']) : '' ?><?= $ord['bill_zip'] ? ' - ' . e($ord['bill_zip']) : '' ?></div>
-                                  <div class="muted-small small"><?= e($ord['bill_country'] ?: '') ?></div>
-                                </div>
-                                <div class="col-md-6">
-                                  <div class="muted-small">Shipping Address</div>
-                                  <div class="small"><?= e($ord['ship_name'] ?: '—') ?></div>
-                                  <div class="muted-small small"><?= e($ord['ship_line1'] ?: '') ?><?= $ord['ship_city'] ? ', ' . e($ord['ship_city']) : '' ?><?= $ord['ship_state'] ? ', ' . e($ord['ship_state']) : '' ?><?= $ord['ship_zip'] ? ' - ' . e($ord['ship_zip']) : '' ?></div>
-                                  <div class="muted-small small"><?= e($ord['ship_country'] ?: '') ?></div>
-                                </div>
-                              </div>
-
-                              <!-- Order Items -->
-                              <?php
-                              mysqli_stmt_bind_param($stmt_items, 'i', $ord['order_id']);
-                              mysqli_stmt_execute($stmt_items);
-                              $items = mysqli_fetch_all(mysqli_stmt_get_result($stmt_items), MYSQLI_ASSOC);
-                              ?>
                               <div class="mb-3">
                                 <div class="muted-small mb-1"><strong>Items</strong></div>
-                                <?php if (empty($items)): ?>
+                                <?php if (empty($items)) : ?>
                                   <div class="text-muted small">No items found.</div>
-                                <?php else: ?>
+                                <?php else : ?>
                                   <div class="table-container">
                                     <table class="product-table table">
                                       <thead>
@@ -304,10 +328,10 @@ $stmt_shipments = mysqli_prepare(
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        <?php foreach ($items as $it): ?>
+                                        <?php foreach ($items as $it) : ?>
                                           <tr>
                                             <td><?= e($it['product_name'] ?: 'Product #' . $it['product_id']) ?></td>
-                                            <td><?= $it['quantity'] ?></td>
+                                            <td><?= (int)$it['quantity'] ?></td>
                                             <td>₹ <?= number_format((float)$it['unit_price'], 2) ?></td>
                                             <td>₹ <?= number_format((float)$it['discount'], 2) ?></td>
                                             <td>₹ <?= number_format((float)$it['total_price'], 2) ?></td>
@@ -319,13 +343,7 @@ $stmt_shipments = mysqli_prepare(
                                 <?php endif; ?>
                               </div>
 
-                              <!-- Payments -->
-                              <?php
-                              mysqli_stmt_bind_param($stmt_payments, 'i', $ord['order_id']);
-                              mysqli_stmt_execute($stmt_payments);
-                              $payments = mysqli_fetch_all(mysqli_stmt_get_result($stmt_payments), MYSQLI_ASSOC);
-                              ?>
-                              <?php if (!empty($payments)): ?>
+                              <?php if (!empty($payments)) : ?>
                                 <div class="mb-3">
                                   <div class="muted-small mb-1"><strong>Payments</strong></div>
                                   <div class="table-container">
@@ -340,13 +358,13 @@ $stmt_shipments = mysqli_prepare(
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        <?php foreach ($payments as $p): ?>
+                                        <?php foreach ($payments as $p) : ?>
                                           <tr>
                                             <td><?= e($p['payment_method']) ?></td>
-                                            <td><?= e($p['transaction_id'] ?: '—') ?></td>
+                                            <td><?= e($p['transaction_id'] ?? '—') ?></td>
                                             <td>₹ <?= number_format((float)$p['amount'], 2) ?> <?= e($p['currency']) ?></td>
                                             <td><?= e($p['payment_status']) ?></td>
-                                            <td><?= e($p['paid_at'] ?: $p['created_at']) ?></td>
+                                            <td><?= e(date('Y-m-d H:i:s', strtotime($p['paid_at'] ?? $p['created_at']))) ?></td>
                                           </tr>
                                         <?php endforeach; ?>
                                       </tbody>
@@ -355,50 +373,6 @@ $stmt_shipments = mysqli_prepare(
                                 </div>
                               <?php endif; ?>
 
-                              <!-- Shipments -->
-                              <?php
-                              mysqli_stmt_bind_param($stmt_shipments, 'i', $ord['order_id']);
-                              mysqli_stmt_execute($stmt_shipments);
-                              $ships = mysqli_fetch_all(mysqli_stmt_get_result($stmt_shipments), MYSQLI_ASSOC);
-                              ?>
-                              <?php if (!empty($ships)): ?>
-                                <div class="mb-3">
-                                  <div class="muted-small mb-1"><strong>Shipments</strong></div>
-                                  <div class="table-container">
-                                    <table class="product-table table">
-                                      <thead>
-                                        <tr>
-                                          <th>Method</th>
-                                          <th>Tracking</th>
-                                          <th>Shipped</th>
-                                          <th>Delivered</th>
-                                          <th>Status</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        <?php foreach ($ships as $sh): ?>
-                                          <tr>
-                                            <td><?= e($sh['shipping_method']) ?></td>
-                                            <td><?= e($sh['tracking_number']) ?></td>
-                                            <td><?= e($sh['shipped_date'] ?: '—') ?></td>
-                                            <td><?= e($sh['delivered_date'] ?: '—') ?></td>
-                                            <td><?= e($sh['status']) ?></td>
-                                          </tr>
-                                        <?php endforeach; ?>
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              <?php endif; ?>
-
-                              <!-- Order Meta -->
-                              <div class="muted-small">
-                                <div><strong>Order Notes</strong> <?= $ord['order_notes'] ? '<div class="small mt-1">' . e($ord['order_notes']) . '</div>' : '<span class="small text-muted">—</span>' ?></div>
-                                <div class="small mt-2"><strong>Paid at</strong> <?= e($ord['paid_at'] ?: '—') ?></div>
-                                <div class="small"><strong>Cancelled</strong> <?= e($ord['cancelled_at'] ?: '—') ?></div>
-                                <div class="small"><strong>Refunded</strong> <?= e($ord['refunded_at'] ?: '—') ?></div>
-                                <div class="small"><strong>Shipped</strong> <?= e($ord['shipped_date'] ?: '—') ?> <strong class="ms-2">Delivered</strong> <?= e($ord['delivered_date'] ?: '—') ?></div>
-                              </div>
                             </div>
                           </div>
                         </td>
@@ -416,33 +390,17 @@ $stmt_shipments = mysqli_prepare(
 
   <?php require('./includes/footer-link.php') ?>
   <script>
-    // Toggle order details
     document.addEventListener('click', function(e) {
       const row = e.target.closest('.product-row[role="button"]');
       if (!row) return;
-      if (e.target.closest('a, button, input, select')) return;
 
-      const orderId = row.getAttribute('data-order-id');
-      const detailsEl = document.getElementById('details-' + orderId);
+      const groupId = row.getAttribute('data-group-id');
+      const detailsEl = document.getElementById('details-' + groupId);
       if (detailsEl) {
         new bootstrap.Collapse(detailsEl).toggle();
       }
-    });
-
-    // Prevent open link from toggling collapse
-    document.querySelectorAll('.open-order').forEach(function(el) {
-      el.addEventListener('click', function(ev) {
-        ev.stopPropagation();
-      });
     });
   </script>
 </body>
 
 </html>
-
-<?php
-// Cleanup
-mysqli_stmt_close($stmt_items);
-mysqli_stmt_close($stmt_payments);
-mysqli_stmt_close($stmt_shipments);
-?>

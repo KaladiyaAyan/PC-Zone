@@ -95,6 +95,13 @@ if (isset($_POST['edit-product'])) {
   $is_featured = isset($_POST['is_featured']) ? 1 : 0;
   $is_active = isset($_POST['is_active']) ? 1 : 0;
 
+  // Platform handling (new). Accept only allowed values, default to 'none'
+  $platform_raw = $_POST['platform'] ?? 'none';
+  $platform_raw = strtolower(trim($platform_raw));
+  $allowed_platforms = ['intel', 'amd', 'both', 'none'];
+  $platform = in_array($platform_raw, $allowed_platforms, true) ? $platform_raw : 'none';
+  $platform = mysqli_real_escape_string($conn, $platform);
+
   // get existing product images
   $res = mysqli_query($conn, "SELECT main_image, image_1, image_2, image_3 FROM products WHERE product_id = $product_id");
   $old = mysqli_fetch_assoc($res);
@@ -130,7 +137,7 @@ if (isset($_POST['edit-product'])) {
 
   $extra_sql = !empty($extra_parts) ? ", " . implode(', ', $extra_parts) : '';
 
-  // Update products table
+  // Update products table (platform included)
   $update_query = "UPDATE products SET 
         product_name = '$name',
         sku = '$sku',
@@ -141,6 +148,7 @@ if (isset($_POST['edit-product'])) {
         weight = $weight,
         category_id = $category_id,
         brand_id = $brand_id,
+        platform = '$platform',
         is_featured = $is_featured,
         is_active = $is_active
         $extra_sql

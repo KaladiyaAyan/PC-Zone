@@ -168,6 +168,18 @@ $brandsData = mysqli_fetch_all($brands_result, MYSQLI_ASSOC);
                   <div class="brand-info" id="brandInfo">Brands will be filtered based on selected category</div>
                 </div>
 
+                <!-- Platform (new) -->
+                <div class="col-md-6">
+                  <label class="form-label">Platform</label>
+                  <select name="platform" class="form-select" id="platformSelect">
+                    <option value="none" <?= ($product['platform'] ?? 'none') === 'none' ? 'selected' : '' ?>>None</option>
+                    <option value="intel" <?= ($product['platform'] ?? 'none') === 'intel' ? 'selected' : '' ?>>Intel</option>
+                    <option value="amd" <?= ($product['platform'] ?? 'none') === 'amd' ? 'selected' : '' ?>>AMD</option>
+                    <option value="both" <?= ($product['platform'] ?? 'none') === 'both' ? 'selected' : '' ?>>Both</option>
+                  </select>
+                  <small class="text-muted">Choose platform compatibility. Defaults to "None".</small>
+                </div>
+
                 <div class="col-md-6">
                   <label class="form-label">Weight (kg)</label>
                   <input type="number" step="0.01" min="0" name="weight" class="form-control" value="<?= $product['weight'] ?>">

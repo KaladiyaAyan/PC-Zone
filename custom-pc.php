@@ -4,7 +4,7 @@ require('./includes/db_connect.php');
 require('./includes/functions.php');
 
 // Determine platform from URL, defaulting to 'intel'
-$platform = isset($_GET['platform']) ? $_GET['platform'] : 'intel';
+$platform = isset($_GET['platform']) && $_GET['platform'] === 'amd' ? 'amd' : 'intel';
 
 // Define the parts for the PC builder
 $parts = [
@@ -34,40 +34,44 @@ foreach ($parts as $slug => $label) {
     continue; // Skip to the next part
   }
 
-  // query to get the products for this category ID
+  // ---- START: CORRECTED QUERY LOGIC ----
+  // Base query to get the products for the main category ID
   $sql_products = "
         SELECT p.product_id, p.product_name, p.price, p.discount, p.main_image AS image
         FROM products p
         WHERE p.is_active = 1
           AND p.stock > 0
-          AND (p.category_id = $cid OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = $cid))
+          AND p.category_id = $cid
     ";
 
-  // platform filter for 'processor' and 'motherboard'
+  // Conditionally add the platform filter for 'processor' and 'motherboard'
   if (in_array($slug, ['processor', 'motherboard'])) {
     $safe_platform = mysqli_real_escape_string($conn, $platform);
     $sql_products .= " AND (p.platform = '$safe_platform' OR p.platform = 'both')";
   }
+  // ---- END: CORRECTED QUERY LOGIC ----
 
   $sql_products .= " ORDER BY (p.price - (p.price * (p.discount/100))) ASC LIMIT 500";
 
   $result_products = mysqli_query($conn, $sql_products);
   $products = [];
-  while ($row = mysqli_fetch_assoc($result_products)) {
-    // Calculate the final price after discount
-    $row['final_price'] = round((float)$row['price'] - ((float)$row['price'] * (float)$row['discount'] / 100), 2);
+  if ($result_products) {
+    while ($row = mysqli_fetch_assoc($result_products)) {
+      // Calculate the final price after discount
+      $row['final_price'] = round((float)$row['price'] - ((float)$row['price'] * (float)$row['discount'] / 100), 2);
 
-    // Resolve the image URL directly
-    $filename = trim((string)$row['image']);
-    if ($filename && file_exists('./uploads/' . $filename)) {
-      $row['image'] = './uploads/' . rawurlencode($filename);
-    } else if ($filename && file_exists('./assets/images/products/' . $filename)) {
-      $row['image'] = './assets/images/products/' . rawurlencode($filename);
-    } else {
-      $row['image'] = './assets/images/no-image.png';
+      // Resolve the image URL directly
+      $filename = trim((string)$row['image']);
+      if ($filename && file_exists('./uploads/' . $filename)) {
+        $row['image'] = './uploads/' . rawurlencode($filename);
+      } else if ($filename && file_exists('./assets/images/products/' . $filename)) {
+        $row['image'] = './assets/images/products/' . rawurlencode($filename);
+      } else {
+        $row['image'] = './assets/images/no-image.png';
+      }
+
+      $products[] = $row;
     }
-
-    $products[] = $row;
   }
   $partsProducts[$slug] = $products;
 }

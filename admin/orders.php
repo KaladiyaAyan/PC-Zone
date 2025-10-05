@@ -9,16 +9,22 @@ if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true
   exit;
 }
 
-// Fetch orders with customer info
+// Fetch orders with customer info and payment status
 $query = "SELECT 
-              o.order_id, o.order_date, o.total_amount, o.order_status,
-              u.username, u.email, u.phone
+            o.order_id,
+            o.created_at AS order_date,
+            COALESCE(o.total_price, 0) AS total_price,
+            p.payment_status,
+            u.username,
+            u.email,
+            u.phone
           FROM orders o
           LEFT JOIN users u ON o.user_id = u.user_id
-          ORDER BY o.order_date DESC";
+          LEFT JOIN payments p ON p.order_id = o.order_id
+          ORDER BY o.created_at DESC";
 
 $result = $conn->query($query);
-$orders = $result->fetch_all(MYSQLI_ASSOC);
+$orders = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,15 +70,15 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
                 <td>#<?= (int)$order['order_id'] ?></td>
                 <td><?= e($order['username'] ?? 'Guest') ?></td>
                 <td><?= e($order['email'] ?? '-') ?></td>
-                <td><?= date("d M Y", strtotime($order['order_date'])) ?></td>
-                <td>₹<?= number_format($order['total_amount'], 2) ?></td>
+                <td><?= $order['order_date'] ? date("d M Y", strtotime($order['order_date'])) : '-' ?></td>
+                <td><?= e(formatPrice((float)($order['total_price'] ?? 0))) ?></td>
                 <td>
                   <?php
-                  // Use strtolower for a reliable class name
-                  $status_class = strtolower($order['order_status']);
+                  $status_raw = $order['payment_status'] ?? 'Pending';
+                  $status_class = strtolower(preg_replace('/\s+/', '-', $status_raw));
                   ?>
-                  <span class="badge-status <?= $status_class ?>">
-                    <?= e($order['order_status']) ?>
+                  <span class="badge-status <?= e($status_class) ?>">
+                    <?= e(ucfirst(strtolower($status_raw))) ?>
                   </span>
                 </td>
                 <td>
