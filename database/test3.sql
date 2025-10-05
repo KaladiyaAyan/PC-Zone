@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 05, 2025 at 06:18 AM
+-- Generation Time: Oct 04, 2025 at 02:26 PM
 -- Server version: 8.3.0
 -- PHP Version: 7.4.33
 
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS `cart` (
   PRIMARY KEY (`cart_item_id`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `cart`
@@ -209,7 +209,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`order_id`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `orders`
@@ -224,10 +224,7 @@ INSERT INTO `orders` (`order_id`, `user_id`, `product_id`, `quantity`, `unit_pri
 (6, 6, 19, 1, 84490.00, 29.00, 84490.00, '2025-10-04 19:08:23', '2025-10-04 19:08:23'),
 (7, 6, 1, 1, 10779.23, 23.00, 10779.23, '2025-10-04 19:08:23', '2025-10-04 19:08:23'),
 (8, 6, 17, 1, 33720.00, 20.00, 33720.00, '2025-10-04 19:55:21', '2025-10-04 19:55:21'),
-(9, 6, 21, 1, 42699.39, 39.00, 42699.39, '2025-10-04 19:55:21', '2025-10-04 19:55:21'),
-(10, 1, 2, 1, 23559.24, 24.00, 23559.24, '2025-10-05 11:40:16', '2025-10-05 11:40:16'),
-(11, 1, 16, 1, 36399.35, 35.00, 36399.35, '2025-10-05 11:40:16', '2025-10-05 11:40:16'),
-(12, 1, 1, 1, 10779.23, 23.00, 10779.23, '2025-10-05 11:40:16', '2025-10-05 11:40:16');
+(9, 6, 21, 1, 42699.39, 39.00, 42699.39, '2025-10-04 19:55:21', '2025-10-04 19:55:21');
 
 -- --------------------------------------------------------
 
@@ -246,7 +243,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`payment_id`),
   KEY `order_id` (`order_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `payments`
@@ -261,10 +258,7 @@ INSERT INTO `payments` (`payment_id`, `order_id`, `payment_method`, `amount`, `c
 (6, 6, 'debit_card', 84490.00, 'INR', 'Pending', '2025-10-04 19:08:23'),
 (7, 7, 'debit_card', 10779.23, 'INR', 'Pending', '2025-10-04 19:08:23'),
 (8, 8, 'upi', 33720.00, 'INR', 'Pending', '2025-10-04 19:55:21'),
-(9, 9, 'upi', 42699.39, 'INR', 'Pending', '2025-10-04 19:55:21'),
-(10, 10, 'upi', 23559.24, 'INR', 'Pending', '2025-10-05 11:40:16'),
-(11, 11, 'upi', 36399.35, 'INR', 'Pending', '2025-10-05 11:40:16'),
-(12, 12, 'upi', 10779.23, 'INR', 'Pending', '2025-10-05 11:40:16');
+(9, 9, 'upi', 42699.39, 'INR', 'Pending', '2025-10-04 19:55:21');
 
 -- --------------------------------------------------------
 
@@ -300,7 +294,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   UNIQUE KEY `slug` (`slug`),
   KEY `category_id` (`category_id`),
   KEY `brand_id` (`brand_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `products`
@@ -309,16 +303,16 @@ CREATE TABLE IF NOT EXISTS `products` (
 INSERT INTO `products` (`product_id`, `product_name`, `sku`, `slug`, `description`, `price`, `discount`, `stock`, `weight`, `rating`, `brand_id`, `category_id`, `main_image`, `image_1`, `image_2`, `image_3`, `platform`, `is_featured`, `is_active`, `created_at`, `updated_at`) VALUES
 (2, 'Lian Li O11 Dynamic EVO XL Full-Tower Compter Case/Gaming Cabinet - White | Support EATX/ATX/Micro-ATX/MINI-ITX - G99.O11DEXL-W.in', 'B0CGM6RKV8', 'lian-li-o11-dynamic-evo-xl-full-tower-computer-case-gaming-cabinet-white', 'White, Full-Tower, 522 x 304 x 531.9 mm , 4.0mm Tempered Glass Aluminum 8 Expansion Slots, Storage : Behind MB Tray: 3 X 2.5ʹʹ SSD Hard Drive Cage: 4 X 3.5ʹʹ HDD or 2.5ʹʹ SSD I/O Panel : Power Button , Reset Button , USB 3.0 x 4 , Audio x 1 , USB Type C , Color Button , Mode Button Fan Support : Top - 120mm x3 / 140mm x3, Side- 120mm x3 / 140mm x3, Bottom- 120mm x3/ 140mm x3, Rear- 120 mm x1 or 2 GPU Length Clearance : 460mm(Max) ; CPU Cooler Height Clearance : 167mm(Max)', 30999.00, 24.00, 9, 0.65, 4.9, 33, 7, '610tNgEZ6LL._SX679_.jpg', '61zXV1X5zTL._SX679_.jpg', '712etNmCVRL._SX679_.jpg', '71O8DnFAk5L._SX679_.jpg', 'both', 1, 1, '2025-10-02 01:24:52', '2025-10-02 01:24:52'),
 (1, 'NZXT H6 Flow | CC-H61FB-01 | Compact Dual-Chamber Mid-Tower Airflow Case | Panoramic Glass Panels | High-Performance Airflow Panels | Includes 3 x 120mm Fans | Cable Management | Black', 'B0C89FCDFP', 'nzxt-h6-flow', 'Wraparound glass panels with a seamless edge provides an unobstructed view of the inside to highlight key components. Compact dual-chamber design improves overall thermal performance and creates a clean, uncrowded aesthetic. Includes three pre-installed 120mm fans positioned at an ideal angle for superb out-of-the-box cooling. The top and side panels feature an airflow-optimized perforation pattern to enhance overall performance and filter dust. An intuitive cable management system simplifies the build process by using wide channels and straps.', 13999.00, 23.00, 10, 0.65, 4.7, 32, 7, '71x+i8yRgrL._SY450_.jpg', '71YDILR+QnL._SY450_.jpg', '71vtU8bv48L._SY450_.jpg', '71u5IWhR-aL._SY450_.jpg', 'both', 1, 1, '2025-10-02 01:24:52', '2025-10-02 01:24:52'),
-(12, 'Intel Core I7-13700F Desktop Processor 16 Cores (8 P-Cores + 8 E-Cores) 30Mb Cache,Up to 5.2 Ghz,LGA 1151', 'B0BQ6CSY9C', 'intel-core-i7-13700f-desktop-processor-16-cores-8-pcores-8-ecores-30mb-cacheup-to-52-ghzlga-1151', '16 cores (8 P-cores + 8 E-cores) and 24 threads\r\nPerformance hybrid architecture integrates two core microarchitectures, prioritizing and distributing workloads to optimize performance\r\nUp to 5.2 GHz. 30M Cache\r\nCompatible with Intel 600 series and 700 series chipset-based motherboards\r\nTurbo Boost Max Technology 3.0, and PCIe 5.0 & 4.0 support. Intel Optane Memory support. Intel Laminar RH1 Cooler included. Discrete graphics required', 51000.00, 43.00, 16, 0.00, 0, 1, 1, '1759555129_image1.jpg', '1759555129_image2.jpg', '1759555129_image3.jpg', '1759555129_image4.jpg', 'intel', 0, 1, '2025-10-03 18:02:31', '2025-10-05 06:14:25'),
-(13, 'Intel Core i7-11700K LGA1200 Desktop Processor 8 Cores up to 5GHz 16MB Cache with Integrated Intel UHD 750 Graphics', 'B08X6ND3WP', 'intel-core-i7-11700k-lga1200-desktop-processor-8-cores-up-to-5ghz-16mb-cache-with-integrated-intel-uhd-750-graphics', 'Introducing the newest and fastest 11th Gen Intel Core i7 desktop processor, built based on 14 nm lithography supporting Socket type LGA 1200. The Processors features 8 Core which allow the processor to run multiple programs simultaneously without slowing down the system, while the 16 threads allow instructions to be handled by a single CPU core along with Hyper Threading Technology.\r\nWith 3.60 GHz Base frequency, the Intel Turbo Boost 3.0 technology cranks maximum turbo frequency up to blazing 5.00 GHz. The processor is desirable for a gamer looking for a fantastic in-game experience and a creator that is ready to do more creating and sharing alike.\r\nAll this paired with 16MB of Intel Smart Cache. It has a TDP rating of 125W with max memory size of 128GB dual-channel DDR4 support for up-to 3200Mhz with Intel top notch security features.\r\nThis processor is designed for users who value fast responsiveness and comes with built-in Intel UHD Graphics 750 and 4K support at 60Hz, with the cutting-edge processor architecture. The graphics processor is bundled with DirectX support, OpenGL support and supports up to 3 displays offering you a never like gaming experience.\r\nPlay, record and stream simultaneously with high FPS and effortlessly switch to heavy multitasking workloads.', 58500.00, 39.00, 12, 0.00, 0, 1, 1, '1759555450_image1.jpg', '1759555450_image2.jpg', '1759555450_image3.jpg', '1759555450_image4.jpg', 'intel', 0, 1, '2025-10-03 18:02:31', '2025-10-05 06:14:42'),
+(12, 'Intel Core I7-13700F Desktop Processor 16 Cores (8 P-Cores + 8 E-Cores) 30Mb Cache,Up to 5.2 Ghz,LGA 1151', 'B0BQ6CSY9C', 'intel-core-i7-13700f-desktop-processor-16-cores-8-pcores-8-ecores-30mb-cacheup-to-52-ghzlga-1151', '16 cores (8 P-cores + 8 E-cores) and 24 threads\r\nPerformance hybrid architecture integrates two core microarchitectures, prioritizing and distributing workloads to optimize performance\r\nUp to 5.2 GHz. 30M Cache\r\nCompatible with Intel 600 series and 700 series chipset-based motherboards\r\nTurbo Boost Max Technology 3.0, and PCIe 5.0 & 4.0 support. Intel Optane Memory support. Intel Laminar RH1 Cooler included. Discrete graphics required', 29000.00, 43.00, 16, 0.00, 0, 1, 1, '1759555129_image1.jpg', '1759555129_image2.jpg', '1759555129_image3.jpg', '1759555129_image4.jpg', 'intel', 0, 1, '2025-10-03 18:02:31', '2025-10-04 13:11:52'),
+(13, 'Intel Core i7-11700K LGA1200 Desktop Processor 8 Cores up to 5GHz 16MB Cache with Integrated Intel UHD 750 Graphics', 'B08X6ND3WP', 'intel-core-i7-11700k-lga1200-desktop-processor-8-cores-up-to-5ghz-16mb-cache-with-integrated-intel-uhd-750-graphics', 'Introducing the newest and fastest 11th Gen Intel Core i7 desktop processor, built based on 14 nm lithography supporting Socket type LGA 1200. The Processors features 8 Core which allow the processor to run multiple programs simultaneously without slowing down the system, while the 16 threads allow instructions to be handled by a single CPU core along with Hyper Threading Technology.\r\nWith 3.60 GHz Base frequency, the Intel Turbo Boost 3.0 technology cranks maximum turbo frequency up to blazing 5.00 GHz. The processor is desirable for a gamer looking for a fantastic in-game experience and a creator that is ready to do more creating and sharing alike.\r\nAll this paired with 16MB of Intel Smart Cache. It has a TDP rating of 125W with max memory size of 128GB dual-channel DDR4 support for up-to 3200Mhz with Intel top notch security features.\r\nThis processor is designed for users who value fast responsiveness and comes with built-in Intel UHD Graphics 750 and 4K support at 60Hz, with the cutting-edge processor architecture. The graphics processor is bundled with DirectX support, OpenGL support and supports up to 3 displays offering you a never like gaming experience.\r\nPlay, record and stream simultaneously with high FPS and effortlessly switch to heavy multitasking workloads.', 29000.00, 39.00, 12, 0.00, 0, 1, 1, '1759555450_image1.jpg', '1759555450_image2.jpg', '1759555450_image3.jpg', '1759555450_image4.jpg', 'intel', 0, 1, '2025-10-03 18:02:31', '2025-10-04 13:12:08'),
 (4, 'Ant Esports ICE-C612 V2 ARGB CPU Cooler| Support Intel LGA1200, LGA115X, LGA20XX, LGA1366, LGA1700 and AMD FM1, FM2, FM2+, AM2, AM2+, AM3, AM3+, AM4, AM5', 'B084G3MJPZ', 'ant-esports-ice-c612-v2-argb-cpu-cooler', 'Efficient Heat Dissipation: The Ant Esports ICE-C612 V2 CPU air cooler is designed for optimal heat dissipation, featuring a 153mm tall aluminum heatsink and six 6mm thick copper heatpipes. This advanced cooling solution ensures efficient heat transfer from the CPU to the heatsink, effectively reducing temperatures and maintaining peak performance even during demanding tasks.\r\n   Enhanced Cooling Performance: Equipped with a high-performance PWM 120mm ARGB fan, the ICE-C612 V2 cooler offers not only excellent cooling efficiency but also adds a vibrant visual flair to your system. The fans adjustable speed through pulse-width modulation (PWM) ensures a fine balance between cooling power and noise levels, keeping your CPU operating at an ideal temperature while maintaining a quiet environment\r\n   Optimized Surface Area: The interlocked aluminum heatsink design of the ICE-C612 V2 is engineered to provide a larger surface area for heat dissipation. This design maximizes the contact area between the heatsink and the surrounding air, allowing for quicker and more effective heat dispersion. Whether you are running intensive applications or engaging in heavy gaming sessions, this cooler helps maintain stable and consistent performance.\r\n   Wide Compatibility: The Ant Esports ICE-C612 V2 CPU air cooler offers broad compatibility with major Intel and AMD platforms, including the latest LGA 1700 and AM5 sockets. This versatility makes it an ideal choice for both current and future system builds, allowing you to upgrade your CPU without worrying about changing cooling solutions.\r\n   Easy Installation: Installing the ICE-C612 V2 cooler is a hassle-free process thanks to its user-friendly design. The included mounting hardware and easy-to-follow instructions ensure a smooth installation experience, even for users with minimal technical expertise. With its secure mounting mechanism, you can trust that your cooler will be properly seated for optimal thermal performance.\r\n   Support Intel LGA1200, LGA1150, LGA1151, LGA1155, LGA1156, LGA2066, LGA2011-v3, LGA2011, LGA1366, LGA1700 and AMD FM1, FM2, FM2+, AM2, AM2+, AM3, AM3+, AM4, AM5', 3499.00, 64.00, 6, 0.65, 4.1, 38, 18, '51pCa994ysL._SY450_.jpg', '61PedtDNzIL._SY450_.jpg', '71kG6EFIMwL._SY450_.jpg', '61Yb+64vAkL._SY450_.jpg', 'both', 1, 1, '2025-10-02 01:24:52', '2025-10-02 01:24:52'),
-(11, 'Intel Core i7-11700 Desktop Processor 8 Cores up to 4.9 GHz LGA1200 (Intel 500 Series & Select 400 Series Chipset) 65W', 'B08X6QHYDL', 'intel-core-i7-11700-desktop-processor-8-cores-up-to-49-ghz-lga1200-intel-500-series-select-400-series-chipset-65w', 'Compatible with Intel 500 series & select Intel 400 series chipset based motherboards\r\nIntel Turbo Boost Max Technology 3.0 Support\r\nIntel Optane Memory Support\r\nPCIe Gen 4.0 Support\r\nThermal solution included', 45000.00, 44.00, 32, 0.00, 0, 1, 1, '1759554881_image1.jpg', '1759554881_image2.jpg', '1759554881_image3.jpg', '1759554881_image4.jpg', 'intel', 0, 1, '2025-10-03 18:02:31', '2025-10-05 06:14:05'),
-(5, 'Intel® Core™ i3-12100 Processor 12M Cache, up to 4.30 GHz', 'B09NPHJLPT', 'intel-core-i3-12100-processor-12m-cache-up-to-430-ghz', 'Intel Core i3-12100 Processor 12M Cache, up to 4.30 GHz\r\nIt ensures a hassle-free usage\r\nIt is durable and long lasting.', 18600.00, 30.00, 20, 0.00, 0, 1, 1, '1759496274_image1.jpg', '17594961701.jpg', '17594961702.jpg', '17594961703.jpg', 'intel', 1, 1, '2025-10-03 01:56:10', '2025-10-05 06:13:26'),
-(6, 'Intel® Core™ i5-13600KF Processor 24M Cache, up to 5.10 GHz', 'B0BG64N549', 'intel-core-i5-13600kf-processor-24m-cache-up-to-510-ghz', '24M Cache, up to 5.10 GHz', 36000.00, 20.00, 15, 0.00, 0, 1, 1, '1759497517.jpg', '17594975171.jpg', '17594975172.jpg', '17594975173.jpg', 'intel', 0, 1, '2025-10-03 02:18:37', '2025-10-05 06:13:45'),
+(11, 'Intel Core i7-11700 Desktop Processor 8 Cores up to 4.9 GHz LGA1200 (Intel 500 Series & Select 400 Series Chipset) 65W', 'B08X6QHYDL', 'intel-core-i7-11700-desktop-processor-8-cores-up-to-49-ghz-lga1200-intel-500-series-select-400-series-chipset-65w', 'Compatible with Intel 500 series & select Intel 400 series chipset based motherboards\r\nIntel Turbo Boost Max Technology 3.0 Support\r\nIntel Optane Memory Support\r\nPCIe Gen 4.0 Support\r\nThermal solution included', 24999.00, 44.00, 32, 0.00, 0, 1, 1, '1759554881_image1.jpg', '1759554881_image2.jpg', '1759554881_image3.jpg', '1759554881_image4.jpg', 'intel', 0, 1, '2025-10-03 18:02:31', '2025-10-04 14:23:55'),
+(5, 'Intel® Core™ i3-12100 Processor 12M Cache, up to 4.30 GHz', 'B09NPHJLPT', 'intel-core-i3-12100-processor-12m-cache-up-to-430-ghz', 'Intel Core i3-12100 Processor 12M Cache, up to 4.30 GHz\r\nIt ensures a hassle-free usage\r\nIt is durable and long lasting.', 12999.00, 30.00, 20, 0.00, 0, 1, 1, '1759496274_image1.jpg', '17594961701.jpg', '17594961702.jpg', '17594961703.jpg', 'intel', 1, 1, '2025-10-03 01:56:10', '2025-10-04 14:24:00'),
+(6, 'Intel® Core™ i5-13600KF Processor 24M Cache, up to 5.10 GHz', 'B0BG64N549', 'intel-core-i5-13600kf-processor-24m-cache-up-to-510-ghz', '24M Cache, up to 5.10 GHz', 20889.00, 20.00, 15, 0.00, 0, 1, 1, '1759497517.jpg', '17594975171.jpg', '17594975172.jpg', '17594975173.jpg', 'intel', 0, 1, '2025-10-03 02:18:37', '2025-10-04 14:24:04'),
 (3, 'Cooler Master RR-212S-20PC-R1 Hyper 212 RGB Black Edition CPU Air Cooler 4 Direct Contact Heat Pipes 120mm RGB Fan', 'B07H22TC1N', 'cooler-master-rr-212s-20pc-r1-hyper-212-rgb-black-edition-cpu-air-cooler-4-direct-contact-heat-pipes-120mm-rgb-fan', 'Cooler Master Hyper 212 RGB Black Edition Cooling Fan Heatsink - 57.3 CFM - 30 dB(A) Noise - 4-pin PWM Fan - Socket R4 LGA-2066, Socket LGA 2011-v3, Socket R LGA-2011, Socket H4 LGA-1151, Socket H3 LGA-1150, Socket H2 LGA-1155, Socket H LGA-1156, Socket B LGA-1366, Socket AM4, Socket AM3+, Socket AM3 PGA-941, ... Compatible Processor Socket - RGB LED - Aluminum - 18.3 Year Life', 12000.00, 16.00, 4, 0.65, 4, 34, 18, '81B-HuW8ydL._SY450_.jpg', '81jR4Io8OwL._SY450_.jpg', '71Q3El-2flL._SY450_.jpg', '71+9-o7dIwL._SY450_.jpg', 'both', 1, 1, '2025-10-02 01:24:52', '2025-10-02 01:24:52'),
-(14, 'Intel Core i9-11900 LGA1200 Desktop Processor 8 Cores up to 5.1GHz 16MB Cache with Integrated Intel UHD 750 Graphics', 'B08X5XVLL9', 'intel-core-i9-11900-lga1200-desktop-processor-8-cores-up-to-51ghz-16mb-cache-with-integrated-intel-uhd-750-graphics', 'Introducing the 11th Gen Intel Core i9 desktop processor, this processor is 14 nm processor which supports LGA 1200. The Unlocked processors features 8 Core which allow the processor to run multiple programs simultaneously without slowing down the system, while the 16 threads allow instructions to be handled by a single CPU core.\r\nWith 2.5GHz Base frequency, Intel\'s Turbo Boost 3.0 technology cranks maximum turbo frequency up to blazing 5.1 GHz. The processor is desirable for a gamer looking for a fantastic in-game experience and a creator that is ready to do more creating and sharing alike.\r\nAll this paired with 16MB of Intel Smart Cache. It has a TDP rating of 65W with max memory size of 128GB dual-channel DDR4 support for up to 3200Mhz with Intel top notch security features.\r\nThis processor is designed for users who value fast responsiveness, comes with The i9-11900 features integrated Intel UHD 750 Graphics driven by the powerful Xe architecture.\r\nA thermal solution is included to help maintain optimal temperatures and the processor is backed by a 3-year warranty.', 63000.00, 39.00, 10, 0.00, 0, 1, 1, '1759558551.jpg', '17595585511.jpg', '17595585512.jpg', '17595585513.jpg', 'intel', 0, 1, '2025-10-04 00:45:51', '2025-10-05 06:15:06'),
-(15, 'Intel® Core™ i9-13900K Processor 36M Cache, up to 5.80 GHz', 'B0BG67ZG5R', 'intel-core-i9-13900k-processor-36m-cache-up-to-580-ghz', '36M Cache, up to 5.80 GHz', 94000.00, 16.00, 8, 0.00, 0, 1, 1, '1759558853.jpg', '17595588531.jpg', '17595588532.jpg', '17595588533.jpg', 'intel', 0, 1, '2025-10-04 00:50:53', '2025-10-05 06:16:03'),
-(16, 'Intel® Core™ i9-14900K New Gaming Desktop Processor 24 cores (8 P-cores + 16 E-cores) with Integrated Graphics - Unlocked', 'B0CGJDKLB8', 'intel-core-i9-14900k-new-gaming-desktop-processor-24-cores-8-p-cores-16-e-cores-with-integrated-graphics---unlocked', 'Game without compromise. Play harder and work smarter with Intel Core 14th Gen processors\r\n24 cores (8 P-cores + 16 E-cores) and 32 threads. Integrated Intel UHD Graphics 770 included\r\nLeading max clock speed of up to 6.0 GHz gives you smoother game play, higher frame rates, and rapid responsiveness\r\nCompatible with Intel 600-series (with potential BIOS update) or 700-series chipset-based motherboards\r\nDDR4 and DDR5 platform support cuts your load times and gives you the space to run the most demanding games', 86000.00, 35.00, 6, 0.00, 0, 1, 1, '1759559486.jpg', '17595594861.jpg', '17595594862.jpg', '17595594863.jpg', 'intel', 1, 1, '2025-10-04 01:01:26', '2025-10-05 06:15:25'),
+(14, 'Intel Core i9-11900 LGA1200 Desktop Processor 8 Cores up to 5.1GHz 16MB Cache with Integrated Intel UHD 750 Graphics', 'B08X5XVLL9', 'intel-core-i9-11900-lga1200-desktop-processor-8-cores-up-to-51ghz-16mb-cache-with-integrated-intel-uhd-750-graphics', 'Introducing the 11th Gen Intel Core i9 desktop processor, this processor is 14 nm processor which supports LGA 1200. The Unlocked processors features 8 Core which allow the processor to run multiple programs simultaneously without slowing down the system, while the 16 threads allow instructions to be handled by a single CPU core.\r\nWith 2.5GHz Base frequency, Intel\'s Turbo Boost 3.0 technology cranks maximum turbo frequency up to blazing 5.1 GHz. The processor is desirable for a gamer looking for a fantastic in-game experience and a creator that is ready to do more creating and sharing alike.\r\nAll this paired with 16MB of Intel Smart Cache. It has a TDP rating of 65W with max memory size of 128GB dual-channel DDR4 support for up to 3200Mhz with Intel top notch security features.\r\nThis processor is designed for users who value fast responsiveness, comes with The i9-11900 features integrated Intel UHD 750 Graphics driven by the powerful Xe architecture.\r\nA thermal solution is included to help maintain optimal temperatures and the processor is backed by a 3-year warranty.', 30429.00, 39.00, 10, 0.00, 0, 1, 1, '1759558551.jpg', '17595585511.jpg', '17595585512.jpg', '17595585513.jpg', 'intel', 0, 1, '2025-10-04 00:45:51', '2025-10-04 14:24:13'),
+(15, 'Intel® Core™ i9-13900K Processor 36M Cache, up to 5.80 GHz', 'B0BG67ZG5R', 'intel-core-i9-13900k-processor-36m-cache-up-to-580-ghz', '36M Cache, up to 5.80 GHz', 49899.00, 16.00, 8, 0.00, 0, 1, 1, '1759558853.jpg', '17595588531.jpg', '17595588532.jpg', '17595588533.jpg', 'intel', 0, 1, '2025-10-04 00:50:53', '2025-10-04 14:24:16'),
+(16, 'Intel® Core™ i9-14900K New Gaming Desktop Processor 24 cores (8 P-cores + 16 E-cores) with Integrated Graphics - Unlocked', 'B0CGJDKLB8', 'intel-core-i9-14900k-new-gaming-desktop-processor-24-cores-8-p-cores-16-e-cores-with-integrated-graphics---unlocked', 'Game without compromise. Play harder and work smarter with Intel Core 14th Gen processors\r\n24 cores (8 P-cores + 16 E-cores) and 32 threads. Integrated Intel UHD Graphics 770 included\r\nLeading max clock speed of up to 6.0 GHz gives you smoother game play, higher frame rates, and rapid responsiveness\r\nCompatible with Intel 600-series (with potential BIOS update) or 700-series chipset-based motherboards\r\nDDR4 and DDR5 platform support cuts your load times and gives you the space to run the most demanding games', 55999.00, 35.00, 6, 0.00, 0, 1, 1, '1759559486.jpg', '17595594861.jpg', '17595594862.jpg', '17595594863.jpg', 'intel', 1, 1, '2025-10-04 01:01:26', '2025-10-04 14:24:20'),
 (17, 'AMD 7000 Series Ryzen 5 7600X Desktop Processor 6 cores 12 Threads 38 MB Cache 4.7 GHz Upto 5.3 GHz AM5 Socket (100-100000593WOF)', 'B0BBJDS62N', 'amd-7000-series-ryzen-5-7600x-desktop-processor-6-cores-12-threads-38-mb-cache-47-ghz-upto-53-ghz-am5-socket-100-100000593wof', '6 Cores & 12 Threads, 38 MB Cache\r\nBase Clock: 4.7 GHz, Max Boost Clock: up to 5.3 GHz\r\nMemory Support: DDR5 5200MHz, Memory Channels: 2, TDP: 65W, PCI Express Generation : PCIe Gen 5\r\nCompatible with Motherboards based on 600 Series Chipset, Socket AM5\r\nOn Chip Graphic Card , Included Heatsink Fan: No', 42150.00, 20.00, 11, 0.00, 0, 2, 1, '1759559853.jpg', '17595598531.jpg', '17595598532.jpg', '17595598533.jpg', 'amd', 0, 1, '2025-10-04 01:07:33', '2025-10-04 14:24:30'),
 (18, 'AMD 7000 Series Ryzen 7 7800X 3D Desktop Processor 8 cores 16 Threads 104 MB Cache 4.2 GHz Upto 5.6 GHz AM5 Socket (100-100000910WOF)', 'B0BTZB7F88', 'amd-7000-series-ryzen-7-7800x-3d-desktop-processor-8-cores-16-threads-104-mb-cache-42-ghz-upto-56-ghz-am5-socket-100-100000910wof', '8 Cores & 16 Threads, 104 MB Cache\r\nBase Clock: 4.2 GHz, Max Boost Clock: up to 5.6 GHz\r\nMemory Support: DDR5 5200MHz, Memory Channels: 2, TDP: 120W, PCI Express Generation : PCIe Gen 5\r\nCompatible with Motherboards based on 600 Series Chipset, Socket AM5\r\nOn Chip Graphic Card', 70000.00, 45.00, 12, 0.00, 0, 2, 1, '1759560629.jpg', '17595606291.jpg', '17595606292.jpg', '17595606293.jpg', 'amd', 0, 1, '2025-10-04 01:20:29', '2025-10-04 14:24:36'),
 (19, 'AMD Ryzen 9 9950X3D Desktop Processor with Integrated Radeon Graphics, 16 cores 32 Threads 128MB Cache Base Clock 4.3 GHz Up to 5.7GHz AM5 Socket System Memory DDR5 Up to 5600 MT/s - 100-100000719WOF', 'B0DVZSG8D5', 'amd-ryzen-9-9950x3d-desktop-processor-with-integrated-radeon-graphics-16-cores-32-threads-128mb-cache-base-clock-43-ghz-up-to-57ghz-am5-socket-system-memory-ddr5-up-to-5600-mts---100-100000719wof', 'Ultimate 16-Core Powerhouse: Featuring 16 cores and 32 threads, this CPU delivers unparalleled performance for the most demanding gaming and content creation task\r\n2nd Gen AMD 3D V-Cache for Extreme Performance: Leverages the advanced 2nd generation of 3D V-Cache technology, significantly boosting gaming frame rates and accelerating content creation workflows.\r\nZen 5 Architecture with Blazing Fast Boost Clocks: Built on the cutting-edge Zen 5 architecture, achieving boost clocks up to 5.7 GHz for exceptional responsiveness and speed.\r\nAdvanced DDR5 and PCIe 5.0 Support: Fully supports DDR5 memory with AMD EXPO technology and PCIe 5.0, enabling next-generation connectivity and memory performance.\r\nRobust Overclocking and Tuning Capabilities: Unlocked for overclocking, with Precision Boost Overdrive and Curve Optimizer Voltage Offsets, providing extensive customization options for enthusiasts.\r\nComprehensive Connectivity and Integrated Graphics: Offers a wide range of connectivity options, including USB 3.2 Gen 2, and features integrated AMD Radeon Graphics for basic display needs.\r\nSupporting Chipsets:A620 , X670E , X670 , B650E , B650 , X870E , X870 , B840 , B850', 119000.00, 29.00, 4, 0.00, 0, 2, 1, '1759560884.jpg', '17595608841.jpg', '17595608842.jpg', '17595608843.jpg', 'amd', 1, 1, '2025-10-04 01:24:44', '2025-10-04 14:24:48'),
@@ -371,7 +365,7 @@ CREATE TABLE IF NOT EXISTS `product_specs` (
   `display_order` int DEFAULT '0',
   PRIMARY KEY (`product_spec_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=389 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=300 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `product_specs`
@@ -389,14 +383,13 @@ INSERT INTO `product_specs` (`product_spec_id`, `product_id`, `spec_name`, `spec
 (91, NULL, 'Memory Support', 'DDR4-3200 / DDR5-5600', 'Detailed Specs', 4),
 (92, NULL, 'PCIe Version', 'PCIe 5.0 / 4.0', 'Detailed Specs', 5),
 (93, NULL, 'Integrated Graphics', 'Intel UHD 770', 'Detailed Specs', 6),
-(318, 5, 'CPU Socket', 'LGA 1700', 'Key Specs', 4),
-(349, 13, 'CPU Speed', '5 GHz', 'Key Specs', 4),
-(316, 5, 'CPU Model', 'Core i3', 'Key Specs', 2),
-(317, 5, 'CPU Speed', '4.3 GHz', 'Key Specs', 3),
-(313, 5, 'Processor Count', '4', 'Detailed Specs', 6),
-(314, 5, 'Compatible Devices', 'Laptops, Monitors, PC', 'Detailed Specs', 7),
-(315, 5, 'CPU Manufacturer', 'Intel', 'Key Specs', 1),
-(312, 5, 'Manufacturer', 'CNA2 Intel Products Chengdu Ltd NO.8-1 Kexin Road Chengdu High-tech Zone Chengdu Sichuang 611731 China, Intel', 'Detailed Specs', 5),
+(124, 5, 'Processor Count', '4', 'Detailed Specs', 6),
+(125, 5, 'Compatible Devices', 'Laptops, Monitors, PC', 'Detailed Specs', 7),
+(126, 5, 'Manufacturer', 'CNA2 Intel Products Chengdu Ltd NO.8-1 Kexin Road Chengdu High-tech Zone Chengdu Sichuang 611731 China, Intel', 'Detailed Specs', 5),
+(127, 5, 'CPU Manufacturer', 'Intel', 'Key Specs', 1),
+(128, 5, 'CPU Model', 'Core i3', 'Key Specs', 2),
+(129, 5, 'CPU Speed', '4.3 GHz', 'Key Specs', 3),
+(130, 5, 'CPU Socket', 'LGA 1700', 'Key Specs', 4),
 (131, NULL, 'asdfasdf', 'awfsdf', 'adfasdf', 10),
 (132, NULL, 'adsfasdf', 'asdfas', 'adfasdf', 10),
 (133, NULL, 'asdf', 'asdfa', 'adfasdf', 12),
@@ -407,62 +400,76 @@ INSERT INTO `product_specs` (`product_spec_id`, `product_id`, `spec_name`, `spec
 (138, NULL, 'Brand', 'LGA 1700', 'Key Specs', 10),
 (139, NULL, 'Processor Count', '4', 'Detailed Specs', 10),
 (140, NULL, 'CPU Manufacturer', '‎INTEL, INTEL PRODUCTS VIETNAM CO. LTD. LOT I2 D1 RD SAIGON HIGH TECH PARK TAN PHU WARD, THU DUC CITY 70000 HO CHI MINH CITY VIETNAM', 'Detailed Specs', 10),
-(327, 11, 'CPU Model', 'Core i7-10700', 'Key Specs', 3),
-(328, 11, 'CPU Speed', '4.9 GHz', 'Key Specs', 4),
-(329, 11, 'CPU Socket', 'LGA 1700', 'Key Specs', 5),
-(326, 11, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
-(324, 11, 'Wattage', '65 Watts', 'Detailed Specs', 12),
-(325, 11, 'Brand', 'Intel', 'Key Specs', 1),
-(323, 11, 'Compatible Devices', 'Personal Computer', 'Detailed Specs', 11),
-(322, 11, 'model number', 'BX8070811700', 'Detailed Specs', 10),
-(321, 11, 'Product Dimensions', '‎3.81 x 3.81 x 0.51 cm; 200 g', 'Detailed Specs', 9),
-(320, 11, 'Model Name', 'i7-11700', 'Detailed Specs', 8),
-(319, 11, 'Manufacturer', '‎INTEL PRODUCTS VIETNAM CO. LTD., NO. 8-1, KEXIN ROAD CHENGDU HIGH-TECH ZONE (WEST) 611731 CHENGDU CHINA, Intel', 'Detailed Specs', 6),
-(348, 13, 'CPU Model', 'Core i7-10700K', 'Key Specs', 3),
-(338, 12, 'CPU Socket', 'LGA 1151', 'Key Specs', 5),
-(337, 12, 'CPU Speed', '13700 GHz', 'Key Specs', 4),
-(336, 12, 'CPU Model', 'Core i7', 'Key Specs', 3),
-(335, 12, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
-(334, 12, 'Brand', 'Intel', 'Key Specs', 1),
-(332, 12, 'model number', 'BX8071513700F', 'Detailed Specs', 8),
-(333, 12, 'Wattage', '65 Watts', 'Detailed Specs', 9),
-(331, 12, 'Product Dimensions', '12.7 x 10.16 x 0.25 cm; 453.59 g', 'Detailed Specs', 7),
-(330, 12, 'Manufacturer', 'Intel', 'Detailed Specs', 6),
-(347, 13, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
-(346, 13, 'Wattage', '125 Watts', 'Detailed Specs', 13),
-(345, 13, 'Ram Memory Technology', 'DDR4', 'Detailed Specs', 12),
-(344, 13, 'model number', 'BX8070811700K', 'Detailed Specs', 11),
-(342, 13, 'Model Name', 'i7-11700K', 'Detailed Specs', 9),
-(343, 13, 'Product Dimensions', '‎11.6 x 4.4 x 10.1 cm; 87 g', 'Detailed Specs', 10),
-(341, 13, 'Model', 'BX8070811700K', 'Detailed Specs', 8),
-(340, 13, 'Manufacturer', '‎INTEL PRODUCTS VIETNAM CO. LTD., NO. 8-1, KEXIN ROAD CHENGDU HIGH-TECH ZONE (WEST) 611731 CHENGDU CHINA, Intel', 'Detailed Specs', 7),
-(339, 13, 'CPU Manufacturer', 'Intel', 'Detailed Specs', 6),
-(357, 14, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
-(356, 14, 'Brand', 'Intel', 'Key Specs', 1),
-(355, 14, 'Wattage', '65 Watts', 'Detailed Specs', 10),
-(354, 14, 'model number', 'BX8070811900', 'Detailed Specs', 9),
-(353, 14, 'Product Dimensions', '3.81 x 3.81 x 0.51 cm; 370 g', 'Detailed Specs', 8),
-(352, 14, 'Series', '‎i9-11900', 'Detailed Specs', 7),
-(351, 14, 'Manufacturer', 'Intel, Intel Semiconductor US LTD', 'Detailed Specs', 6),
-(383, 15, 'Are Batteries Included', 'No', 'Detailed Specs', 13),
-(382, 15, 'Wattage', '125 Watts', 'Detailed Specs', 12),
-(379, 15, 'Processor Count', '‎24', 'Detailed Specs', 9),
-(380, 15, 'Computer Memory Type', '‎GDDR4', 'Detailed Specs', 10),
-(381, 15, 'Graphics Card Interface', '‎PCI-Express x8', 'Detailed Specs', 11),
-(378, 15, 'model number', 'BX8071513900K', 'Detailed Specs', 8),
-(377, 15, 'Product Dimensions', '‎6 x 4 x 0.1 cm; 90 g', 'Detailed Specs', 7),
-(376, 15, 'Manufacturer', '‎INTEL, INTEL PRODUCTS VIETNAM CO. LTD. LOT I2 D1 RD SAIGON HIGH TECH PARK TAN PHU WARD, THU DUC CITY 70000 HO CHI MINH CITY VIETNAM', 'Detailed Specs', 6),
-(371, 16, 'Brand', 'Intel', 'Key Specs', 1),
-(370, 16, 'Item Weight', '75 g', 'Detailed Specs', 15),
-(369, 16, 'Are Batteries Included', 'No', 'Detailed Specs', 14),
-(368, 16, 'Wattage', '250 W', 'Detailed Specs', 13),
-(367, 16, 'Processor Count', '24', 'Detailed Specs', 12),
-(366, 16, 'Model number', 'BX8071514900K', 'Detailed Specs', 11),
-(365, 16, 'Product Dimensions', '‎17.78 x 6.35 x 0.1 cm; 75 g', 'Detailed Specs', 10),
-(364, 16, 'Item Width', '2.5 Inches', 'Detailed Specs', 9),
-(363, 16, 'Item Height', '‎0.1 Centimeters', 'Detailed Specs', 8),
-(362, 16, 'Series', '‎Core™ i9-14900K', 'Detailed Specs', 7),
-(361, 16, 'Manufacturer', 'Intel', 'Detailed Specs', 6),
+(163, 11, 'Manufacturer', '‎INTEL PRODUCTS VIETNAM CO. LTD., NO. 8-1, KEXIN ROAD CHENGDU HIGH-TECH ZONE (WEST) 611731 CHENGDU CHINA, Intel', 'Detailed Specs', 6),
+(164, 11, 'Model Name', 'i7-11700', 'Detailed Specs', 8),
+(165, 11, 'Product Dimensions', '‎3.81 x 3.81 x 0.51 cm; 200 g', 'Detailed Specs', 9),
+(166, 11, 'model number', 'BX8070811700', 'Detailed Specs', 10),
+(167, 11, 'Compatible Devices', 'Personal Computer', 'Detailed Specs', 11),
+(169, 11, 'Brand', 'Intel', 'Key Specs', 1),
+(168, 11, 'Wattage', '65 Watts', 'Detailed Specs', 12),
+(170, 11, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
+(171, 11, 'CPU Model', 'Core i7-10700', 'Key Specs', 3),
+(172, 11, 'CPU Speed', '4.9 GHz', 'Key Specs', 4),
+(173, 11, 'CPU Socket', 'LGA 1700', 'Key Specs', 5),
+(174, 12, 'Brand', 'Intel', 'Key Specs', 1),
+(175, 12, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
+(176, 12, 'CPU Model', 'Core i7', 'Key Specs', 3),
+(177, 12, 'CPU Speed', '13700 GHz', 'Key Specs', 4),
+(178, 12, 'CPU Socket', 'LGA 1151', 'Key Specs', 5),
+(179, 12, 'Manufacturer', 'Intel', 'Detailed Specs', 6),
+(180, 12, 'Product Dimensions', '12.7 x 10.16 x 0.25 cm; 453.59 g', 'Detailed Specs', 7),
+(181, 12, 'model number', 'BX8071513700F', 'Detailed Specs', 8),
+(182, 12, 'Wattage', '65 Watts', 'Detailed Specs', 9),
+(183, 13, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
+(184, 13, 'CPU Model', 'Core i7-10700K', 'Key Specs', 3),
+(185, 13, 'CPU Speed', '5 GHz', 'Key Specs', 4),
+(186, 13, 'CPU Socket', 'LGA 1200', 'Key Specs', 5),
+(187, 13, 'CPU Manufacturer', 'Intel', 'Detailed Specs', 6),
+(188, 13, 'Manufacturer', '‎INTEL PRODUCTS VIETNAM CO. LTD., NO. 8-1, KEXIN ROAD CHENGDU HIGH-TECH ZONE (WEST) 611731 CHENGDU CHINA, Intel', 'Detailed Specs', 7),
+(189, 13, 'Model', 'BX8070811700K', 'Detailed Specs', 8),
+(190, 13, 'Model Name', 'i7-11700K', 'Detailed Specs', 9),
+(191, 13, 'Product Dimensions', '‎11.6 x 4.4 x 10.1 cm; 87 g', 'Detailed Specs', 10),
+(192, 13, 'model number', 'BX8070811700K', 'Detailed Specs', 11),
+(193, 13, 'Ram Memory Technology', 'DDR4', 'Detailed Specs', 12),
+(194, 13, 'Wattage', '125 Watts', 'Detailed Specs', 13),
+(195, 14, 'Brand', 'Intel', 'Key Specs', 1),
+(196, 14, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
+(197, 14, 'CPU Model', 'Core i9-11900', 'Key Specs', 3),
+(198, 14, 'CPU Speed', '5.2 GHz', 'Key Specs', 4),
+(199, 14, 'CPU Socket', 'LGA 1200', 'Key Specs', 5),
+(200, 14, 'Manufacturer', 'Intel, Intel Semiconductor US LTD', 'Detailed Specs', 6),
+(201, 14, 'Series', '‎i9-11900', 'Detailed Specs', 7),
+(202, 14, 'Product Dimensions', '3.81 x 3.81 x 0.51 cm; 370 g', 'Detailed Specs', 8),
+(203, 14, 'model number', 'BX8070811900', 'Detailed Specs', 9),
+(204, 14, 'Wattage', '65 Watts', 'Detailed Specs', 10),
+(205, 15, 'Brand', 'Intel', 'Key Specs', 1),
+(206, 15, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
+(207, 15, 'CPU Model', 'Intel Core i9', 'Key Specs', 3),
+(208, 15, 'CPU Speed', '3 GHz', 'Key Specs', 4),
+(209, 15, 'CPU Socket', 'LGA 1700', 'Key Specs', 5),
+(210, 15, 'Manufacturer', '‎INTEL, INTEL PRODUCTS VIETNAM CO. LTD. LOT I2 D1 RD SAIGON HIGH TECH PARK TAN PHU WARD, THU DUC CITY 70000 HO CHI MINH CITY VIETNAM', 'Detailed Specs', 6),
+(211, 15, 'Product Dimensions', '‎6 x 4 x 0.1 cm; 90 g', 'Detailed Specs', 7),
+(212, 15, 'model number', 'BX8071513900K', 'Detailed Specs', 8),
+(213, 15, 'Processor Count', '‎24', 'Detailed Specs', 9),
+(214, 15, 'Computer Memory Type', '‎GDDR4', 'Detailed Specs', 10),
+(215, 15, 'Graphics Card Interface', '‎PCI-Express x8', 'Detailed Specs', 11),
+(216, 15, 'Wattage', '125 Watts', 'Detailed Specs', 12),
+(217, 15, 'Are Batteries Included', 'No', 'Detailed Specs', 13),
+(218, 16, 'Brand', 'Intel', 'Key Specs', 1),
+(219, 16, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
+(220, 16, 'CPU Model', 'Core i9', 'Key Specs', 3),
+(221, 16, 'CPU Speed', '3.2 GHz', 'Key Specs', 4),
+(222, 16, 'CPU Socket', 'LGA 1700', 'Key Specs', 5),
+(223, 16, 'Manufacturer', 'Intel', 'Detailed Specs', 6),
+(224, 16, 'Series', '‎Core™ i9-14900K', 'Detailed Specs', 7),
+(225, 16, 'Item Height', '‎0.1 Centimeters', 'Detailed Specs', 8),
+(226, 16, 'Item Width', '2.5 Inches', 'Detailed Specs', 9),
+(227, 16, 'Product Dimensions', '‎17.78 x 6.35 x 0.1 cm; 75 g', 'Detailed Specs', 10),
+(228, 16, 'Model number', 'BX8071514900K', 'Detailed Specs', 11),
+(229, 16, 'Processor Count', '24', 'Detailed Specs', 12),
+(230, 16, 'Wattage', '250 W', 'Detailed Specs', 13),
+(231, 16, 'Are Batteries Included', 'No', 'Detailed Specs', 14),
+(232, 16, 'Item Weight', '75 g', 'Detailed Specs', 15),
 (233, 17, 'Brand', 'AMD', 'Key Specs', 1),
 (234, 17, 'CPU Manufacturer', 'AMD', 'Key Specs', 2),
 (235, 17, 'CPU Model', 'Ryzen 5', 'Key Specs', 3),
@@ -529,20 +536,7 @@ INSERT INTO `product_specs` (`product_spec_id`, `product_id`, `spec_name`, `spec
 (296, 21, 'Resolution', '7680 x 4320 Pixels', 'Detailed Specs', 15),
 (297, 21, 'Video output interface', 'DisplayPort, HDMI', 'Detailed Specs', 16),
 (298, 21, 'Form Factor', 'atx', 'Detailed Specs', 17),
-(299, 21, 'Item Weight', '690 g', 'Detailed Specs', 18),
-(372, 16, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
-(360, 14, 'CPU Socket', 'LGA 1200', 'Key Specs', 5),
-(359, 14, 'CPU Speed', '5.2 GHz', 'Key Specs', 4),
-(358, 14, 'CPU Model', 'Core i9-11900', 'Key Specs', 3),
-(350, 13, 'CPU Socket', 'LGA 1200', 'Key Specs', 5),
-(373, 16, 'CPU Model', 'Core i9', 'Key Specs', 3),
-(374, 16, 'CPU Speed', '3.2 GHz', 'Key Specs', 4),
-(375, 16, 'CPU Socket', 'LGA 1700', 'Key Specs', 5),
-(384, 15, 'Brand', 'Intel', 'Key Specs', 1),
-(385, 15, 'CPU Manufacturer', 'Intel', 'Key Specs', 2),
-(386, 15, 'CPU Model', 'Intel Core i9', 'Key Specs', 3),
-(387, 15, 'CPU Speed', '3 GHz', 'Key Specs', 4),
-(388, 15, 'CPU Socket', 'LGA 1700', 'Key Specs', 5);
+(299, 21, 'Item Weight', '690 g', 'Detailed Specs', 18);
 
 -- --------------------------------------------------------
 
@@ -599,7 +593,7 @@ CREATE TABLE IF NOT EXISTS `user_address` (
   `is_default` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`address_id`),
   KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `user_address`
@@ -607,7 +601,7 @@ CREATE TABLE IF NOT EXISTS `user_address` (
 
 INSERT INTO `user_address` (`address_id`, `user_id`, `full_name`, `phone`, `address_line1`, `address_line2`, `city`, `state`, `zip`, `country`, `is_default`) VALUES
 (10, 6, 'Saitama', '1234567891', 'ABCD', NULL, 'Z', 'CA', '363530', NULL, 1),
-(11, 1, 'Admin', '1234567891', 'ABCD', NULL, 'Los Angeles', 'CA', '90001', NULL, 1),
+(6, 1, 'Saitama', '1234567891', 'ABCD', NULL, 'Los Angeles', 'CA', '90001', NULL, 1),
 (5, 5, 'John Doe', '1234567891', '456 Oak St', '', 'Los Angeles', 'California', '70808', 'USA', 1);
 COMMIT;
 
