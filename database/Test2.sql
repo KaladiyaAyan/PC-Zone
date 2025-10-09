@@ -47,8 +47,7 @@ INSERT INTO categories (category_name, parent_id, icon_image, level, slug) VALUE
   ('Storage',        NULL, 'ssd-icon.webp', 0, 'storage'),          
   ('Power Supply',   NULL, 'psu-icon.webp', 0, 'power-supply'),     
   ('Cabinet',        NULL, 'cabinet-icon.webp', 0, 'cabinet'),          
-  ('Cooling System', NULL, 'liquid-cooler-icon.webp', 0, 'cooling-system'),   
-  ('Monitor',        NULL, 'monitor-icon.webp', 0, 'monitor'),          
+  ('Cooling System', NULL, 'liquid-cooler-icon.webp', 0, 'cooling-system'),        
   ('Keyboard',       NULL, 'keyboard-icon.webp', 0, 'keyboard'),         
   ('Mouse',          NULL, 'mouse-icon.webp', 0, 'mouse'),            
   ('Mousepad',       NULL, 'mousepad-icon.webp', 0, 'mousepad');
@@ -120,6 +119,7 @@ INSERT INTO brands (brand_name, category_id, slug) VALUES
 ('EVGA',          (SELECT category_id FROM categories WHERE category_name='Power Supply'),  'evga-psu'),
 ('Thermaltake',   (SELECT category_id FROM categories WHERE category_name='Power Supply'),  'thermaltake-psu'),
 ('NZXT',          (SELECT category_id FROM categories WHERE category_name='Power Supply'),  'nzxt-psu'),
+('Ant Esports',   (SELECT category_id FROM categories WHERE category_name='Power Supply'),        'ant-esports-psu'),
 
 -- Cabinet
 ('NZXT',          (SELECT category_id FROM categories WHERE category_name='Cabinet'),        'nzxt-case'),
@@ -140,15 +140,8 @@ INSERT INTO brands (brand_name, category_id, slug) VALUES
 ('Corsair',       (SELECT category_id FROM categories WHERE category_name='Cooling System'),'corsair-cooler'),
 ('Lian Li',       (SELECT category_id FROM categories WHERE category_name='Cooling System'),'lian-li-cooler'),
 
--- Monitor
-('Dell',          (SELECT category_id FROM categories WHERE category_name='Monitor'),        'dell-monitor'),
-('LG',            (SELECT category_id FROM categories WHERE category_name='Monitor'),        'lg-monitor'),
-('ASUS',          (SELECT category_id FROM categories WHERE category_name='Monitor'),        'asus-monitor'),
-('Acer',          (SELECT category_id FROM categories WHERE category_name='Monitor'),        'acer-monitor'),
-('Samsung',       (SELECT category_id FROM categories WHERE category_name='Monitor'),        'samsung-monitor'),
-('MSI',           (SELECT category_id FROM categories WHERE category_name='Monitor'),        'msi-monitor'),
-
 -- Keyboard
+('Ant Esports',   (SELECT category_id FROM categories WHERE category_name='Keyboard'),        'ant-esports-keyboard'),
 ('Logitech',      (SELECT category_id FROM categories WHERE category_name='Keyboard'),       'logitech-keyboard'),
 ('Razer',         (SELECT category_id FROM categories WHERE category_name='Keyboard'),       'razer-keyboard'),
 ('Corsair',       (SELECT category_id FROM categories WHERE category_name='Keyboard'),       'corsair-keyboard'),

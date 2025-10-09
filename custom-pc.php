@@ -67,7 +67,7 @@ foreach ($parts as $slug => $label) {
       } else if ($filename && file_exists('./assets/images/products/' . $filename)) {
         $row['image'] = './assets/images/products/' . rawurlencode($filename);
       } else {
-        $row['image'] = './assets/images/no-image.png';
+        $row['image'] = './assets/images/placeholder.png';
       }
 
       $products[] = $row;
