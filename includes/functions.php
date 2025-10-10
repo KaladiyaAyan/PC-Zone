@@ -34,7 +34,7 @@ function getConnection()
 function getRootCategories()
 {
   $conn = getConnection();
-  $sql = "SELECT * FROM categories WHERE parent_id IS NULL OR parent_id = 0 ORDER BY category_name ASC";
+  $sql = "SELECT * FROM categories ORDER BY category_name ASC";
   $result = mysqli_query($conn, $sql);
   $categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
   mysqli_close($conn);
