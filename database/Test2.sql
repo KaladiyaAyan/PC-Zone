@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT INTO `users` (`user_id`, `username`, `email`, `password`, `date_of_birth`, `gender`, `phone`, `email_verified`, `role`, `status`, `profile_image`, `created_at`, `updated_at`) VALUES
 (6, 'saitama', 'saitama@gmail.com', '$2y$10$n8WqdeXBY6tDCtAdyCoZy.oY3qOGCWStbQAuSAZaCxGxdAGnzXq/2', '2025-01-28', 'Male', '1234567891', 0, 'user', 'active', NULL, '2025-10-03 23:36:05', '2025-10-05 14:10:05'),
 (5, 'john doe', 'johndoe@gmail.com', '$2y$10$CYCeAyUMyILYj9Fx3tq6G.fh8Pgfw3f3wReLg.NXcAY9XOqaw/Poy', '2001-06-13', 'Male', '1234567891', 0, 'user', 'active', NULL, '2025-10-02 01:32:00', '2025-10-02 01:32:55'),
-(1, 'admin', 'admin@gmail.com', '$2y$10$1HiCsOc3R2KQEic4tTOotexh.FDZFY/1VSUWWnbe5OWeyImTCqcPa', '1994-06-08', 'Female', '1234567890', 1, 'admin', 'active', './assets/images/admin.jpg', '2025-10-02 01:24:51', '2025-10-05 14:13:31');
+(1, 'admin', 'admin@gmail.com', '$2y$10$1HiCsOc3R2KQEic4tTOotexh.FDZFY/1VSUWWnbe5OWeyImTCqcPa', '1994-06-08', 'Male', '1234567890', 1, 'admin', 'active', './assets/images/admin.jpg', '2025-10-02 01:24:51', '2025-10-08 15:31:53'),
+(7, 'Sonam', 'sonam@gmail.com', '$2y$10$A.IpbWnWNaH14gnvsrk8ruBJhWwKiKxFgbp9QeFGeAdZ.l2keF0xK', NULL, NULL, NULL, 0, 'user', 'active', NULL, '2025-11-16 05:56:04', '2025-11-16 05:56:04');
 
 -- 3. CATEGORIES (top-level + subcategories via parent_id)
 CREATE TABLE IF NOT EXISTS categories (
@@ -216,8 +217,9 @@ CREATE TABLE IF NOT EXISTS user_address (
 
 -- 8. user_address
 INSERT INTO `user_address` (`address_id`, `user_id`, `full_name`, `phone`, `address_line1`, `address_line2`, `city`, `state`, `zip`, `country`, `is_default`) VALUES
+(15, 7, 'Saitama', '1234', '12', NULL, '12', '12', '123', NULL, 1),
 (13, 6, 'Saitama', '1234567891', 'ABCD', NULL, 'Z', 'CA', '363530', NULL, 1),
-(11, 1, 'Saitama', '1234567891', 'ABCD', '', 'Los Angeles', 'CA', '90001', 'america', 1),
+(14, 1, 'Saitama', '1234567891', 'ABCD', '', 'Los Angeles', 'CA', '90001', 'india', 1),
 (5, 5, 'John Doe', '1234567891', '456 Oak St', '', 'Los Angeles', 'California', '70808', 'USA', 1);
 
 -- ORDERS
@@ -253,7 +255,17 @@ INSERT INTO `orders` (`order_id`, `user_id`, `product_id`, `quantity`, `unit_pri
 (14, 6, 19, 1, 84490.00, 29.00, 84490.00, '2025-10-05 17:57:55', '2025-10-05 17:57:55'),
 (15, 6, 16, 1, 55900.00, 35.00, 55900.00, '2025-10-05 18:18:07', '2025-10-05 18:18:07'),
 (16, 6, 26, 2, 68145.00, 41.00, 136290.00, '2025-10-05 18:18:07', '2025-10-05 18:18:07'),
-(17, 6, 27, 1, 121360.00, 26.00, 121360.00, '2025-10-05 18:18:07', '2025-10-05 18:18:07');
+(17, 6, 27, 1, 121360.00, 26.00, 121360.00, '2025-10-05 18:18:07', '2025-10-05 18:18:07'),
+(18, 1, 16, 1, 55900.00, 35.00, 55900.00, '2025-10-08 21:03:35', '2025-10-08 21:03:35'),
+(19, 1, 19, 1, 84490.00, 29.00, 84490.00, '2025-10-08 21:03:35', '2025-10-08 21:03:35'),
+(20, 7, 1, 1, 10779.23, 23.00, 10779.23, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(21, 7, 31, 1, 2800.00, 20.00, 2800.00, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(22, 7, 24, 1, 23520.00, 16.00, 23520.00, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(23, 7, 34, 1, 7220.17, 17.00, 7220.17, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(24, 7, 38, 1, 2737.26, 26.00, 2737.26, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(25, 7, 5, 1, 13020.00, 30.00, 13020.00, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(26, 7, 28, 1, 18318.00, 29.00, 18318.00, '2025-11-16 12:16:42', '2025-11-16 12:16:42'),
+(27, 7, 4, 1, 1259.64, 64.00, 1259.64, '2025-11-16 12:16:42', '2025-11-16 12:16:42');
 
 CREATE TABLE IF NOT EXISTS payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -283,7 +295,17 @@ INSERT INTO `payments` (`payment_id`, `order_id`, `payment_method`, `amount`, `c
 (14, 14, 'upi', 84490.00, 'INR', 'Pending', '2025-10-05 17:57:55'),
 (15, 15, 'cash_on_delivery', 55900.00, 'INR', 'Pending', '2025-10-05 18:18:07'),
 (16, 16, 'cash_on_delivery', 136290.00, 'INR', 'Pending', '2025-10-05 18:18:07'),
-(17, 17, 'cash_on_delivery', 121360.00, 'INR', 'Pending', '2025-10-05 18:18:07');
+(17, 17, 'cash_on_delivery', 121360.00, 'INR', 'Pending', '2025-10-05 18:18:07'),
+(18, 18, 'cash_on_delivery', 55900.00, 'INR', 'Pending', '2025-10-08 21:03:35'),
+(19, 19, 'cash_on_delivery', 84490.00, 'INR', 'Pending', '2025-10-08 21:03:35'),
+(20, 20, 'cash_on_delivery', 10779.23, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(21, 21, 'cash_on_delivery', 2800.00, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(22, 22, 'cash_on_delivery', 23520.00, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(23, 23, 'cash_on_delivery', 7220.17, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(24, 24, 'cash_on_delivery', 2737.26, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(25, 25, 'cash_on_delivery', 13020.00, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(26, 26, 'cash_on_delivery', 18318.00, 'INR', 'Pending', '2025-11-16 12:16:42'),
+(27, 27, 'cash_on_delivery', 1259.64, 'INR', 'Pending', '2025-11-16 12:16:42');
 
 
 -- PRODUCT SPECS (key-value pairs)
@@ -818,7 +840,26 @@ INSERT INTO `product_specs` (`product_spec_id`, `product_id`, `spec_name`, `spec
 (776, 41, 'Average Battery Life (in hours)', '‎12 Months', 'Detailed Specs', 15),
 (777, 41, 'Are Batteries Included', '‎Yes', 'Detailed Specs', 16),
 (778, 41, 'Manufacturer', '‎Logitech G', 'Detailed Specs', 17),
-(779, 41, 'Item Weight', '‎89 g', 'Detailed Specs', 18);
+(779, 41, 'Item Weight', '‎89 g', 'Detailed Specs', 18),
+(799, 35, 'Brand', 'Seagate', 'Key Specs', 4),
+(800, 35, 'Special Feature', 'Integrated Data Security', 'Key Specs', 5),
+(801, 35, 'Hard Disk Form Factor', '3.5 Inches', 'Key Specs', 6),
+(802, 35, 'Hard Disk Description', 'Mechanical Hard Disk', 'Key Specs', 7),
+(803, 35, 'Compatible Devices', 'Desktop, Laptop', 'Key Specs', 8),
+(804, 35, 'Installation Type', 'Internal Hard Drive', 'Key Specs', 9),
+(821, 34, 'Connectivity Technology', 'USB', 'Key Specs', 3),
+(822, 34, 'Brand', 'Seagate', 'Key Specs', 4),
+(823, 34, 'Special Feature', 'Data Recovery Service, Portable', 'Key Specs', 5),
+(824, 34, 'Hard Disk Form Factor', '2.5 Inches', 'Key Specs', 6),
+(825, 34, 'Hard Disk Description', 'Mechanical Hard Disk', 'Key Specs', 7),
+(826, 34, 'Compatible Devices', 'Desktop, Laptop', 'Key Specs', 8),
+(827, 34, 'Installation Type', 'External Hard Drive', 'Key Specs', 9),
+(887, 36, 'Item model number', '‎MZ-V9P4T0B/AM', 'Detailed Specs', 18),
+(884, 36, 'Item Height', '‎0.09 Inches', 'Detailed Specs', 15),
+(883, 36, 'Form Factor', '‎2.5-inch', 'Detailed Specs', 14),
+(881, 36, 'Series', '‎990 PRO', 'Detailed Specs', 12),
+(882, 36, 'Colour', '‎Black 990 PRO 4TB', 'Detailed Specs', 13),
+(880, 36, 'Manufacturer', '‎Samsung, Samsung Electronics Co., Ltd. Semiconductor Business Test & Package Center, #158 Baebang-Ro Baebang-Eup, Asan-city Chungcheongnam-Do, 31489 Republic of Korea', 'Detailed Specs', 11);
 
 
 -- PRODUCT REVIEWS

@@ -37,18 +37,21 @@ foreach ($parts as $slug => $label) {
   // ---- START: CORRECTED QUERY LOGIC ----
   // Base query to get the products for the main category ID
   $sql_products = "
-        SELECT p.product_id, p.product_name, p.price, p.discount, p.main_image AS image
-        FROM products p
-        WHERE p.is_active = 1
-          AND p.stock > 0
-          AND p.category_id = $cid
-    ";
+  SELECT p.product_id, p.product_name, p.price, p.discount, p.main_image AS image
+  FROM products p
+  WHERE p.is_active = 1
+    AND p.stock > 0
+    AND (
+      p.category_id = $cid
+      OR p.category_id IN (SELECT category_id FROM categories WHERE parent_id = $cid)
+    )
+  ";
 
-  // Conditionally add the platform filter for 'processor' and 'motherboard'
-  if (in_array($slug, ['processor', 'motherboard'])) {
-    $safe_platform = mysqli_real_escape_string($conn, $platform);
-    $sql_products .= " AND (p.platform = '$safe_platform' OR p.platform = 'both')";
-  }
+// Conditionally add the platform filter for 'processor' and 'motherboard'
+if (in_array($slug, ['processor', 'motherboard'])) {
+$safe_platform = mysqli_real_escape_string($conn, $platform);
+$sql_products .= " AND (p.platform = '$safe_platform' OR p.platform = 'both')";
+}
   // ---- END: CORRECTED QUERY LOGIC ----
 
   $sql_products .= " ORDER BY (p.price - (p.price * (p.discount/100))) ASC LIMIT 500";
